@@ -1,6 +1,8 @@
 ; ===========================================================================
-;  KingsValley2  —  MSXDAW scaffold. Mapper: konami-scc, 16 x 8 KiB banks.
-;  Bank 0 is source (`banks/bank00.asm`); leftover banks are INCBIN until folded.
+;  KingsValley2  —  MSXDAW. Mapper: konami-scc, 16 x 8 KiB banks.
+;  Page 4000-5FFF is never remapped (no ld (5000h),a). Later banks are
+;  consecutive triplets into 6000/8000/A000 via page_triplet (bank 0).
+;  Bank 0–15 are source.
 ; ===========================================================================
 
     OUTPUT "KingsValley2.rom"
@@ -16,76 +18,100 @@
 
 ; --- bank 01 ---
     PHASE 0x6000
-    INCBIN "banks/bank01.bin"
+    INCLUDE "banks/bank01.asm"
     DEPHASE
 
 ; --- bank 02 ---
     PHASE 0x8000
-    INCBIN "banks/bank02.bin"
+    INCLUDE "banks/bank02.asm"
     DEPHASE
 
 ; --- bank 03 ---
     PHASE 0xA000
-    INCBIN "banks/bank03.bin"
+    INCLUDE "banks/bank03.asm"
     DEPHASE
 
-; --- bank 04 ---
-    PHASE 0x4000
-    INCBIN "banks/bank04.bin"
+; --- bank 04 ---  triplet 4,5,6 @ 6000/8000/A000
+    PHASE 0x6000
+    MODULE bank04
+    INCLUDE "banks/bank04.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 05 ---
-    PHASE 0x6000
-    INCBIN "banks/bank05.bin"
+    PHASE 0x8000
+    MODULE bank05
+    INCLUDE "banks/bank05.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 06 ---
-    PHASE 0x8000
-    INCBIN "banks/bank06.bin"
+    PHASE 0xA000
+    MODULE bank06
+    INCLUDE "banks/bank06.asm"
+    ENDMODULE
     DEPHASE
 
-; --- bank 07 ---
-    PHASE 0xA000
-    INCBIN "banks/bank07.bin"
+; --- bank 07 ---  triplet 7,8,9 @ 6000/8000/A000
+    PHASE 0x6000
+    MODULE bank07
+    INCLUDE "banks/bank07.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 08 ---
-    PHASE 0x4000
-    INCBIN "banks/bank08.bin"
+    PHASE 0x8000
+    MODULE bank08
+    INCLUDE "banks/bank08.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 09 ---
-    PHASE 0x6000
-    INCBIN "banks/bank09.bin"
+    PHASE 0xA000
+    MODULE bank09
+    INCLUDE "banks/bank09.asm"
+    ENDMODULE
     DEPHASE
 
-; --- bank 10 ---
-    PHASE 0x8000
-    INCBIN "banks/bank10.bin"
+; --- bank 10 ---  triplet 10,11,12 @ 6000/8000/A000
+    PHASE 0x6000
+    MODULE bank10
+    INCLUDE "banks/bank10.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 11 ---
-    PHASE 0xA000
-    INCBIN "banks/bank11.bin"
+    PHASE 0x8000
+    MODULE bank11
+    INCLUDE "banks/bank11.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 12 ---
-    PHASE 0x4000
-    INCBIN "banks/bank12.bin"
+    PHASE 0xA000
+    MODULE bank12
+    INCLUDE "banks/bank12.asm"
+    ENDMODULE
     DEPHASE
 
-; --- bank 13 ---
-    PHASE 0x6000
-    INCBIN "banks/bank13.bin"
+; --- bank 13 ---  A000-only (page_bank_13)
+    PHASE 0xA000
+    MODULE bank13
+    INCLUDE "banks/bank13.asm"
+    ENDMODULE
     DEPHASE
 
-; --- bank 14 ---
+; --- bank 14 ---  with 15 at 8000/A000 (page_banks_14_15)
     PHASE 0x8000
-    INCBIN "banks/bank14.bin"
+    MODULE bank14
+    INCLUDE "banks/bank14.asm"
+    ENDMODULE
     DEPHASE
 
 ; --- bank 15 ---
     PHASE 0xA000
-    INCBIN "banks/bank15.bin"
+    MODULE bank15
+    INCLUDE "banks/bank15.asm"
+    ENDMODULE
     DEPHASE
 

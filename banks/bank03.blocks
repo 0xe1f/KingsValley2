@@ -1,0 +1,18 @@
+; z80dasm block file for bank 3 @ 0xA000. Rendering only.
+d_a072_jp: start 0xA075 end 0xA081 type worddata
+d_a6dd_jp: start 0xA6E0 end 0xA6EC type worddata
+d_a6f2_jp: start 0xA6F5 end 0xA6FF type worddata
+d_a8a1_jp: start 0xA8A4 end 0xA8AE type worddata
+d_aa6c_jp: start 0xAA6F end 0xAA75 type worddata
+d_ab0f_jp: start 0xAB12 end 0xAB1A type worddata
+d_ab63_jp: start 0xAB66 end 0xAB6C type worddata
+d_abfb_jp: start 0xABFE end 0xAC06 type worddata
+d_acd9_jp: start 0xACDC end 0xACE4 type worddata
+d_ad83_jp: start 0xAD86 end 0xAD90 type worddata
+d_ae26_jp: start 0xAE29 end 0xAE35 type worddata
+d_b2ad_jp: start 0xB2B0 end 0xB2BA type worddata
+d_b691_jp: start 0xB694 end 0xB6A0 type worddata
+ix14_da:   start 0xB595 end 0xB5A6 type bytedata
+ix14_db:   start 0xB5A6 end 0xB5B8 type bytedata
+ix14_dc:   start 0xB926 end 0xB938 type bytedata
+pad_ff:    start 0xBEE5 end 0xC000 type bytedata

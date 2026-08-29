@@ -7,7 +7,7 @@
 #
 # Prerequisite: tools/sjasmplus (built from source, gitignored)
 # Workbench (tools/workbench) is required for banks / regen — not for
-# assemble or verify. Leftover banks 1–15 are committed INCBINs.
+# assemble or verify. All 16 banks are source (no leftover INCBINs).
 
 SRC      := KingsValley2.asm
 OUT      := KingsValley2.rom

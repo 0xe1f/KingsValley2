@@ -17,15 +17,23 @@ ROM exactly, so the game can be understood and modified.
 KingsValley2.asm    master file: stitches 8 KiB banks into the ROM image
 KingsValley2.sha1   SHA-1 of the original 128 KiB ROM (`make verify`)
 banks/              one file per mapper bank
-  bank00.asm        bank 0: AB header, cart_init / cart_boot / H.TIMI
-  bank01.bin …      leftover banks, still INCBIN until folded
+  bank00.asm        bank 0: AB header, cart_init / cart_boot / H.TIMI / pager
+  bank01.asm … 03   boot triplet @ 6000/8000/A000
+  bank04.asm        sound/SCC driver @ 6000 (MODULE bank04)
+  bank05.asm … 06   packed-PSG payload @ 8000/A000
+  bank07.asm        tables / packed lists @ 6000 (MODULE bank07)
+  bank08.asm … 09   tileset + gfx @ 8000/A000
+  bank10.asm … 11   map tables / streams @ 6000/8000
+  bank12.asm        gfx prefix + code @ A000 (MODULE bank12)
+  bank13.asm        tables / streams / tiles @ A000 (page_bank_13)
+  bank14.asm … 15   font + UI gfx @ 8000/A000 (page_banks_14_15)
 tools/workbench/    MSXDAW submodule (regen, romscan, RLE, PSG)
 docs/               reverse-engineering notes (`game-notes.md`, `progress.md`)
 Makefile            build / verify
 ```
 
-Bank 0 assembles from labeled `.asm`. Banks 1–15 are committed leftover
-`INCBIN`s so a clean checkout can still assemble and verify.
+Bank 0–15 assemble from labeled `.asm`. A clean checkout can assemble and
+verify with no leftover `INCBIN` bins.
 
 ## Building
 
@@ -45,10 +53,9 @@ rebuilds and confirms the output matches it.
 
 ## How it works
 
-128 KiB = 16 × 8 KiB banks (Konami SCC mapping). Banks start as `INCBIN` and
-are converted from raw binary into commented disassembly one at a time. After
-every change the ROM is rebuilt and SHA-1 checked so it stays byte-for-byte
-identical.
+128 KiB = 16 × 8 KiB banks (Konami SCC mapping). Each bank is labeled
+source (code, named payload `INCBIN`, or a mix). After every change the ROM
+is rebuilt and SHA-1 checked so it stays byte-for-byte identical.
 
 See `docs/game-notes.md` for reverse-engineering notes and `docs/progress.md`
 for current status and next steps.

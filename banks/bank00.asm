@@ -2,7 +2,7 @@
 ;  bank 00 — 8 KiB mapper bank, assembled at CPU 0x4000 (PHASE in master).
 ;  Konami SCC: page 4000-5FFF is switchable in hardware; this dump has no
 ;  ld (5000h),a, so this bank is likely left mapped. Not a window file.
-;  Regen: tools/workbench/msx/regen-bank.sh 0 0x4000
+;  Regen: tools/workbench/msx/regen-bank.sh 0 0x4000 banks/bank00.blocks
 ; ===========================================================================
 
 ; (org set by PHASE in KingsValley2.asm)
@@ -16,27 +16,20 @@ rom_header:
 	defb 000h, 000h         ; TEXT
 	defb 000h, 000h, 000h, 000h, 000h, 000h
 
-	ld b,e
-	ld b,h
-	rlca
-	ld h,c
-	ret po
-	nop
-	jp po,04204h
-	jp po,l403ch
-	jp po,0e223h
-	ld h,0e2h
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	add a,c
-	ld bc,00001h
-	add a,b
-	defb 0f6h               ; stray byte; H.TIMI lands on the following DI
+; Game Master relative option table. Not executed; H.TIMI is JP 0x402E.
+; BLOCK 'gm_opt' (start 0x4010 end 0x402e)
+gm_opt_start:
+	defb 043h, 044h         ; "CD"
+	defb 007h, 061h         ; RC761 BCD
+	defb 0e0h, 000h         ; option flags
+	defb 0e2h, 004h, 042h
+	defb 0e2h, 03ch, 040h
+	defb 0e2h, 023h, 0e2h
+	defb 026h, 0e2h
+	defb 000h, 000h, 000h, 000h, 000h, 000h, 000h
+	defb 081h, 001h, 001h, 000h, 080h
+	defb 0f6h
+gm_opt_end:
 htimi_isr:
 	di                      ; H.TIMI -> 0x402E
 	ld hl,0e215h
@@ -70,7 +63,7 @@ l4049h:
 	ld (09000h),a
 	inc a
 	ld (0b000h),a
-	call 06006h
+	call 06006h             ; tick_entry (bank 4)
 	xor a
 	ld (0e206h),a
 	di
@@ -93,22 +86,22 @@ l4049h:
 l408dh:
 	ei
 	ret
-sub_408fh:
+ADD_HL_A:                       ; 0x408F
 	add a,l
 	ld l,a
 	ret nc
 	inc h
 	ret
-sub_4094h:
+ADD_DE_A:                       ; 0x4094
 	add a,e
 	ld e,a
 	ret nc
 	inc d
 	ret
-sub_4099h:
+DISPATCH_A:                     ; 0x4099  inline word table follows each call
 	pop hl
 	add a,a
-	call sub_408fh
+	call ADD_HL_A
 	ld a,(hl)
 	inc hl
 	ld h,(hl)
@@ -156,7 +149,7 @@ cart_boot:                      ; was l40b5h
 	ld (0f3ebh),a
 	ld hl,0f0f1h
 	ld a,001h
-	ld (07000h),a
+	ld (07000h),a           ; page_triplet A=1 → banks 1/2/3
 	ld (hl),a
 	inc a
 	ld (09000h),a
@@ -235,10 +228,12 @@ sub_4162h:
 	ld bc,00005h
 	ldir
 	ret
-sub_418ah:
+; Page consecutive banks A, A+1, A+2 into 6000/8000/A000 (SCC 7000/9000/B000)
+; and mirror them at mapper_bank_6000/8000/A000 (0xF0F1-F0F3).
+page_banks_123:                 ; 0x418A
 	push af
 	ld a,001h
-l418dh:
+page_triplet:                   ; 0x418D
 	di
 	push hl
 	ld hl,0f0f1h
@@ -256,35 +251,37 @@ l418dh:
 	pop af
 	ei
 	ret
+page_banks_456:                 ; 0x41A6
 	push af
 	ld a,004h
-	jr l418dh
-sub_41abh:
+	jr page_triplet
+page_banks_789:                 ; 0x41AB
 	push af
 	ld a,007h
-	jr l418dh
-sub_41b0h:
+	jr page_triplet
+page_banks_10_11_12:            ; 0x41B0
 	push af
 	ld a,00ah
-	jr l418dh
-l41b5h:
+	jr page_triplet
+page_bank_12:                   ; 0x41B5  A000 only
 	push af
 	ld a,00ch
-	jr l41c2h
+	jr page_a000
+page_bank_15:                   ; 0x41BA
 	push af
 	ld a,00fh
-	jr l41c2h
-sub_41bfh:
+	jr page_a000
+page_bank_13:                   ; 0x41BF
 	push af
 	ld a,00dh
-l41c2h:
+page_a000:                      ; 0x41C2
 	di
 	ld (0f0f3h),a
 	ld (0b000h),a
 	pop af
 	ei
 	ret
-sub_41cch:
+page_banks_14_15:               ; 0x41CC  8000+A000
 	push af
 	ld a,00eh
 	di
@@ -298,160 +295,160 @@ sub_41cch:
 	ret
 l41e0h:
 	ld a,001h
-	jp l4326h
+	jp sound_far
 	ld a,002h
-	jp l4326h
+	jp sound_far
 sub_41eah:
 	ld a,003h
-	jp l4326h
+	jp sound_far
 	ld a,004h
-	jp l4326h
+	jp sound_far
 	ld a,005h
-	jp l4326h
+	jp sound_far
 	ld a,006h
-	jp l4326h
+	jp sound_far
 	ld a,007h
-	jp l4326h
+	jp sound_far
 	ld a,008h
-	jp l4326h
+	jp sound_far
 	ld a,009h
-	jp l4326h
+	jp sound_far
 	ld a,00ah
-	jp l4326h
+	jp sound_far
 	ld a,00bh
-	jp l4326h
+	jp sound_far
 	ld a,00ch
-	jp l4326h
+	jp sound_far
 	ld a,00dh
-	jp l4326h
+	jp sound_far
 	ld a,00eh
-	jp l4326h
+	jp sound_far
 sub_4226h:
 	ld a,00fh
-	jp l4326h
+	jp sound_far
 sub_422bh:
 	ld a,010h
-	jp l4326h
+	jp sound_far
 sub_4230h:
 	ld a,011h
-	jp l4326h
+	jp sound_far
 	ld a,012h
-	jp l4326h
+	jp sound_far
 	ld a,013h
-	jp l4326h
+	jp sound_far
 	ld a,014h
-	jp l4326h
+	jp sound_far
 	ld a,015h
-	jp l4326h
+	jp sound_far
 	ld a,016h
-	jp l4326h
+	jp sound_far
 	ld a,017h
-	jp l4326h
+	jp sound_far
 	ld a,018h
-	jp l4326h
+	jp sound_far
 	ld a,019h
-	jp l4326h
+	jp sound_far
 	ld a,01ah
-	jp l4326h
+	jp sound_far
 	ld a,01bh
-	jp l4326h
+	jp sound_far
 	ld a,01ch
-	jp l4326h
+	jp sound_far
 	ld a,01dh
-	jp l4326h
+	jp sound_far
 	ld a,01eh
-	jp l4326h
+	jp sound_far
 	ld a,01fh
-	jp l4326h
+	jp sound_far
 sub_427bh:
 	ld a,020h
-	jp l4326h
+	jp sound_far
 	ld a,021h
-	jp l4326h
+	jp sound_far
 	ld a,022h
-	jp l4326h
+	jp sound_far
 	ld a,023h
-	jp l4326h
+	jp sound_far
 	ld a,024h
-	jp l4326h
+	jp sound_far
 	ld a,025h
-	jp l4326h
+	jp sound_far
 	ld a,026h
-	jp l4326h
+	jp sound_far
 	ld a,027h
-	jp l4326h
+	jp sound_far
 l42a3h:
 	ld a,028h
-	jr l4326h
+	jr sound_far
 	ld a,029h
-	jr l4326h
+	jr sound_far
 sub_42abh:
 	ld a,02ah
-	jr l4326h
+	jr sound_far
 	ld a,02bh
-	jr l4326h
+	jr sound_far
 	ld a,02ch
-	jr l4326h
+	jr sound_far
 	ld a,02dh
-	jr l4326h
+	jr sound_far
 	ld a,02eh
-	jr l4326h
+	jr sound_far
 	ld a,02fh
-	jr l4326h
+	jr sound_far
 	ld a,030h
-	jr l4326h
+	jr sound_far
 	ld a,031h
-	jr l4326h
+	jr sound_far
 	ld a,032h
-	jr l4326h
+	jr sound_far
 	ld a,033h
-	jr l4326h
+	jr sound_far
 	ld a,034h
-	jr l4326h
+	jr sound_far
 	ld a,035h
-	jr l4326h
+	jr sound_far
 	ld a,036h
-	jr l4326h
+	jr sound_far
 	ld a,037h
-	jr l4326h
+	jr sound_far
 	ld a,038h
-	jr l4326h
+	jr sound_far
 	ld a,039h
-	jr l4326h
+	jr sound_far
 	ld a,03ah
-	jr l4326h
+	jr sound_far
 	ld a,03bh
-	jr l4326h
+	jr sound_far
 	ld a,03ch
-	jr l4326h
+	jr sound_far
 	ld a,03dh
-	jr l4326h
+	jr sound_far
 	ld a,03eh
-	jr l4326h
+	jr sound_far
 	ld a,03fh
-	jr l4326h
+	jr sound_far
 	ld a,040h
-	jr l4326h
+	jr sound_far
 	ld a,041h
-	jr l4326h
+	jr sound_far
 sub_430bh:
 	ld a,080h
-	jr l4326h
+	jr sound_far
 l430fh:
 	ld a,081h
-	jr l4326h
+	jr sound_far
 sub_4313h:
 	xor a
 	ld (0e21ah),a
 	ld a,082h
-	jr l4326h
+	jr sound_far
 sub_431bh:
 	ld a,0ffh
 	ld (0e21ah),a
 	ld a,083h
-	jr l4326h
+	jr sound_far
 	ld a,084h
-l4326h:
+sound_far:                      ; 0x4326  page 4/5/6, call sound_entry, restore
 	di
 	push hl
 	push de
@@ -466,7 +463,7 @@ l4326h:
 	ld (0b000h),a
 	pop af
 	push af
-	call 06003h
+	call 06003h             ; sound_entry (bank 4)
 	ld hl,0f0f1h
 	ld a,(hl)
 	ld (07000h),a
@@ -483,14 +480,14 @@ l4326h:
 	pop hl
 	ei
 	ret
-	call sub_418ah
+	call page_banks_123
 	call sub_5d63h
 	jr l4366h
-	call sub_418ah
+	call page_banks_123
 	call sub_5c80h
 l4366h:
-	jp l41b5h
-	call sub_418ah
+	jp page_bank_12
+	call page_banks_123
 	call sub_5cf5h
 	jr l4366h
 sub_4371h:
@@ -521,14 +518,16 @@ l438dh:
 	ld a,009h
 l439fh:
 	srl a
-	call sub_4099h
-	call p,0f941h
-	ld b,c
-	cp 041h
-	inc bc
-	ld b,d
-	ex af,af'
-	ld b,d
+	call DISPATCH_A
+
+; BLOCK 'd_43a1_jp' (start 0x43a4 end 0x43ae)
+d_43a1_jp_start:
+	defw 041f4h
+	defw 041f9h
+	defw 041feh
+	defw 04203h
+	defw 04208h
+d_43a1_jp_end:
 sub_43aeh:
 	ld a,(0e203h)
 	call sub_4cfdh
@@ -541,9 +540,9 @@ sub_43bbh:
 	call sub_4400h
 	ret
 sub_43c2h:
-	call sub_41b0h
+	call page_banks_10_11_12
 	call sub_43cbh
-	jp sub_418ah
+	jp page_banks_123
 sub_43cbh:
 	ld a,(0e242h)
 	dec a
@@ -586,10 +585,10 @@ sub_43f1h:
 	inc hl
 	ret
 sub_4400h:
-	call sub_41b0h
+	call page_banks_10_11_12
 	call sub_4416h
 	call sub_440ch
-	jp sub_418ah
+	jp page_banks_123
 sub_440ch:
 	ld a,001h
 	ld (0efc3h),a
@@ -722,12 +721,12 @@ sub_44ach:
 	ret
 sub_44d4h:
 	call 0ba3ch
-	call sub_41cch
+	call page_banks_14_15
 	call sub_44f2h
 	call sub_4606h
-	call sub_41b0h
+	call page_banks_10_11_12
 	call sub_4535h
-	call sub_418ah
+	call page_banks_123
 	call sub_46a4h
 	call 0651dh
 	jp 0ba54h
@@ -741,7 +740,7 @@ sub_44f2h:
 	jr c,l4504h
 	xor a
 l4504h:
-	call sub_408fh
+	call ADD_HL_A
 	ld de,00000h
 	ld c,006h
 l450ch:
@@ -765,7 +764,7 @@ l4515h:
 	dec c
 	jr nz,l4512h
 	ld a,008h
-	call sub_408fh
+	call ADD_HL_A
 	ld a,e
 	add a,008h
 	ld e,a
@@ -1057,45 +1056,36 @@ sub_46dah:
 	inc (hl)
 	ld bc,(0e200h)
 	ld a,c
-	call sub_4099h
-	add hl,bc
-	ld b,a
-	ld l,b
-	ld b,a
-	add a,a
-	ld b,a
-	pop bc
-	ld b,a
-	xor (hl)
-	ld c,b
-	ld b,d
-	ld c,c
-	dec e
-	ld c,d
-	dec a
-	ld c,d
-	xor 04ah
-	ld b,04bh
-	ld c,h
-	ld c,e
-	ld e,l
-	ld c,e
-	ld l,(hl)
-	ld c,e
-	xor a
-	ld c,e
+	call DISPATCH_A
+
+; BLOCK 'd_46ea_jp' (start 0x46ed end 0x4709)
+d_46ea_jp_start:
+	defw 04709h
+	defw 04768h
+	defw 04787h
+	defw 047c1h
+	defw 048aeh
+	defw 04942h
+	defw 04a1dh
+	defw 04a3dh
+	defw 04aeeh
+	defw 04b06h
+	defw 04b4ch
+	defw 04b5dh
+	defw 04b6eh
+	defw 04bafh
+d_46ea_jp_end:
 	ld a,b
-	call sub_4099h
-	rla
-	ld b,a
-	inc hl
-	ld b,a
-	dec h
-	ld b,a
-	ld b,d
-	ld b,a
-	ld e,h
-	ld b,a
+	call DISPATCH_A
+
+; BLOCK 'd_470a_jp' (start 0x470d end 0x4717)
+d_470a_jp_start:
+	defw 04717h
+	defw 04723h
+	defw 04725h
+	defw 04742h
+	defw 0475ch
+d_470a_jp_end:
 	call 0541bh
 	call l41e0h
 	call sub_4e98h
@@ -1157,9 +1147,9 @@ l4784h:
 	and a
 	jr nz,l47a1h
 	call sub_4e98h
-	call l41b5h
+	call page_bank_12
 	call 0ba11h
-	call sub_418ah
+	call page_banks_123
 	ld a,020h
 l4799h:
 	ld (0e204h),a
@@ -1168,10 +1158,10 @@ l479ch:
 	inc (hl)
 	ret
 l47a1h:
-	call l41b5h
+	call page_bank_12
 	call 0ba66h
 	call 0ba41h
-	call sub_418ah
+	call page_banks_123
 	ld a,(0e246h)
 	or a
 	ret nz
@@ -1185,29 +1175,23 @@ l47b3h:
 	ld (0e204h),a
 	jp l493dh
 	ld a,b
-	call sub_4099h
-	defb 0ddh,047h,0e4h ;illegal sequence
-	ld b,a
-	dec sp
-	ld c,b
-	ld b,h
-	ld c,b
-	ld d,h
-	ld c,b
-	ld l,b
-	ld c,b
-	ld l,(hl)
-	ld c,b
-	ld a,e
-	ld c,b
-	add a,c
-	ld c,b
-	sub b
-	ld c,b
-	sub (hl)
-	ld c,b
-	xor b
-	ld c,b
+	call DISPATCH_A
+
+; BLOCK 'd_47c2_jp' (start 0x47c5 end 0x47dd)
+d_47c2_jp_start:
+	defw 047ddh
+	defw 047e4h
+	defw 0483bh
+	defw 04844h
+	defw 04854h
+	defw 04868h
+	defw 0486eh
+	defw 0487bh
+	defw 04881h
+	defw 04890h
+	defw 04896h
+	defw 048a8h
+d_47c2_jp_end:
 	call sub_422bh
 	ld a,070h
 	jr l4799h
@@ -1243,10 +1227,10 @@ l4813h:
 	and 020h
 	jr z,l4835h
 	call sub_4e98h
-	call l41b5h
+	call page_bank_12
 	ld hl,0b284h
 	call l51d0h
-	call sub_418ah
+	call page_banks_123
 	jp l479ch
 l4835h:
 	ld hl,0e201h
@@ -1318,18 +1302,18 @@ l4835h:
 	call l51d0h
 	ld de,09048h
 	call sub_4cefh
-	call sub_41bfh
+	call page_bank_13
 	ld a,(0e242h)
 	ld b,a
 	add a,a
 	add a,b
 	add a,002h
 	ld hl,0b8f8h
-	call sub_408fh
+	call ADD_HL_A
 	ld a,(hl)
 	and 01fh
 	call sub_4cfdh
-	call sub_418ah
+	call page_banks_123
 	ld hl,0efc0h
 	ld (hl),a
 	ld b,001h
@@ -1649,9 +1633,9 @@ l4b3fh:
 	jp l479ch
 l4b78h:
 	djnz l4b8fh
-	call l41b5h
+	call page_bank_12
 	call 0b534h
-	call sub_418ah
+	call page_banks_123
 	ld a,(0ef10h)
 	or a
 	ret nz
@@ -1662,18 +1646,18 @@ l4b8fh:
 	call sub_4e98h
 	ld a,078h
 	call l4799h
-	call sub_41cch
+	call page_banks_14_15
 	ld hl,09d37h
 	ld a,(0ef10h)
 	dec a
 	add a,a
-	call sub_408fh
+	call ADD_HL_A
 	ld a,(hl)
 	inc hl
 	ld h,(hl)
 	ld l,a
 	call l51d0h
-	jp sub_418ah
+	jp page_banks_123
 	call 0734dh
 	ld a,(0e257h)
 	and a
@@ -1972,9 +1956,9 @@ l4d98h:
 	ld b,000h
 	call sub_4dfbh
 	ld a,010h
-	call sub_4094h
+	call ADD_DE_A
 	ld a,020h
-	call sub_408fh
+	call ADD_HL_A
 	pop bc
 	djnz l4d98h
 	ld hl,03908h
@@ -1985,7 +1969,7 @@ l4db1h:
 	ld b,a
 	call sub_4e0fh
 	ld a,020h
-	call sub_408fh
+	call ADD_HL_A
 	pop bc
 	djnz l4db1h
 	ld hl,l5f6bh
@@ -2002,9 +1986,9 @@ l4dd7h:
 	ld b,000h
 	call sub_4e05h
 	ld a,010h
-	call sub_408fh
+	call ADD_HL_A
 	ld a,020h
-	call sub_4094h
+	call ADD_DE_A
 	pop bc
 	djnz l4dd7h
 	ret
@@ -2107,7 +2091,7 @@ sub_4e54h:
 l4e60h:
 	call sub_4e6ch
 	ld a,020h
-	call sub_4094h
+	call ADD_DE_A
 	dec c
 	jr nz,l4e60h
 	ret
@@ -3082,7 +3066,7 @@ sub_53b6h:
 	ld (09000h),a
 	inc a
 	ld (0b000h),a
-	call 06000h
+	call 06000h             ; banks456_init
 	ld a,(0f0f1h)
 	ld (07000h),a
 	ld a,(0f0f2h)
@@ -3265,7 +3249,7 @@ l54b9h:
 	and 01fh
 	add a,a
 	add a,a
-	call sub_408fh
+	call ADD_HL_A
 	ex de,hl
 	pop hl
 	inc hl
@@ -3413,7 +3397,7 @@ sub_55cdh:
 	add hl,hl
 	add hl,bc
 	ld a,010h
-	call sub_408fh
+	call ADD_HL_A
 	ex de,hl
 	ld l,(ix+002h)
 	ld h,000h
@@ -3425,7 +3409,7 @@ sub_55cdh:
 	jp l4e60h
 sub_55f0h:
 	call sub_599dh
-	call sub_41cch
+	call page_banks_14_15
 	ld de,0b116h
 	ld hl,0b120h
 	call l54a0h
@@ -3435,7 +3419,7 @@ sub_55f0h:
 	call sub_4e05h
 	ld hl,0a7ceh
 	call l4f1ch
-	call sub_418ah
+	call page_banks_123
 	xor a
 	call sub_59dch
 	ld hl,01050h
@@ -3443,16 +3427,16 @@ sub_55f0h:
 	ld a,0ffh
 	ld d,001h
 	call sub_4fedh
-	call sub_41cch
+	call page_banks_14_15
 	ld hl,0b8dbh
 	ld de,01050h
 	call sub_576dh
-	jp sub_418ah
+	jp page_banks_123
 sub_5634h:
-	call sub_41abh
+	call page_banks_789
 	call sub_5640h
 	call sub_5655h
-	jp sub_418ah
+	jp page_banks_123
 sub_5640h:
 	ld a,(0e241h)
 	ld b,a
@@ -3468,7 +3452,7 @@ sub_5655h:
 	ld de,06000h
 	jp l54a0h
 sub_565eh:
-	call sub_41cch
+	call page_banks_14_15
 	ld a,(0e242h)
 	dec a
 	and 002h
@@ -3479,33 +3463,33 @@ l566fh:
 	ld a,(0e241h)
 	call sub_4d4ch
 	call l4f1ch
-	call sub_418ah
-	call sub_41cch
+	call page_banks_123
+	call page_banks_14_15
 	ld hl,0b95dh
 	call l4f1ch
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0f800h
 	ld de,0abb9h
 	call sub_4e54h
-	jp sub_418ah
+	jp page_banks_123
 sub_5696h:
-	call sub_41cch
+	call page_banks_14_15
 	ld ix,098c9h
 	call l5508h
 	ld ix,098eah
 	call l553dh
-	jp sub_418ah
-	call sub_41b0h
+	jp page_banks_123
+	call page_banks_10_11_12
 	ld bc,00307h
 	call 00047h
 	ld hl,0afddh
 	ld de,00800h
 	ld bc,035fbh
 	call l514ch
-	call sub_418ah
+	call page_banks_123
 	jp l57bbh
-	call l41b5h
+	call page_bank_12
 	ld hl,0ef13h
 	ld e,(hl)
 	inc l
@@ -3517,7 +3501,7 @@ sub_5696h:
 	jp l57c4h
 	ld c,002h
 sub_56deh:
-	call sub_41cch
+	call page_banks_14_15
 l56e1h:
 	push bc
 	push de
@@ -3534,7 +3518,7 @@ l56e4h:
 	ld e,a
 	pop bc
 	djnz l56e1h
-	jp sub_418ah
+	jp page_banks_123
 sub_56f8h:
 	ld a,(0e241h)
 	ld hl,07ffeh
@@ -3545,7 +3529,7 @@ sub_56f8h:
 	jr c,l570ah
 	xor a
 l570ah:
-	call sub_408fh
+	call ADD_HL_A
 	ld a,e
 	and 018h
 	ld c,a
@@ -3555,7 +3539,7 @@ l570ah:
 	srl a
 	and 007h
 	add a,c
-	call sub_408fh
+	call ADD_HL_A
 	ld a,(hl)
 	jp sub_5767h
 	ld b,002h
@@ -3567,7 +3551,7 @@ l5724h:
 	call 00174h
 	ld (de),a
 	ld a,01fh
-	call sub_408fh
+	call ADD_HL_A
 	inc de
 	djnz l5724h
 	ret
@@ -3644,26 +3628,26 @@ l578bh:
 	ld b,003h
 	ld c,007h
 	call 00047h
-	call sub_41cch
+	call page_banks_14_15
 	ld bc,00d1ah
 	ld hl,0bc05h
 	ld de,01830h
 	call l573bh
 	call l57c4h
 	jp l4eb1h
-	call sub_41abh
+	call page_banks_789
 	ld de,0b7c7h
 	ld hl,0b7dfh
 	call l54a0h
-	call sub_418ah
+	call page_banks_123
 l57bbh:
-	call sub_41cch
+	call page_banks_14_15
 	ld hl,0ba78h
 	call l4f1ch
 l57c4h:
-	call sub_418ah
-	jp l41b5h
-	call sub_41cch
+	call page_banks_123
+	jp page_bank_12
+	call page_banks_14_15
 	ld hl,0f800h
 	ld de,0ba9ah
 	call sub_4e54h
@@ -3730,15 +3714,15 @@ sub_583bh:
 	ld bc,00080h
 	jp sub_4e05h
 	call sub_585fh
-	jp sub_418ah
+	jp page_banks_123
 sub_585fh:
 	call sub_58d2h
 	jr l586ah
 sub_5864h:
 	call l586ah
-	jp sub_418ah
+	jp page_banks_123
 l586ah:
-	call sub_41cch
+	call page_banks_14_15
 	ld a,(0e24ch)
 	or a
 	jr nz,l58cdh
@@ -3793,9 +3777,9 @@ l58cdh:
 	ld a,(0e2b3h)
 	jr l58bdh
 sub_58d2h:
-	call sub_41cch
+	call page_banks_14_15
 	call sub_58dbh
-	jp sub_418ah
+	jp page_banks_123
 sub_58dbh:
 	ld a,(0e24ch)
 	or a
@@ -3856,70 +3840,70 @@ sub_5925h:
 	ld (hl),a
 	jr sub_58dbh
 l5928h:
-	call sub_41cch
+	call page_banks_14_15
 	ld hl,0e000h
 	ld de,0953dh
 	call sub_4e54h
-	jp sub_418ah
+	jp page_banks_123
 l5937h:
-	call sub_41cch
+	call page_banks_14_15
 	ld hl,0e000h
 	ld de,0ab59h
 	call sub_4e54h
 	ld hl,0e080h
 	ld de,0aa00h
 	call sub_4e54h
-	jp sub_418ah
+	jp page_banks_123
 sub_594fh:
-	call sub_41cch
+	call page_banks_14_15
 	call sub_5958h
-	jp sub_418ah
+	jp page_banks_123
 sub_5958h:
 	ld hl,0f880h
 	ld de,097a1h
 	jp sub_4e54h
-	call sub_41abh
+	call page_banks_789
 	ld hl,0902eh
 	ld de,08ffch
 	call l54a0h
-	jp sub_418ah
-	call sub_41abh
+	jp page_banks_123
+	call page_banks_789
 	ld hl,09043h
 	ld de,08ffch
 	call l54a0h
-	jp sub_418ah
-	call sub_41abh
+	jp page_banks_123
+	call page_banks_789
 	ld hl,09063h
 	ld de,08ffch
 	call l54a0h
-	jp sub_418ah
-	call sub_41abh
+	jp page_banks_123
+	call page_banks_789
 	ld hl,09069h
 	ld de,08ffch
 	call l54a0h
-	jp sub_418ah
+	jp page_banks_123
 sub_599dh:
-	call sub_41abh
+	call page_banks_789
 	ld hl,09074h
 	ld de,08ffch
 	call l54a0h
-	jp sub_418ah
+	jp page_banks_123
 	ld de,01818h
-	call sub_41cch
+	call page_banks_14_15
 	ld hl,0a358h
 	ld bc,00c0ch
 	call l573bh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a2c8h
 	ld bc,00c0ch
 	call l573bh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a702h
 	ld bc,00c0ch
 	call l573bh
-	jp sub_418ah
+	jp page_banks_123
 sub_59dch:
 	push af
 	ld bc,0a201h
@@ -3929,7 +3913,7 @@ sub_59dch:
 	ld bc,0e201h
 	jp 00047h
 sub_59edh:
-	call sub_41cch
+	call page_banks_14_15
 	ld de,00000h
 	ld b,020h
 l59f5h:
@@ -3955,56 +3939,56 @@ l59f5h:
 	inc a
 	pop bc
 	djnz l59f5h
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a5a6h
 	ld de,0b038h
 	ld bc,00c02h
 	call l573bh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a5beh
 	ld de,0a838h
 	ld bc,00c04h
 	call l573bh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a5eeh
 	ld de,0a030h
 	ld bc,00e06h
 	call l573bh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a6e0h
 	ld de,08848h
 	call sub_576dh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a3e8h
 	ld de,00040h
 	call sub_576dh
 	ld hl,0a4c7h
 	ld de,06040h
 	call sub_576dh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a642h
 	ld de,06040h
 	call sub_576dh
 	ld hl,0a6b1h
 	ld de,09040h
 	call sub_576dh
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld de,0af21h
 	ld hl,0f820h
 	call sub_4e54h
 	ld de,0a9fbh
 	ld hl,0fe80h
 	call sub_4e54h
-	jp sub_418ah
+	jp page_banks_123
 	ret
-	call sub_41cch
+	call page_banks_14_15
 	ld de,0ab59h
 	ld hl,0f800h
 	call sub_4e54h
@@ -4020,8 +4004,8 @@ l59f5h:
 	ld de,0a9f6h
 	ld hl,0fe80h
 	call sub_4e54h
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld de,0ab59h
 	ld hl,0f800h
 	call sub_4e54h
@@ -4041,8 +4025,8 @@ l59f5h:
 	ld de,0f890h
 	ld c,00ch
 	call l4e60h
-	jp sub_418ah
-	call sub_41b0h
+	jp page_banks_123
+	call page_banks_10_11_12
 	ld de,08030h
 	ld hl,0aa29h
 	ld bc,0290ah
@@ -4051,8 +4035,8 @@ l59f5h:
 	ld hl,0ab79h
 	ld bc,0050ah
 	call l514ch
-	jp sub_418ah
-	call sub_41b0h
+	jp page_banks_123
+	call page_banks_10_11_12
 	ld de,08030h
 	ld hl,0aa29h
 	ld bc,02a0ch
@@ -4061,17 +4045,17 @@ l59f5h:
 	ld hl,0ab79h
 	ld bc,0050ch
 	call l514ch
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a7ffh
 	call l4f1ch
-	jp sub_418ah
-	call sub_41cch
+	jp page_banks_123
+	call page_banks_14_15
 	ld hl,0a8bbh
 	call l4f1ch
-	jp sub_418ah
+	jp page_banks_123
 sub_5b6ah:
-	call sub_41abh
+	call page_banks_789
 	call sub_4ebeh
 	ld hl,0bb8bh
 	call l4f1ch
@@ -4105,7 +4089,7 @@ sub_5b6ah:
 	ld (hl),031h
 	inc hl
 	ld (hl),000h
-	call sub_418ah
+	call page_banks_123
 	ret
 sub_5bc8h:
 	ld hl,0e2c0h
@@ -4129,7 +4113,7 @@ l5bdah:
 	ld a,001h
 	jp sub_5029h
 sub_5bebh:
-	call sub_41b0h
+	call page_banks_10_11_12
 	ld de,08030h
 	ld hl,0aa29h
 	ld bc,00c0bh
@@ -4142,16 +4126,16 @@ sub_5bebh:
 	ld de,09870h
 	ld b,002h
 	call l51bbh
-	jp sub_418ah
+	jp page_banks_123
 l5c14h:
-	call sub_41cch
+	call page_banks_14_15
 	ld a,(0e241h)
 	ld b,a
 	add a,a
 	add a,a
 	add a,b
 	ld hl,0bd52h
-	call sub_408fh
+	call ADD_HL_A
 	ld b,(hl)
 	inc hl
 	ld c,(hl)
@@ -4168,7 +4152,7 @@ l5c14h:
 	call sub_5c51h
 	ld a,(0e241h)
 	cp 004h
-	jp nz,sub_418ah
+	jp nz,page_banks_123
 	exx
 	ld b,005h
 	exx
@@ -4176,7 +4160,7 @@ l5c14h:
 	ld de,0bdafh
 	ld hl,0ef04h
 	call sub_5c51h
-	jp sub_418ah
+	jp page_banks_123
 sub_5c51h:
 	inc (hl)
 	ld a,(hl)
@@ -4212,7 +4196,7 @@ l5c72h:
 	ld a,(hl)
 	ex de,hl
 	add a,a
-	call sub_408fh
+	call ADD_HL_A
 	ld d,(hl)
 	inc hl
 	ld e,(hl)
@@ -4259,9 +4243,9 @@ l5c94h:
 	call 0632dh
 	call 097b2h
 	call 0921ah
-	call l41b5h
+	call page_bank_12
 	call 0b400h
-	call sub_418ah
+	call page_banks_123
 	xor a
 	ld (0e287h),a
 	ld (0edcdh),a
@@ -4272,9 +4256,9 @@ sub_5cf5h:
 	call sub_4ebeh
 	call 0639ch
 	call sub_44d4h
-	call l41b5h
+	call page_bank_12
 	call 0b51ch
-	call sub_418ah
+	call page_banks_123
 	call 09010h
 	call 093beh
 	call 0644ah
@@ -4344,15 +4328,15 @@ sub_5d6dh:
 	call 08fbeh
 	call 06483h
 	call 0be15h
-	call l41b5h
+	call page_bank_12
 	call 0b422h
-	call sub_418ah
+	call page_banks_123
 	call 09ab1h
 	call 09afeh
 	call sub_4371h
 	jp l5c14h
 sub_5dach:
-	call sub_41bfh
+	call page_bank_13
 	ld hl,0e780h
 	ld de,0e781h
 	ld bc,0003fh
@@ -4387,7 +4371,7 @@ l5ddah:
 	pop bc
 	ld c,a
 	djnz l5dd1h
-	jp sub_418ah
+	jp page_banks_123
 sub_5de6h:
 	ld a,(0e243h)
 	call sub_5df0h
@@ -4446,15 +4430,15 @@ sub_5e38h:
 	ret
 sub_5e3fh:
 	dec a
-	call sub_4099h
-	ld c,e
-	ld e,(hl)
-	ld d,a
-	ld e,(hl)
-	ld h,l
-	ld e,(hl)
-	ld (hl),e
-	ld e,(hl)
+	call DISPATCH_A
+
+; BLOCK 'd_5e40_jp' (start 0x5e43 end 0x5e4b)
+d_5e40_jp_start:
+	defw 05e4bh
+	defw 05e57h
+	defw 05e65h
+	defw 05e73h
+d_5e40_jp_end:
 	ld a,b
 	sub 008h
 	jr nc,l5e52h
@@ -4490,7 +4474,7 @@ l5e60h:
 l5e7fh:
 	ld (0efc1h),a
 	ld de,0e788h
-	call sub_4094h
+	call ADD_DE_A
 	ld a,(de)
 	and a
 	jr z,l5e90h
@@ -4511,7 +4495,7 @@ l5e9ch:
 	call z,l5eafh
 	ld (0efc1h),a
 	ld hl,0e788h
-	call sub_408fh
+	call ADD_HL_A
 	ld a,(hl)
 	ld (0efc0h),a
 	ret
@@ -4520,7 +4504,7 @@ l5eafh:
 	ld (hl),001h
 	ret
 sub_5eb5h:
-	call sub_41bfh
+	call page_bank_13
 	ld hl,0adcfh
 	ld de,0ed80h
 	call sub_5edfh
@@ -4533,7 +4517,7 @@ sub_5eb5h:
 	ld hl,0af37h
 	ld de,0edb0h
 	call sub_5edfh
-	jp sub_418ah
+	jp page_banks_123
 sub_5edfh:
 	ld a,(0e242h)
 	call sub_4d4ch

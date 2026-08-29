@@ -1,0 +1,15 @@
+; z80dasm block file for bank 12 @ 0xA000. Rendering only.
+; Head is map-stream tail + object lists + tiles (l514ch / l51d0h).
+; Earliest far call into this bank is 0xB400.
+gfx:        start 0xA000 end 0xB400 type bytedata
+disp_b42f:  start 0xB42F end 0xB437 type worddata
+pat_b4f8:   start 0xB4F8 end 0xB4FC type bytedata
+data_b548:  start 0xB548 end 0xB6B0 type bytedata
+disp_b6be:  start 0xB6BE end 0xB6CA type worddata
+disp_b7a5:  start 0xB7A5 end 0xB7AD type worddata
+disp_b98a:  start 0xB98A end 0xB9B0 type worddata
+ba92_tbl:   start 0xBA92 end 0xBAA0 type worddata
+ba_lists:   start 0xBAA0 end 0xBC6E type bytedata
+bd97_tbl:   start 0xBD97 end 0xBDB7 type worddata
+bdb7_tbl:   start 0xBDB7 end 0xBDD7 type worddata
+pad_ff:     start 0xBFB3 end 0xC000 type bytedata

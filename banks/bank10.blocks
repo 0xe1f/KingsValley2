@@ -1,0 +1,6 @@
+; z80dasm block file for bank 10 @ 0x6000. Rendering only; bank is not code.
+; Three parallel 60-word tables (e242-1). map_ptr[0] == 0x6168 (first stream).
+; map_ptr entries 33.. continue into banks 11 (0x80B0) and 12 (0xA121).
+map_ptr: start 0x6000 end 0x6078 type worddata
+obj_ptr: start 0x6078 end 0x60F0 type worddata
+obj2_ptr: start 0x60F0 end 0x6168 type worddata
