@@ -1,0 +1,13 @@
+# Build output
+*.rom
+
+# Toolchain built from source
+tools/sjasmplus
+
+# Disassembler scratch
+generated/
+
+# Python
+**/__pycache__/
+
+.DS_Store

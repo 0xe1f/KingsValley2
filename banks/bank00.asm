@@ -1,0 +1,4718 @@
+; ===========================================================================
+;  bank 00 — 8 KiB mapper bank, assembled at CPU 0x4000 (PHASE in master).
+;  Konami SCC: page 4000-5FFF is switchable in hardware; this dump has no
+;  ld (5000h),a, so this bank is likely left mapped. Not a window file.
+;  Regen: tools/workbench/msx/regen-bank.sh 0 0x4000
+; ===========================================================================
+
+; (org set by PHASE in KingsValley2.asm)
+
+; --- 16-byte MSX cartridge header (ROM offset 0) ---------------------------
+rom_header:
+	defb 041h, 042h         ; "AB"
+	defb 0a3h, 040h         ; init = 0x40A3
+	defb 000h, 000h         ; STATEMENT
+	defb 000h, 000h         ; DEVICE
+	defb 000h, 000h         ; TEXT
+	defb 000h, 000h, 000h, 000h, 000h, 000h
+
+	ld b,e
+	ld b,h
+	rlca
+	ld h,c
+	ret po
+	nop
+	jp po,04204h
+	jp po,l403ch
+	jp po,0e223h
+	ld h,0e2h
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	add a,c
+	ld bc,00001h
+	add a,b
+	defb 0f6h               ; stray byte; H.TIMI lands on the following DI
+htimi_isr:
+	di                      ; H.TIMI -> 0x402E
+	ld hl,0e215h
+	ld a,(hl)
+	cp 002h
+	jr c,l403eh
+	inc hl
+	ld a,(hl)
+	and a
+	jr nz,l403eh
+l403ch:
+	dec hl
+	dec (hl)
+l403eh:
+	ld hl,0e21ah
+	ld a,(hl)
+	and a
+	jr z,l4049h
+	dec a
+	jr z,l4049h
+	dec (hl)
+l4049h:
+	ld hl,0e206h
+	ld a,(hl)
+	and a
+	ld (hl),001h
+	jp nz,l408dh
+	ld a,004h
+	ld (07000h),a
+	inc a
+	ld (09000h),a
+	inc a
+	ld (0b000h),a
+	call 06006h
+	xor a
+	ld (0e206h),a
+	di
+	ld a,(0f0f1h)
+	ld (07000h),a
+	ld a,(0f0f2h)
+	ld (09000h),a
+	ld a,(0f0f3h)
+	ld (0b000h),a
+	ld hl,0e205h
+	ld a,(hl)
+	and a
+	jr nz,l408dh
+	inc (hl)
+	ei
+	call 0541ch
+	call sub_46d4h
+	xor a
+	ld (0e205h),a
+l408dh:
+	ei
+	ret
+sub_408fh:
+	add a,l
+	ld l,a
+	ret nc
+	inc h
+	ret
+sub_4094h:
+	add a,e
+	ld e,a
+	ret nc
+	inc d
+	ret
+sub_4099h:
+	pop hl
+	add a,a
+	call sub_408fh
+	ld a,(hl)
+	inc hl
+	ld h,(hl)
+	ld l,a
+	jp (hl)
+cart_init:                      ; AB header init @ 0x40A3
+	di
+	call sub_4146h          ; slot id -> A
+	di
+	ld h,a
+	ld l,0f7h               ; RST 30h
+	ld (0fedah),hl          ; H.STKE: RST 30 / slot
+	ld hl,cart_boot
+	ld (0fedch),hl          ; H.STKE+2: continue here after BIOS returns
+	ret
+cart_boot:                      ; was l40b5h
+	di
+	im 1
+	ld sp,0e000h
+	ld a,(0ffa7h)           ; H.PHYD
+	cp 0c9h
+	call nz,sub_4162h       ; disk ROM present
+	ld a,0c9h               ; RET
+	ld (0fd9ah),a           ; H.KEYI disabled
+	call sub_4126h
+	call sub_4146h
+	ld a,001h
+	ld (0f0f4h),a
+	ld (0f0f5h),a
+	xor a
+	ld hl,0e000h
+	ld de,0e001h
+	ld bc,00fffh
+	ld (hl),a
+	ldir
+	ld hl,0d200h
+	ld de,0d201h
+	ld bc,001ffh
+	ld (hl),a
+	ldir
+	ld a,001h
+	ld (0e219h),a
+	xor a
+	ld (0f3eah),a
+	ld (0f3ebh),a
+	ld hl,0f0f1h
+	ld a,001h
+	ld (07000h),a
+	ld (hl),a
+	inc a
+	ld (09000h),a
+	inc hl
+	ld (hl),a
+	inc a
+	ld (0b000h),a
+	inc hl
+	ld (hl),a
+	call sub_53b6h
+	di
+	ld a,0c3h               ; JP
+	ld (0fd9fh),a           ; H.TIMI
+	ld hl,htimi_isr         ; 0x402E
+	ld (0fda0h),hl
+	xor a
+	ld (0f3dbh),a
+	ei
+l4124h:
+	jr l4124h
+sub_4126h:
+	call 00138h
+	rrca
+	rrca
+	and 003h
+	ld c,a
+	ld b,000h
+	ld hl,0fcc1h
+	add hl,bc
+	ld a,(hl)
+	and 080h
+	or c
+	ld c,a
+	inc hl
+	inc hl
+	inc hl
+	inc hl
+	ld a,(hl)
+	and 00ch
+	or c
+	ld h,080h
+	jp 00024h
+sub_4146h:
+	call 00138h
+	rrca
+	rrca
+	and 003h
+	ld c,a
+	ld b,000h
+	ld hl,0fcc1h
+	add hl,bc
+	or (hl)
+	ld c,a
+	inc hl
+	inc hl
+	inc hl
+	inc hl
+	ld a,(hl)
+	and 00ch
+	or c
+	ld (0f0e9h),a
+	ret
+sub_4162h:
+	ld hl,0972ch
+	ld (0f323h),hl
+	ld hl,0e280h
+	ld bc,01100h
+	ld de,0c000h
+	ldir
+	ld hl,0f100h
+	ld de,0d780h
+	ld bc,00280h
+	ldir
+	ld hl,0fd9fh
+	ld de,0f0eah
+	ld bc,00005h
+	ldir
+	ret
+sub_418ah:
+	push af
+	ld a,001h
+l418dh:
+	di
+	push hl
+	ld hl,0f0f1h
+	ld (hl),a
+	ld (07000h),a
+	inc a
+	inc hl
+	ld (hl),a
+	ld (09000h),a
+	inc a
+	inc hl
+	ld (hl),a
+	ld (0b000h),a
+	pop hl
+	pop af
+	ei
+	ret
+	push af
+	ld a,004h
+	jr l418dh
+sub_41abh:
+	push af
+	ld a,007h
+	jr l418dh
+sub_41b0h:
+	push af
+	ld a,00ah
+	jr l418dh
+l41b5h:
+	push af
+	ld a,00ch
+	jr l41c2h
+	push af
+	ld a,00fh
+	jr l41c2h
+sub_41bfh:
+	push af
+	ld a,00dh
+l41c2h:
+	di
+	ld (0f0f3h),a
+	ld (0b000h),a
+	pop af
+	ei
+	ret
+sub_41cch:
+	push af
+	ld a,00eh
+	di
+	ld (0f0f2h),a
+	ld (09000h),a
+	inc a
+	ld (0f0f3h),a
+	ld (0b000h),a
+	pop af
+	ei
+	ret
+l41e0h:
+	ld a,001h
+	jp l4326h
+	ld a,002h
+	jp l4326h
+sub_41eah:
+	ld a,003h
+	jp l4326h
+	ld a,004h
+	jp l4326h
+	ld a,005h
+	jp l4326h
+	ld a,006h
+	jp l4326h
+	ld a,007h
+	jp l4326h
+	ld a,008h
+	jp l4326h
+	ld a,009h
+	jp l4326h
+	ld a,00ah
+	jp l4326h
+	ld a,00bh
+	jp l4326h
+	ld a,00ch
+	jp l4326h
+	ld a,00dh
+	jp l4326h
+	ld a,00eh
+	jp l4326h
+sub_4226h:
+	ld a,00fh
+	jp l4326h
+sub_422bh:
+	ld a,010h
+	jp l4326h
+sub_4230h:
+	ld a,011h
+	jp l4326h
+	ld a,012h
+	jp l4326h
+	ld a,013h
+	jp l4326h
+	ld a,014h
+	jp l4326h
+	ld a,015h
+	jp l4326h
+	ld a,016h
+	jp l4326h
+	ld a,017h
+	jp l4326h
+	ld a,018h
+	jp l4326h
+	ld a,019h
+	jp l4326h
+	ld a,01ah
+	jp l4326h
+	ld a,01bh
+	jp l4326h
+	ld a,01ch
+	jp l4326h
+	ld a,01dh
+	jp l4326h
+	ld a,01eh
+	jp l4326h
+	ld a,01fh
+	jp l4326h
+sub_427bh:
+	ld a,020h
+	jp l4326h
+	ld a,021h
+	jp l4326h
+	ld a,022h
+	jp l4326h
+	ld a,023h
+	jp l4326h
+	ld a,024h
+	jp l4326h
+	ld a,025h
+	jp l4326h
+	ld a,026h
+	jp l4326h
+	ld a,027h
+	jp l4326h
+l42a3h:
+	ld a,028h
+	jr l4326h
+	ld a,029h
+	jr l4326h
+sub_42abh:
+	ld a,02ah
+	jr l4326h
+	ld a,02bh
+	jr l4326h
+	ld a,02ch
+	jr l4326h
+	ld a,02dh
+	jr l4326h
+	ld a,02eh
+	jr l4326h
+	ld a,02fh
+	jr l4326h
+	ld a,030h
+	jr l4326h
+	ld a,031h
+	jr l4326h
+	ld a,032h
+	jr l4326h
+	ld a,033h
+	jr l4326h
+	ld a,034h
+	jr l4326h
+	ld a,035h
+	jr l4326h
+	ld a,036h
+	jr l4326h
+	ld a,037h
+	jr l4326h
+	ld a,038h
+	jr l4326h
+	ld a,039h
+	jr l4326h
+	ld a,03ah
+	jr l4326h
+	ld a,03bh
+	jr l4326h
+	ld a,03ch
+	jr l4326h
+	ld a,03dh
+	jr l4326h
+	ld a,03eh
+	jr l4326h
+	ld a,03fh
+	jr l4326h
+	ld a,040h
+	jr l4326h
+	ld a,041h
+	jr l4326h
+sub_430bh:
+	ld a,080h
+	jr l4326h
+l430fh:
+	ld a,081h
+	jr l4326h
+sub_4313h:
+	xor a
+	ld (0e21ah),a
+	ld a,082h
+	jr l4326h
+sub_431bh:
+	ld a,0ffh
+	ld (0e21ah),a
+	ld a,083h
+	jr l4326h
+	ld a,084h
+l4326h:
+	di
+	push hl
+	push de
+	push bc
+	push ix
+	push af
+	ld a,004h
+	ld (07000h),a
+	inc a
+	ld (09000h),a
+	inc a
+	ld (0b000h),a
+	pop af
+	push af
+	call 06003h
+	ld hl,0f0f1h
+	ld a,(hl)
+	ld (07000h),a
+	inc hl
+	ld a,(hl)
+	ld (09000h),a
+	inc hl
+	ld a,(hl)
+	ld (0b000h),a
+	pop af
+	pop ix
+	pop bc
+	pop de
+	pop hl
+	ei
+	ret
+	call sub_418ah
+	call sub_5d63h
+	jr l4366h
+	call sub_418ah
+	call sub_5c80h
+l4366h:
+	jp l41b5h
+	call sub_418ah
+	call sub_5cf5h
+	jr l4366h
+sub_4371h:
+	ld a,(0e215h)
+	and a
+	ret nz
+	ld a,(0e20ch)
+	and 008h
+	ret z
+	ld hl,0e253h
+	ld a,(hl)
+	xor 001h
+	ld (hl),a
+	jp nz,l41e0h
+	jr l438dh
+sub_4388h:
+	ld a,(0e253h)
+	and a
+	ret nz
+l438dh:
+	call sub_4313h
+	ld a,(0e242h)
+	call sub_4cfdh
+	dec a
+	and 00fh
+	cp 00fh
+	jr nz,l439fh
+	ld a,009h
+l439fh:
+	srl a
+	call sub_4099h
+	call p,0f941h
+	ld b,c
+	cp 041h
+	inc bc
+	ld b,d
+	ex af,af'
+	ld b,d
+sub_43aeh:
+	ld a,(0e203h)
+	call sub_4cfdh
+	and 00fh
+	inc a
+	ld (0e242h),a
+	ret
+sub_43bbh:
+	call sub_43c2h
+	call sub_4400h
+	ret
+sub_43c2h:
+	call sub_41b0h
+	call sub_43cbh
+	jp sub_418ah
+sub_43cbh:
+	ld a,(0e242h)
+	dec a
+	ld hl,06000h
+	call sub_4d4ch
+	ex de,hl
+	ld hl,0e900h
+	exx
+	ld b,004h
+	exx
+l43ddh:
+	ld a,(de)
+	and a
+	ret z
+	and 03fh
+	ld b,a
+	ld a,(de)
+	rlca
+	rlca
+	and 003h
+	inc de
+	ld c,a
+l43eah:
+	call sub_43f1h
+	djnz l43eah
+	jr l43ddh
+sub_43f1h:
+	ld a,(hl)
+	add a,a
+	add a,a
+	or c
+	ld (hl),a
+	exx
+	dec b
+	exx
+	ret nz
+	exx
+	ld b,004h
+	exx
+	inc hl
+	ret
+sub_4400h:
+	call sub_41b0h
+	call sub_4416h
+	call sub_440ch
+	jp sub_418ah
+sub_440ch:
+	ld a,001h
+	ld (0efc3h),a
+	ld hl,060f0h
+	jr l441dh
+sub_4416h:
+	ld hl,06078h
+	xor a
+	ld (0efc3h),a
+l441dh:
+	ld a,001h
+	ld (0efc2h),a
+	ld de,0e900h
+	ld (0efc0h),de
+	ld ix,0e7c0h
+	ld a,(0e242h)
+	dec a
+	call sub_4d4ch
+l4434h:
+	ld e,(hl)
+	inc hl
+	ld a,e
+	cp 0ffh
+	jr z,l444ah
+	ld d,(hl)
+	ld a,e
+	and a
+	ret z
+	inc hl
+	push hl
+	call sub_4460h
+	call sub_446ch
+	pop hl
+l4448h:
+	jr l4434h
+l444ah:
+	push hl
+	call sub_4451h
+	pop hl
+	jr l4448h
+sub_4451h:
+	ld hl,0efc2h
+	inc (hl)
+	ld hl,(0efc0h)
+	ld bc,000c0h
+	add hl,bc
+	ld (0efc0h),hl
+	ret
+sub_4460h:
+	ld l,e
+	ld h,d
+	add hl,hl
+	ld l,h
+	ld h,000h
+	ld bc,(0efc0h)
+	add hl,bc
+	ret
+sub_446ch:
+	ld a,(0efc3h)
+	and a
+	call nz,sub_44ach
+	ld a,e
+	and 01fh
+	ld b,a
+	ld a,e
+	rlca
+	rlca
+	rlca
+	and 003h
+	ld e,a
+l447eh:
+	push bc
+	call sub_449ah
+	inc e
+	ld a,e
+	and 003h
+	ld e,a
+	jr nz,l448ah
+	inc hl
+l448ah:
+	call sub_449ah
+	ld bc,00008h
+	dec e
+	jp p,l4495h
+	dec c
+l4495h:
+	add hl,bc
+	pop bc
+	djnz l447eh
+	ret
+sub_449ah:
+	ld a,e
+	and a
+	ld a,040h
+	jr z,l44a5h
+	ld b,e
+l44a1h:
+	rra
+	rra
+	djnz l44a1h
+l44a5h:
+	ld b,a
+	rlca
+	cpl
+	and (hl)
+	or b
+	ld (hl),a
+	ret
+sub_44ach:
+	ld a,(0efc2h)
+	ld (ix+000h),a
+	ld a,d
+	add a,a
+	and 0f8h
+	ld (ix+001h),a
+	ld c,d
+	ld a,e
+	rr c
+	rra
+	rr c
+	rra
+	and 0f8h
+	ld (ix+002h),a
+	ld a,e
+	and 01fh
+	or 080h
+	ld (ix+003h),a
+	ld bc,00004h
+	add ix,bc
+	ret
+sub_44d4h:
+	call 0ba3ch
+	call sub_41cch
+	call sub_44f2h
+	call sub_4606h
+	call sub_41b0h
+	call sub_4535h
+	call sub_418ah
+	call sub_46a4h
+	call 0651dh
+	jp 0ba54h
+sub_44f2h:
+	ld a,(0e241h)
+	ld hl,07ffeh
+	call sub_4d4ch
+	ld a,(0e242h)
+	rra
+	ld a,020h
+	jr c,l4504h
+	xor a
+l4504h:
+	call sub_408fh
+	ld de,00000h
+	ld c,006h
+l450ch:
+	push hl
+	ld b,004h
+l450fh:
+	push bc
+	ld c,004h
+l4512h:
+	ld b,008h
+	push hl
+l4515h:
+	ld a,(hl)
+	call sub_5207h
+	ld a,d
+	add a,008h
+	ld d,a
+	inc hl
+	djnz l4515h
+	pop hl
+	dec c
+	jr nz,l4512h
+	ld a,008h
+	call sub_408fh
+	ld a,e
+	add a,008h
+	ld e,a
+	pop bc
+	djnz l450fh
+	pop hl
+	dec c
+	jr nz,l450ch
+	ret
+sub_4535h:
+	xor a
+	ld (0efc0h),a
+	ld hl,(0e242h)
+	dec h
+	ld l,000h
+	ld e,l
+	ld d,h
+	srl d
+	rr e
+	srl d
+	rr e
+	and a
+	sbc hl,de
+	ld de,0e900h
+	add hl,de
+	push hl
+	pop ix
+	ld de,00000h
+	ld b,0c0h
+l4558h:
+	push bc
+	ld a,(ix+000h)
+	ld b,004h
+l455eh:
+	rlca
+	rlca
+	push af
+	and 003h
+	dec a
+	jr z,$+103
+	dec a
+	jp m,l4576h
+	ld a,005h
+	jr z,l4570h
+	ld a,05eh
+l4570h:
+	ld (0efc0h),a
+	call sub_5767h
+l4576h:
+	call sub_524bh
+	pop af
+	djnz l455eh
+	inc ix
+	pop bc
+	djnz l4558h
+	ld a,(0e200h)
+	cp 00bh
+	ret z
+	ld ix,0e7c0h
+	ld b,010h
+	ld a,(0e243h)
+	ld c,a
+l4591h:
+	push bc
+	ld a,(ix+000h)
+	and a
+	jr z,l459eh
+	cp c
+	jr nz,l459eh
+	call sub_45a7h
+l459eh:
+	ld bc,00004h
+	add ix,bc
+	pop bc
+	djnz l4591h
+	ret
+sub_45a7h:
+	ld c,002h
+	ld a,(ix+003h)
+	and 01fh
+	ld b,a
+	ld e,(ix+001h)
+	ld d,(ix+002h)
+	push bc
+	push de
+	call sub_56deh
+	pop de
+	pop bc
+l45bch:
+	ld hl,l45c9h
+	call sub_4690h
+	ld a,e
+	add a,008h
+	ld e,a
+	djnz l45bch
+	ret
+l45c9h:
+	ld bc,03a02h
+	ret nz
+	rst 28h
+	cp 003h
+	jr z,l45f1h
+	cp 003h
+	jr z,l45f9h
+	ld a,e
+	and a
+	jr z,l45f5h
+	ld a,b
+	sub 005h
+	neg
+	ld c,a
+	ld a,(ix-008h)
+l45e3h:
+	rlca
+	rlca
+	dec c
+	jr nz,l45e3h
+	and 003h
+	dec a
+	jr z,l45f5h
+	ld a,003h
+	jr l45fdh
+l45f1h:
+	ld a,004h
+	jr l45fdh
+l45f5h:
+	ld a,003h
+	jr l45fdh
+l45f9h:
+	ld a,004h
+	jr l45fdh
+l45fdh:
+	ld (0efc0h),a
+	call sub_5767h
+	jp l4576h
+sub_4606h:
+	ld a,(0e254h)
+	and a
+	ret nz
+	ld a,(0e242h)
+	ld hl,0806ah
+	call sub_4d4ch
+l4614h:
+	ld a,(hl)
+	cp 0ffh
+	ret z
+	ld b,a
+	and 0f8h
+	ld e,a
+	inc hl
+	ld a,(hl)
+	and 007h
+	ld d,a
+	ld a,(0e243h)
+	dec a
+	cp d
+	jr nz,l4634h
+	ld a,(hl)
+	and 0f8h
+	ld d,a
+	inc hl
+	ld c,(hl)
+	dec hl
+	push hl
+	call sub_4638h
+	pop hl
+l4634h:
+	inc hl
+	inc hl
+	jr l4614h
+sub_4638h:
+	ld a,b
+	and 007h
+	ld b,a
+	ld a,(0e241h)
+	dec a
+	add a,a
+	add a,a
+	add a,a
+	add a,b
+	ld hl,0800ch
+	call sub_4d4ch
+	ld a,b
+	srl a
+	cp 003h
+	jr z,l4679h
+	ld bc,00404h
+	and a
+	jr z,l4660h
+	ld bc,00402h
+	dec a
+	jr z,l4660h
+	ld bc,00204h
+l4660h:
+	push bc
+	ld b,c
+	push de
+l4663h:
+	ld a,(hl)
+	inc hl
+	push hl
+	call sub_5767h
+	pop hl
+	ld a,d
+	add a,008h
+	ld d,a
+	djnz l4663h
+	pop de
+	ld a,e
+	add a,008h
+	ld e,a
+	pop bc
+	djnz l4660h
+	ret
+l4679h:
+	call sub_4690h
+	inc hl
+	ld a,e
+	add a,008h
+	ld e,a
+	ld b,c
+	dec b
+	dec b
+l4684h:
+	call sub_4690h
+	dec hl
+	ld a,e
+	add a,008h
+	ld e,a
+	djnz l4684h
+	inc hl
+	inc hl
+sub_4690h:
+	push de
+	ld a,(hl)
+	push hl
+	call sub_5767h
+	pop hl
+	ld a,d
+	add a,008h
+	ld d,a
+	inc hl
+	ld a,(hl)
+	push hl
+	call sub_5767h
+	pop hl
+	pop de
+	ret
+sub_46a4h:
+	ld hl,0e2c0h
+	ld b,008h
+l46a9h:
+	push bc
+	push hl
+	ld a,(hl)
+	and 07fh
+	dec a
+	sub 002h
+	call c,sub_46bdh
+	pop hl
+	ld de,00005h
+	add hl,de
+	pop bc
+	djnz l46a9h
+	ret
+sub_46bdh:
+	inc l
+	inc l
+	ld a,(0e243h)
+	cp (hl)
+	ret nz
+	inc l
+	ld a,(hl)
+	sub 008h
+	ld e,a
+	inc l
+	ld d,(hl)
+	ld bc,00302h
+	ld hl,093ach
+	jp l573bh
+sub_46d4h:
+	call sub_46dah
+	jp l4bbah
+sub_46dah:
+	ld a,(0e21ah)
+	dec a
+	call z,sub_4313h
+	ld hl,0e203h
+	inc (hl)
+	ld bc,(0e200h)
+	ld a,c
+	call sub_4099h
+	add hl,bc
+	ld b,a
+	ld l,b
+	ld b,a
+	add a,a
+	ld b,a
+	pop bc
+	ld b,a
+	xor (hl)
+	ld c,b
+	ld b,d
+	ld c,c
+	dec e
+	ld c,d
+	dec a
+	ld c,d
+	xor 04ah
+	ld b,04bh
+	ld c,h
+	ld c,e
+	ld e,l
+	ld c,e
+	ld l,(hl)
+	ld c,e
+	xor a
+	ld c,e
+	ld a,b
+	call sub_4099h
+	rla
+	ld b,a
+	inc hl
+	ld b,a
+	dec h
+	ld b,a
+	ld b,d
+	ld b,a
+	ld e,h
+	ld b,a
+	call 0541bh
+	call l41e0h
+	call sub_4e98h
+	call sub_5b6ah
+	jr l479ch
+	ld a,(0f0f4h)
+	and a
+	jr nz,l4737h
+	ld a,(0e203h)
+	rra
+	ret nc
+	call sub_5bc8h
+	ret nz
+	xor a
+	jr l4799h
+l4737h:
+	call sub_5bc8h
+	ld a,(0e2c2h)
+	or a
+	ret z
+	xor a
+	jr l4799h
+	ld hl,0e204h
+	dec (hl)
+	ret nz
+	call sub_5d41h
+	call sub_4ecbh
+	call sub_5bebh
+	call sub_5f8dh
+	call sub_41eah
+	xor a
+	ld (0e2c2h),a
+	jr l4799h
+	call sub_5fc6h
+	ld a,(0e2c2h)
+	or a
+	ret z
+	ld a,b
+	jp l4936h
+	ld a,(0e201h)
+	or a
+	jr nz,l477ah
+	ld hl,0e204h
+	dec (hl)
+	jr z,l4777h
+	jp l4d57h
+l4777h:
+	xor a
+	jr l4799h
+l477ah:
+	ld hl,0e204h
+	dec (hl)
+	jr z,l4784h
+	call nz,l4d57h
+	ret
+l4784h:
+	jp l4934h
+	ld a,b
+	and a
+	jr nz,l47a1h
+	call sub_4e98h
+	call l41b5h
+	call 0ba11h
+	call sub_418ah
+	ld a,020h
+l4799h:
+	ld (0e204h),a
+l479ch:
+	ld hl,0e201h
+	inc (hl)
+	ret
+l47a1h:
+	call l41b5h
+	call 0ba66h
+	call 0ba41h
+	call sub_418ah
+	ld a,(0e246h)
+	or a
+	ret nz
+l47b2h:
+	xor a
+l47b3h:
+	ld l,a
+	ld h,000h
+	ld (0e200h),hl
+	ld a,020h
+	ld (0e204h),a
+	jp l493dh
+	ld a,b
+	call sub_4099h
+	defb 0ddh,047h,0e4h ;illegal sequence
+	ld b,a
+	dec sp
+	ld c,b
+	ld b,h
+	ld c,b
+	ld d,h
+	ld c,b
+	ld l,b
+	ld c,b
+	ld l,(hl)
+	ld c,b
+	ld a,e
+	ld c,b
+	add a,c
+	ld c,b
+	sub b
+	ld c,b
+	sub (hl)
+	ld c,b
+	xor b
+	ld c,b
+	call sub_422bh
+	ld a,070h
+	jr l4799h
+	ld hl,0e204h
+	dec (hl)
+	jr z,l4801h
+	ld a,(0e222h)
+	and a
+	ld hl,05f3eh
+	jr z,l47f6h
+	ld hl,l5f45h
+l47f6h:
+	ld a,(0e204h)
+	and 004h
+	jp z,l51d0h
+	jp l51d4h
+l4801h:
+	call sub_4230h
+	ld a,(0e222h)
+	and a
+	jr z,l4813h
+	ld a,001h
+	ld (0e25ah),a
+	ld a,00bh
+	jr l47b3h
+l4813h:
+	ld a,(0f0f7h)
+	inc a
+	jr z,l4835h
+	ld a,001h
+	call 00141h
+	cpl
+	and 020h
+	jr z,l4835h
+	call sub_4e98h
+	call l41b5h
+	ld hl,0b284h
+	call l51d0h
+	call sub_418ah
+	jp l479ch
+l4835h:
+	ld hl,0e201h
+	inc (hl)
+	inc (hl)
+	ret
+	ld a,(0e207h)
+	and 010h
+	ret z
+	jp l479ch
+	xor a
+	ld (0e24ah),a
+	ld (0e254h),a
+	call sub_5d41h
+	call 0677eh
+	jp l479ch
+	call 06794h
+	ld hl,0e24ah
+	ld a,(hl)
+	and a
+	ret z
+	ld (hl),000h
+	ld a,(0e24bh)
+	add a,a
+	add a,005h
+	jp l493eh
+	call 06807h
+	jp l479ch
+	call 0683eh
+	ld a,(0e24ah)
+	and a
+	ret z
+	ld a,00bh
+	jp l493eh
+	call 06a0bh
+	jp l479ch
+	call 06a32h
+	ld a,(0e24ah)
+	and a
+	ret z
+	dec a
+	jp nz,l47b2h
+	jp l4934h
+	call 08ecbh
+	jp l479ch
+	call 08edah
+	call sub_583bh
+	ld a,(0e24ah)
+	and a
+	ret z
+	dec a
+	jp z,l4934h
+	jp l4beah
+	call sub_4c01h
+	jp l4934h
+	ld a,b
+	and a
+	jr nz,l491bh
+	call sub_4e98h
+	ld a,(0e254h)
+	and a
+	jr nz,l48f7h
+	ld hl,0e240h
+	ld a,(hl)
+	sub 001h
+	daa
+	ld (hl),a
+	ld hl,05f13h
+	call l51d0h
+	ld de,09048h
+	call sub_4cefh
+	call sub_41bfh
+	ld a,(0e242h)
+	ld b,a
+	add a,a
+	add a,b
+	add a,002h
+	ld hl,0b8f8h
+	call sub_408fh
+	ld a,(hl)
+	and 01fh
+	call sub_4cfdh
+	call sub_418ah
+	ld hl,0efc0h
+	ld (hl),a
+	ld b,001h
+	ld de,0a868h
+	call sub_4d26h
+	jr l4913h
+l48f7h:
+	xor a
+	ld (0e240h),a
+	dec a
+	ld (0e245h),a
+	call sub_43aeh
+	ld a,001h
+	ld (0e241h),a
+	ld hl,l5f28h
+	call l51d0h
+	ld de,06058h
+	call 08a17h
+l4913h:
+	ld a,078h
+	ld (0e204h),a
+	jp l479ch
+l491bh:
+	ld hl,0e204h
+	dec (hl)
+	ret nz
+	call sub_4e98h
+	call sub_431bh
+	call sub_5c80h
+	call sub_4313h
+	call sub_4388h
+	ld hl,0e246h
+	ld (hl),001h
+l4934h:
+	ld a,020h
+l4936h:
+	ld (0e204h),a
+	ld hl,0e200h
+	inc (hl)
+l493dh:
+	xor a
+l493eh:
+	ld (0e201h),a
+	ret
+	ld a,(0e24ch)
+	and a
+	jp nz,l49e1h
+	ld hl,0e215h
+	ld a,(hl)
+	and a
+	jr z,l4958h
+	dec a
+	jr nz,l4958h
+	ld (hl),000h
+	call sub_4388h
+l4958h:
+	ld a,(0e24eh)
+	and a
+	jp nz,l4a07h
+	ld a,(0e20ch)
+	and 010h
+	jr nz,l49a4h
+	call sub_5d63h
+	ld a,(0e248h)
+	and a
+	ld a,008h
+	jp nz,l47b3h
+	ld a,(0e249h)
+	and a
+	jr nz,l49b4h
+	ld a,(0e246h)
+	or a
+	jr z,l4934h
+	ld a,(0e20ch)
+	rra
+	jr c,l49c1h
+	rra
+	ret nc
+	ld a,(0f0f4h)
+	and a
+	ret nz
+	ld a,001h
+	ld (0e24eh),a
+	ld hl,03b00h
+	call 00174h
+	ld (0e24fh),a
+	ld a,0d0h
+	call 00177h
+	call sub_427bh
+	jp l4d8fh
+l49a4h:
+	ld a,(0e298h)
+	or a
+	ret nz
+	ld a,004h
+	ld (0e280h),a
+	call 092ffh
+	jp l42a3h
+l49b4h:
+	xor a
+	ld (0e249h),a
+	inc a
+	ld (0e257h),a
+	ld a,009h
+	jp l47b3h
+l49c1h:
+	ld a,(0e280h)
+	sub 004h
+	cp 002h
+	ret c
+	ld a,001h
+	ld (0e24ch),a
+	ld (0e216h),a
+	call sub_58d2h
+	xor a
+	ld (0e2b0h),a
+	ld (0e2b3h),a
+	call sub_5864h
+	jp l430fh
+l49e1h:
+	call 06059h
+	ld a,(0edc0h)
+	or a
+	ret nz
+	call 09801h
+	call sub_5864h
+	call 09881h
+	call sub_583bh
+	ld a,(0e20ch)
+	rra
+	ret nc
+	xor a
+	ld (0e24ch),a
+	ld (0e216h),a
+	call sub_58d2h
+	call sub_430bh
+l4a07h:
+	ld a,(0e20ch)
+	rra
+	rra
+	ret nc
+	xor a
+	ld (0e24eh),a
+	ld hl,03b00h
+	ld a,(0e24fh)
+	call 00177h
+	jp l4dceh
+	xor a
+	ld (0e215h),a
+	ld (0e255h),a
+	ld a,(0e254h)
+	and a
+	jr nz,l4a35h
+	ld a,(0e240h)
+	or a
+	jr z,l4a35h
+l4a30h:
+	ld a,004h
+	jp l47b3h
+l4a35h:
+	call sub_4226h
+l4a38h:
+	ld a,007h
+	jp l47b3h
+	ld a,b
+	and a
+	jr nz,l4a6fh
+	call sub_4e98h
+	ld hl,l5f4ch
+	call l51d0h
+	ld a,(0e254h)
+	ld b,a
+	ld a,(0e217h)
+	or b
+	ld (0e218h),a
+	ld hl,05f59h
+	call nz,l51d0h
+	call sub_4c8ah
+	xor a
+	ld (0e247h),a
+	ld a,(0e254h)
+	and a
+	ld a,078h
+	jr z,l4a6ch
+	ld a,0b4h
+l4a6ch:
+	jp l4799h
+l4a6fh:
+	ld a,(0e218h)
+	and a
+	call nz,sub_4adbh
+	ld a,(0e203h)
+	rra
+	ret c
+	ld hl,0e204h
+	dec (hl)
+	ret nz
+	ld a,(0e247h)
+	and a
+	jr z,l4ac3h
+	ld hl,0e226h
+	xor a
+	ld (hl),a
+	inc l
+	ld (hl),a
+	inc l
+	ld (hl),a
+	inc a
+	ld (0e240h),a
+	ld a,(0e254h)
+	and a
+	jr z,l4ac3h
+	ld a,(0f0f8h)
+	and a
+	jr z,l4abch
+	call 08f0ch
+	call l41e0h
+	ld hl,0e278h
+	ld (hl),045h
+	inc hl
+	ld (hl),04ch
+	inc hl
+	ld (hl),047h
+	ld a,005h
+	ld (0e25bh),a
+	ld hl,00a03h
+	ld (0e200h),hl
+	ret
+l4abch:
+	ld hl,00903h
+	ld (0e200h),hl
+	ret
+l4ac3h:
+	ld a,(0e247h)
+	and a
+	jp nz,l4a30h
+l4acah:
+	xor a
+	ld (0e217h),a
+	ld (0e254h),a
+	ld hl,0e202h
+	ld a,(hl)
+	and 0bfh
+	ld (hl),a
+	jp l47b2h
+sub_4adbh:
+	ld a,007h
+	call 00141h
+	bit 1,a
+	ret nz
+	ld a,001h
+	ld (0e247h),a
+	ld hl,05f59h
+	jp l51d4h
+	xor a
+	ld (0e24dh),a
+	call sub_5dfeh
+	ld a,(0e24dh)
+	and a
+	jr nz,l4b01h
+	call 0afb4h
+	call sub_5cf5h
+l4b01h:
+	ld a,005h
+	jp l47b3h
+	xor a
+	ld (0e215h),a
+	call 071deh
+	call sub_583bh
+	ld a,(0e257h)
+	ld b,a
+	cp 004h
+	jr nz,l4b26h
+	ld a,(0e254h)
+	and a
+	jp nz,l4a38h
+	ld a,(0e242h)
+	cp 03ch
+	jr nc,l4b3fh
+l4b26h:
+	ld a,b
+	and a
+	ret nz
+	ld a,(0e242h)
+	call sub_4cfdh
+	and 00fh
+	dec a
+	jp nz,l4a30h
+	ld a,001h
+	ld (0e257h),a
+	ld a,00ah
+	jp l47b3h
+l4b3fh:
+	ld a,001h
+	ld (0e257h),a
+	call sub_4e98h
+	ld a,00dh
+	jp l47b3h
+	call 06f5dh
+	ld a,(0e257h)
+	and a
+	ret nz
+	ld bc,0e201h
+	call 00047h
+	jp l4a30h
+	call sub_57d8h
+	call 07920h
+	call sub_57fbh
+	ld a,(0e25ah)
+	and a
+	ret nz
+	jp l4beah
+	djnz l4b78h
+	ld hl,0e204h
+	dec (hl)
+	ret nz
+	jp l479ch
+l4b78h:
+	djnz l4b8fh
+	call l41b5h
+	call 0b534h
+	call sub_418ah
+	ld a,(0ef10h)
+	or a
+	ret nz
+	ld hl,0e240h
+	inc (hl)
+	jp l4a30h
+l4b8fh:
+	call sub_4e98h
+	ld a,078h
+	call l4799h
+	call sub_41cch
+	ld hl,09d37h
+	ld a,(0ef10h)
+	dec a
+	add a,a
+	call sub_408fh
+	ld a,(hl)
+	inc hl
+	ld h,(hl)
+	ld l,a
+	call l51d0h
+	jp sub_418ah
+	call 0734dh
+	ld a,(0e257h)
+	and a
+	ret nz
+	jp l4acah
+l4bbah:
+	ld a,(0e200h)
+	cp 003h
+	ret nc
+	call sub_543eh
+	ld hl,0e221h
+	call sub_5437h
+	or a
+	ret z
+	ld hl,0e204h
+	ld (hl),000h
+	ld l,(hl)
+	ld de,0e222h
+	ld b,(hl)
+	djnz l4beah
+	and 030h
+	jr z,l4bfch
+	ld a,040h
+	ld (0e202h),a
+	ld (hl),003h
+	inc hl
+	ld c,000h
+	ld (hl),c
+	dec c
+	jp l4d61h
+l4beah:
+	ld hl,00001h
+	ld (0e200h),hl
+	call l41e0h
+	call sub_5bebh
+	call sub_5f8dh
+	jp l5fb2h
+l4bfch:
+	ld a,(de)
+	xor 001h
+	ld (de),a
+	ret
+sub_4c01h:
+	ld hl,0e226h
+	ld bc,00ddah
+	ld d,h
+	ld e,l
+	inc e
+	ld (hl),000h
+	ldir
+	ld hl,l4c1ah
+	ld de,0e240h
+	ld bc,00006h
+	ldir
+	ret
+l4c1ah:
+	ld bc,00101h
+	nop
+	nop
+	inc bc
+	ld c,000h
+	ld a,(0e202h)
+	add a,a
+	ret p
+	ld hl,0e226h
+	ld a,(hl)
+	add a,e
+	daa
+	ld (hl),a
+	inc l
+	ld a,(hl)
+	adc a,d
+	daa
+	ld (hl),a
+	inc hl
+	ld a,(hl)
+	adc a,c
+	daa
+	ld (hl),a
+	jr nc,l4c47h
+	ld bc,09999h
+	ld (0e223h),bc
+	ld (0e224h),bc
+	jr l4cc0h
+l4c47h:
+	ex de,hl
+	ld hl,0e245h
+	cp (hl)
+	jr c,l4c6fh
+	ld a,(hl)
+	add a,003h
+	daa
+	jr nc,l4c56h
+	ld a,0ffh
+l4c56h:
+	ld (hl),a
+	push de
+	ld hl,0e240h
+	ld a,(hl)
+	cp 099h
+	jr nc,l4c64h
+	add a,001h
+	daa
+	ld (hl),a
+l4c64h:
+	call sub_42abh
+	ld a,(0f0f4h)
+	and a
+	call nz,sub_4d17h
+	pop de
+l4c6fh:
+	ex de,hl
+	ld b,003h
+	ld de,0e225h
+l4c75h:
+	ld a,(de)
+	sub (hl)
+	jr c,l4c7fh
+	jr nz,l4cc0h
+	dec l
+	dec e
+	djnz l4c75h
+l4c7fh:
+	ld bc,00003h
+	ld e,025h
+	ld l,028h
+	lddr
+	jr l4cc0h
+sub_4c8ah:
+	ld a,(0f0f4h)
+	and a
+	ret z
+	ld hl,000c0h
+	ld c,00ch
+	ld de,0ff13h
+	call sub_4fc1h
+	ld hl,l5ef2h
+	call l51d0h
+	call l4cc0h
+	call sub_4d17h
+	ld a,(0e254h)
+	and a
+	jr z,l4cb5h
+	ld hl,0e270h
+	ld de,090cah
+	jp 08a1ah
+l4cb5h:
+	jp l4cech
+l4cb8h:
+	ld de,08848h
+	ld hl,08858h
+	jr l4cc6h
+l4cc0h:
+	ld de,018cah
+	ld hl,l58cah
+l4cc6h:
+	push hl
+	ld hl,0e225h
+	call sub_4cd2h
+	pop hl
+	ex de,hl
+	ld hl,0e228h
+sub_4cd2h:
+	ld b,003h
+	jr sub_4d26h
+sub_4cd6h:
+	ld a,(0e254h)
+	and a
+	jr z,l4ce7h
+	ld hl,0e270h
+	ld de,05068h
+	ld b,005h
+	jp 08a1ch
+l4ce7h:
+	ld de,06868h
+	jr sub_4cefh
+l4cech:
+	ld de,0b0cah
+sub_4cefh:
+	ld a,(0e242h)
+	call sub_4cfdh
+	ld hl,0efc0h
+	ld (hl),a
+	ld b,001h
+	jr sub_4d26h
+sub_4cfdh:
+	ld b,000h
+l4cffh:
+	ld c,a
+	sub 00ah
+	jr c,l4d07h
+	inc b
+	jr l4cffh
+l4d07h:
+	rlc b
+	rlc b
+	rlc b
+	rlc b
+	ld a,b
+	or c
+	ret
+sub_4d12h:
+	ld de,0a868h
+	jr l4d1fh
+sub_4d17h:
+	ld a,(0f0f4h)
+	and a
+	ret z
+	ld de,0e0cah
+l4d1fh:
+	ld hl,0e240h
+	ld b,001h
+	jr sub_4d26h
+sub_4d26h:
+	ld a,(0f0f4h)
+	and a
+	ex de,hl
+	call z,sub_4d7bh
+	ex de,hl
+l4d2fh:
+	dec b
+	jr nz,l4d34h
+	ld c,0ffh
+l4d34h:
+	inc b
+	ld a,(hl)
+	rra
+	rra
+	rra
+	rra
+	call sub_4d45h
+	ld a,(hl)
+	call sub_4d45h
+	dec hl
+	djnz l4d2fh
+	ret
+sub_4d45h:
+	and 00fh
+	add a,0d0h
+	jp l51e8h
+sub_4d4ch:
+	add a,a
+	add a,l
+	ld l,a
+	jr nc,l4d52h
+	inc h
+l4d52h:
+	ld a,(hl)
+	inc hl
+	ld h,(hl)
+	ld l,a
+	ret
+l4d57h:
+	ld hl,0e204h
+	bit 3,(hl)
+	ld c,0ffh
+	jr nz,l4d61h
+	inc c
+l4d61h:
+	ld hl,0388ch
+	ld de,0389ch
+	ld a,(0e222h)
+	or a
+	jr nz,l4d6eh
+	ex de,hl
+l4d6eh:
+	push hl
+	call sub_4d75h
+	pop de
+	ld c,000h
+sub_4d75h:
+	ld hl,l5f68h
+	jp l51dah
+sub_4d7bh:
+	ld a,l
+	rra
+	rra
+	rra
+	rra
+	rr h
+	rra
+	rr h
+	rra
+	rr h
+	ld l,h
+	and 003h
+	add a,038h
+	ld h,a
+	ret
+l4d8fh:
+	ld hl,03908h
+	ld de,0e880h
+	ld bc,00710h
+l4d98h:
+	push bc
+	ld b,000h
+	call sub_4dfbh
+	ld a,010h
+	call sub_4094h
+	ld a,020h
+	call sub_408fh
+	pop bc
+	djnz l4d98h
+	ld hl,03908h
+	ld bc,00710h
+l4db1h:
+	push bc
+	xor a
+	ld b,a
+	call sub_4e0fh
+	ld a,020h
+	call sub_408fh
+	pop bc
+	djnz l4db1h
+	ld hl,l5f6bh
+	call l51d0h
+	call sub_4d12h
+	call sub_4cd6h
+	jp l4cb8h
+l4dceh:
+	ld de,03908h
+	ld hl,0e880h
+	ld bc,00710h
+l4dd7h:
+	push bc
+	ld b,000h
+	call sub_4e05h
+	ld a,010h
+	call sub_408fh
+	ld a,020h
+	call sub_4094h
+	pop bc
+	djnz l4dd7h
+	ret
+	ld a,d
+	cpl
+	ld d,a
+	ld a,e
+	cpl
+	ld e,a
+	inc de
+	ret
+	ld a,h
+	cpl
+	ld h,a
+	ld a,l
+	cpl
+	ld l,a
+	inc hl
+	ret
+sub_4dfbh:
+	push hl
+	push de
+	push bc
+	call 00059h
+	pop bc
+	pop de
+	pop hl
+	ret
+sub_4e05h:
+	push hl
+	push de
+	push bc
+	call 0005ch
+	pop bc
+	pop de
+	pop hl
+	ret
+sub_4e0fh:
+	push de
+	push af
+	push bc
+	call 0016bh
+	pop bc
+	pop af
+	pop de
+	ret
+	push bc
+	call 00047h
+	pop bc
+	ret
+l4e1fh:
+	ld c,000h
+l4e21h:
+	ex de,hl
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	inc hl
+	ex de,hl
+l4e27h:
+	call 00171h
+	exx
+	ld a,(00007h)
+	ld c,a
+	exx
+l4e30h:
+	ld a,(de)
+	and a
+	ret z
+	inc de
+	ld b,a
+	and 07fh
+	cp b
+	jr z,l4e49h
+	and a
+	jr z,l4e1fh
+	ld b,a
+l4e3eh:
+	call sub_4e88h
+	exx
+	out (c),a
+	exx
+	djnz l4e3eh
+	jr l4e30h
+l4e49h:
+	call sub_4e88h
+l4e4ch:
+	exx
+	out (c),a
+	exx
+	djnz l4e4ch
+	jr l4e30h
+sub_4e54h:
+	ld c,000h
+	jr l4e27h
+	ld c,001h
+	jr l4e21h
+	ld c,001h
+	jr l4e27h
+l4e60h:
+	call sub_4e6ch
+	ld a,020h
+	call sub_4094h
+	dec c
+	jr nz,l4e60h
+	ret
+sub_4e6ch:
+	push de
+l4e6dh:
+	ld b,010h
+l4e6fh:
+	call 00174h
+	call sub_4e8dh
+	ex de,hl
+	call 00177h
+	ex de,hl
+	inc e
+	inc hl
+	djnz l4e6fh
+	ld a,e
+	sub 020h
+	ld e,a
+	bit 4,e
+	jr z,l4e6dh
+	pop de
+	ret
+sub_4e88h:
+	ld a,(de)
+	inc de
+	bit 0,c
+	ret z
+sub_4e8dh:
+	push bc
+	ld c,a
+	ld b,008h
+l4e91h:
+	rr c
+	rla
+	djnz l4e91h
+	pop bc
+	ret
+sub_4e98h:
+	call sub_4ecbh
+	call sub_4ebeh
+	ld hl,00000h
+	ld bc,00000h
+	xor a
+	ld d,000h
+	call sub_4fedh
+	ld b,000h
+	ld c,017h
+	call 00047h
+l4eb1h:
+	ld a,(0f3e0h)
+	or 040h
+	ld b,a
+	ld c,001h
+	call 00047h
+	jr l4ee7h
+sub_4ebeh:
+	ld a,(0f3e0h)
+	and 0bfh
+	ld b,a
+	ld c,001h
+	call 00047h
+	jr l4edch
+sub_4ecbh:
+	ld hl,0f600h
+	call sub_4ed4h
+	ld hl,0f200h
+sub_4ed4h:
+	ld bc,00080h
+	ld a,0e0h
+	jp sub_4e0fh
+l4edch:
+	ld a,(0ffe7h)
+	or 002h
+	ld b,a
+	ld c,008h
+	jp 00047h
+l4ee7h:
+	ld a,(0ffe7h)
+	and 0fdh
+	ld b,a
+	ld c,008h
+	jp 00047h
+sub_4ef2h:
+	push bc
+	push hl
+	ld b,a
+	ld a,(00007h)
+	inc a
+	ld c,a
+	di
+	out (c),b
+	ld a,090h
+	out (c),a
+	inc c
+	out (c),d
+	push af
+	pop af
+	out (c),e
+	dec c
+	ld hl,0f680h
+	ld a,b
+	add a,a
+	add a,l
+	ld l,a
+	call 00171h
+	dec c
+	out (c),d
+	out (c),e
+	pop hl
+	pop bc
+	ei
+	ret
+l4f1ch:
+	ld a,(hl)
+	inc hl
+	inc a
+	ret z
+	dec a
+	ld d,(hl)
+	inc hl
+	ld e,(hl)
+	inc hl
+	call sub_4ef2h
+	jr l4f1ch
+l4f2ah:
+	ld a,002h
+	call sub_4f34h
+	rra
+	jp c,l4f2ah
+	ret
+sub_4f34h:
+	push bc
+	push hl
+	ld hl,(00006h)
+	inc h
+	inc l
+	ld c,h
+	di
+	out (c),a
+	ld a,08fh
+	out (c),a
+	ld c,l
+	in a,(c)
+	push af
+	xor a
+	ld c,h
+	out (c),a
+	ld a,08fh
+	out (c),a
+	pop af
+	pop hl
+	pop bc
+	ei
+	ret
+sub_4f54h:
+	call l4f2ah
+	push bc
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,024h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	out (c),a
+	pop hl
+	out (c),h
+	xor a
+	cp h
+	jr nz,l4f79h
+	inc a
+l4f79h:
+	out (c),a
+	xor a
+	out (c),a
+	out (c),a
+	out (c),l
+	out (c),a
+	ld a,070h
+	out (c),a
+	ei
+	ret
+sub_4f8ah:
+	call l4f2ah
+	push bc
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,024h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	out (c),a
+	pop hl
+	out (c),h
+	xor a
+	cp h
+	jr nz,l4fafh
+	inc a
+l4fafh:
+	out (c),a
+	xor a
+	out (c),a
+	out (c),a
+	out (c),l
+	inc a
+	out (c),a
+	ld a,070h
+	out (c),a
+	ei
+	ret
+sub_4fc1h:
+	ld b,e
+	call sub_4fd9h
+	ld b,d
+	call sub_4fe3h
+	push hl
+	ld a,l
+	add a,e
+	ld l,a
+	ld b,d
+	call sub_4fe3h
+	pop hl
+	ld a,h
+	add a,d
+	ld h,a
+	ld b,e
+	jp sub_4fd9h
+sub_4fd9h:
+	push hl
+	push de
+	push bc
+	call sub_4f8ah
+	pop bc
+	pop de
+	pop hl
+	ret
+sub_4fe3h:
+	push hl
+	push de
+	push bc
+	call sub_4f54h
+	pop bc
+	pop de
+	pop hl
+	ret
+sub_4fedh:
+	ex af,af'
+	call l4f2ah
+	push bc
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,024h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	out (c),d
+	pop hl
+	out (c),h
+	cp h
+	jr nz,l5012h
+	inc a
+l5012h:
+	out (c),a
+	xor a
+	out (c),l
+	cp l
+	jr nz,l501bh
+	inc a
+l501bh:
+	out (c),a
+	ex af,af'
+	out (c),a
+	xor a
+	out (c),a
+	ld a,0c0h
+	out (c),a
+	ei
+	ret
+sub_5029h:
+	ex af,af'
+	call l4f2ah
+	push bc
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,020h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	ex af,af'
+	ld l,a
+	and 003h
+	out (c),a
+	out (c),d
+	xor a
+	out (c),a
+	out (c),e
+	ld a,l
+	rra
+	rra
+	and 003h
+	out (c),a
+	pop hl
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	out (c),a
+	out (c),a
+	out (c),a
+	ld a,0d0h
+	out (c),a
+	ei
+	ret
+sub_506dh:
+	ex af,af'
+	call l4f2ah
+	push bc
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,024h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),d
+	xor a
+	out (c),a
+	out (c),e
+	ex af,af'
+	out (c),a
+	pop de
+	out (c),d
+	xor a
+	out (c),a
+	out (c),e
+	out (c),a
+	ld a,(hl)
+	inc hl
+	out (c),a
+	xor a
+	out (c),a
+	ld a,0f0h
+	out (c),a
+	dec c
+	dec c
+	ld a,0ach
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+l50adh:
+	ld a,002h
+	call sub_4f34h
+	rra
+	ret nc
+	add a,a
+	add a,a
+	jr nc,l50adh
+	ld a,(hl)
+	inc hl
+	out (c),a
+	jr l50adh
+	ex af,af'
+	call l4f2ah
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,022h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),l
+	ex af,af'
+	ld l,a
+	and 003h
+	out (c),a
+	out (c),h
+	xor a
+	out (c),a
+	out (c),e
+	ld a,l
+	rra
+	rra
+	and 003h
+	out (c),a
+	xor a
+	out (c),a
+	out (c),a
+	out (c),d
+	cp d
+	jr nz,l50f3h
+	inc a
+l50f3h:
+	out (c),a
+	xor a
+	out (c),a
+	out (c),a
+	ld a,0e0h
+	out (c),a
+	ei
+l50ffh:
+	ret
+sub_5100h:
+	ex af,af'
+	call l4f2ah
+	push bc
+	ld a,(00007h)
+	inc a
+	ld c,a
+	ld a,020h
+	di
+	out (c),a
+	ld a,091h
+	out (c),a
+	inc c
+	inc c
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	ex af,af'
+	rlca
+	rlca
+	ld l,a
+	and 003h
+	out (c),a
+	out (c),d
+	xor a
+	out (c),a
+	out (c),e
+	ld a,l
+	ld e,a
+	rlca
+	rlca
+	and 003h
+	out (c),a
+	pop hl
+	out (c),h
+	xor a
+	out (c),a
+	out (c),l
+	out (c),a
+	out (c),a
+	out (c),a
+	ld a,e
+	rra
+	rra
+	and 00fh
+	or 090h
+	out (c),a
+	ei
+	ret
+l514ch:
+	call sub_5181h
+	call sub_524bh
+	djnz l514ch
+	ret
+sub_5155h:
+	ld b,008h
+	ld de,0ef80h
+l515ah:
+	push bc
+	push hl
+	ex de,hl
+	ld a,(de)
+	ld d,a
+	ld b,004h
+l5161h:
+	ld a,c
+	rl d
+	jr c,l516ah
+	rrca
+	rrca
+	rrca
+	rrca
+l516ah:
+	rld
+	ld a,c
+	rl d
+	jr c,l5175h
+	rrca
+	rrca
+	rrca
+	rrca
+l5175h:
+	rld
+	inc hl
+	djnz l5161h
+	ex de,hl
+	pop hl
+	inc hl
+	pop bc
+	djnz l515ah
+	ret
+sub_5181h:
+	push bc
+	push de
+	push hl
+	push de
+	call sub_5155h
+	pop de
+	ld b,d
+	ld d,e
+	ld e,b
+	srl d
+	rr e
+	ld a,d
+	add a,080h
+	ld d,a
+	ld hl,0ef80h
+	call sub_51a2h
+	pop hl
+	ld bc,00008h
+	add hl,bc
+	pop de
+	pop bc
+	ret
+sub_51a2h:
+	push de
+	ld b,008h
+l51a5h:
+	push bc
+	ld bc,00004h
+	call sub_4e05h
+	ld bc,00004h
+	add hl,bc
+	ex de,hl
+	ld bc,00080h
+	add hl,bc
+	ex de,hl
+	pop bc
+	djnz l51a5h
+	pop de
+	ret
+l51bbh:
+	push bc
+	call sub_51a2h
+	ld a,004h
+	add a,e
+	cp 080h
+	jr nz,l51cbh
+	ld a,004h
+	add a,d
+	ld d,a
+	xor a
+l51cbh:
+	ld e,a
+	pop bc
+	djnz l51bbh
+	ret
+l51d0h:
+	ld c,0ffh
+	jr l51d6h
+l51d4h:
+	ld c,000h
+l51d6h:
+	ld d,(hl)
+	inc hl
+	ld e,(hl)
+	inc hl
+l51dah:
+	ld a,(hl)
+	inc hl
+	ld b,a
+	inc b
+	ret z
+	inc b
+	jr z,l51d6h
+	and c
+	call l51e8h
+	jr l51dah
+l51e8h:
+	call sub_5207h
+	ld a,d
+	add a,008h
+	ld d,a
+	ret
+l51f0h:
+	ld a,d
+	sub 020h
+	ld d,a
+	ld a,e
+	add a,008h
+	ld e,a
+	jr l51fah
+l51fah:
+	ld a,(hl)
+	inc hl
+	ld b,a
+	inc b
+	ret z
+	inc b
+	jr z,l51f0h
+	call l51e8h
+	jr l51fah
+sub_5207h:
+	push bc
+	push hl
+	push de
+	call sub_523dh
+	ld bc,00808h
+	ld a,001h
+	call sub_5029h
+	pop de
+	pop hl
+	pop bc
+	ret
+l5219h:
+	push bc
+	push hl
+	push de
+	call sub_523dh
+	ld bc,00808h
+	ld a,048h
+	call sub_5100h
+	pop de
+	pop hl
+	pop bc
+	ret
+sub_522bh:
+	push bc
+	push hl
+	push de
+	call sub_523dh
+	ld bc,00808h
+	ld a,058h
+	call sub_5100h
+	pop de
+	pop hl
+	pop bc
+	ret
+sub_523dh:
+	ld b,a
+	and 01fh
+	add a,a
+	add a,a
+	add a,a
+	ld h,a
+	ld a,b
+	and 0e0h
+	rrca
+	rrca
+	ld l,a
+	ret
+sub_524bh:
+	ld a,d
+	add a,008h
+	ld d,a
+	ret nz
+	ld a,e
+	add a,008h
+	ld e,a
+	ret
+l5255h:
+	push bc
+	push de
+	exx
+	ld hl,0e800h
+	exx
+l525ch:
+	push bc
+	call sub_5281h
+	pop bc
+	djnz l525ch
+	pop de
+	pop bc
+	ld hl,0e800h
+	jp l51bbh
+l526bh:
+	push bc
+	push de
+	exx
+	ld hl,0e800h
+	exx
+l5272h:
+	push bc
+	call sub_5281h
+	pop bc
+	djnz l5272h
+	pop de
+	pop bc
+	ld hl,0e800h
+	jp l539eh
+sub_5281h:
+	ld b,008h
+l5283h:
+	ld e,(hl)
+	inc hl
+	push bc
+	call sub_528dh
+	pop bc
+	djnz l5283h
+	ret
+sub_528dh:
+	ld b,004h
+l528fh:
+	xor a
+	rl e
+	rla
+	exx
+	ld e,a
+	ld d,0e7h
+	ld a,(de)
+	add a,a
+	add a,a
+	add a,a
+	add a,a
+	ld c,a
+	exx
+	xor a
+	rl e
+	rla
+	exx
+	ld e,a
+	ld d,0e7h
+	ld a,(de)
+	or c
+	ld (hl),a
+	inc hl
+	exx
+	djnz l528fh
+	ret
+l52aeh:
+	push bc
+	push de
+	exx
+	ld hl,0e800h
+	exx
+l52b5h:
+	push bc
+	call sub_52dah
+	pop bc
+	djnz l52b5h
+	pop de
+	pop bc
+	ld hl,0e800h
+	jp l51bbh
+l52c4h:
+	push bc
+	push de
+	exx
+	ld hl,0e800h
+	exx
+l52cbh:
+	push bc
+	call sub_52dah
+	pop bc
+	djnz l52cbh
+	pop de
+	pop bc
+	ld hl,0e800h
+	jp l539eh
+sub_52dah:
+	ld b,008h
+l52dch:
+	push bc
+	call sub_52e4h
+	pop bc
+	djnz l52dch
+	ret
+sub_52e4h:
+	ld b,004h
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	inc hl
+l52eah:
+	xor a
+	rl d
+	rla
+	rl e
+	rla
+	exx
+	ld e,a
+	ld d,0e7h
+	ld a,(de)
+	add a,a
+	add a,a
+	add a,a
+	add a,a
+	ld c,a
+	exx
+	xor a
+	rl d
+	rla
+	rl e
+	rla
+	exx
+	ld e,a
+	ld d,0e7h
+	ld a,(de)
+	or c
+	ld (hl),a
+	inc hl
+	exx
+	djnz l52eah
+	ret
+l530fh:
+	push bc
+	push de
+	exx
+	ld hl,0e800h
+	exx
+l5316h:
+	push bc
+	call sub_533bh
+	pop bc
+	djnz l5316h
+	pop de
+	pop bc
+	ld hl,0e800h
+	jp l51bbh
+l5325h:
+	push bc
+	push de
+	exx
+	ld hl,0e800h
+	exx
+l532ch:
+	push bc
+	call sub_533bh
+	pop bc
+	djnz l532ch
+	pop de
+	pop bc
+	ld hl,0e800h
+	jp l539eh
+sub_533bh:
+	ld b,008h
+l533dh:
+	push bc
+	call sub_5345h
+	pop bc
+	djnz l533dh
+	ret
+sub_5345h:
+	ld b,004h
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	inc hl
+	ld c,(hl)
+	inc hl
+l534dh:
+	xor a
+	rl c
+	rla
+	rl d
+	rla
+	rl e
+	rla
+	exx
+	ld e,a
+	ld d,0e7h
+	ld a,(de)
+	add a,a
+	add a,a
+	add a,a
+	add a,a
+	ld c,a
+	exx
+	xor a
+	rl c
+	rla
+	rl d
+	rla
+	rl e
+	rla
+	exx
+	ld e,a
+	ld d,0e7h
+	ld a,(de)
+	or c
+	ld (hl),a
+	inc hl
+	exx
+	djnz l534dh
+	ret
+sub_5378h:
+	push de
+	ld a,(00007h)
+	ld c,a
+	ld b,008h
+l537fh:
+	push bc
+	ex de,hl
+	call 00171h
+	ex de,hl
+	ld b,004h
+l5387h:
+	ld a,(hl)
+	dec hl
+	rrca
+	rrca
+	rrca
+	rrca
+	out (c),a
+	djnz l5387h
+	ld c,008h
+	add hl,bc
+	ex de,hl
+	ld c,080h
+	add hl,bc
+	ex de,hl
+	pop bc
+	djnz l537fh
+	pop de
+	ret
+l539eh:
+	inc hl
+	inc hl
+	inc hl
+l53a1h:
+	push bc
+	call sub_5378h
+	ld a,004h
+	add a,e
+	cp 080h
+	jr nz,l53b1h
+	ld a,004h
+	add a,d
+	ld d,a
+	xor a
+l53b1h:
+	ld e,a
+	pop bc
+	djnz l53a1h
+	ret
+sub_53b6h:
+	ld a,004h
+	ld (07000h),a
+	inc a
+	ld (09000h),a
+	inc a
+	ld (0b000h),a
+	call 06000h
+	ld a,(0f0f1h)
+	ld (07000h),a
+	ld a,(0f0f2h)
+	ld (09000h),a
+	ld a,(0f0f3h)
+	ld (0b000h),a
+	call 06eeah
+	ld a,005h
+	call 0005fh
+	ld a,00fh
+	ld (0f3ebh),a
+	call 00062h
+	xor a
+	ld h,a
+	ld l,a
+	ld b,a
+	ld c,a
+	ld d,a
+	call sub_4fedh
+	xor a
+	ld h,a
+	ld l,a
+	ld b,a
+	ld c,a
+	ld d,001h
+	call sub_4fedh
+	call l4f2ah
+	ld b,004h
+	ld hl,l5413h
+l5403h:
+	push bc
+	ld c,(hl)
+	inc hl
+	ld b,(hl)
+	inc hl
+	push hl
+	call 00047h
+	pop hl
+	pop bc
+	djnz l5403h
+	jp l4edch
+l5413h:
+	ld bc,00562h
+	rst 28h
+	ld b,01fh
+	dec bc
+	ld bc,0cdc9h
+	ld a,054h
+	call sub_5434h
+	call sub_5479h
+	ld hl,0e20dh
+	call sub_5437h
+	ld a,(0e200h)
+	cp 00bh
+	jp z,086ddh
+	ret
+sub_5434h:
+	ld hl,0e208h
+sub_5437h:
+	ld c,(hl)
+	ld (hl),a
+	xor c
+	and (hl)
+	dec hl
+	ld (hl),a
+	ret
+sub_543eh:
+	ld e,08fh
+	ld a,00fh
+	call 00093h
+	ld a,00eh
+	di
+	call 00096h
+	ei
+	cpl
+	and 03fh
+	push af
+	ld a,004h
+	call 00141h
+	cpl
+	rlca
+	rlca
+	rlca
+	and 020h
+	ld e,a
+	ld a,008h
+	call 00141h
+	cpl
+	rrca
+	rrca
+	ld b,a
+	and 004h
+	or e
+	ld c,a
+	ld a,b
+	rrca
+	rrca
+	ld b,a
+	and 018h
+	or c
+	ld c,a
+	ld a,b
+	rrca
+	and 003h
+	or c
+	pop bc
+	or b
+	ret
+sub_5479h:
+	ld a,006h
+	call 00141h
+	cpl
+	and 0e0h
+	ld e,a
+	ld a,007h
+	call 00141h
+	cpl
+	ld b,a
+	and 003h
+	or e
+	rlca
+	rlca
+	rlca
+	and 01fh
+	ld e,a
+	ld a,b
+	and 080h
+	or e
+	ld e,a
+	ld a,b
+	rlca
+	rlca
+	rlca
+	rlca
+	and 040h
+	or e
+	ret
+l54a0h:
+	ld a,(hl)
+	inc a
+	ret z
+	push de
+	ld a,(hl)
+	ld c,a
+	ex de,hl
+	and 0f8h
+	rrca
+	rrca
+	rrca
+	call sub_4d4ch
+	push de
+	push bc
+	ld a,c
+	and 006h
+	add a,a
+	jr nz,l54b9h
+	ld a,002h
+l54b9h:
+	ld c,a
+	ld b,000h
+	ld de,0e700h
+	ldir
+	pop bc
+	pop hl
+	inc hl
+	push hl
+	ld a,(hl)
+	ld b,a
+	and 0e0h
+	ld h,000h
+	ld l,a
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	ld de,08000h
+	add hl,de
+	ld a,b
+	and 01fh
+	add a,a
+	add a,a
+	call sub_408fh
+	ex de,hl
+	pop hl
+	inc hl
+	ld b,(hl)
+	inc hl
+	ld a,(hl)
+	inc hl
+	push hl
+	ld h,(hl)
+	ld l,a
+	call sub_54efh
+	pop hl
+	pop de
+	inc hl
+	jr l54a0h
+sub_54efh:
+	ld a,c
+	and 007h
+	jp z,l5255h
+	dec a
+	jp z,l526bh
+	dec a
+	jp z,l52aeh
+	dec a
+	jp z,l52c4h
+	dec a
+	jp z,l530fh
+	jp l5325h
+l5508h:
+	ld a,(ix+000h)
+	and a
+	ret z
+	ld l,a
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	ld c,l
+	ld b,h
+	ld l,(ix+001h)
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	ld de,0f800h
+	ld a,(0f0f4h)
+	and a
+	jr nz,l552bh
+	ld de,01800h
+l552bh:
+	add hl,de
+	ex de,hl
+	ld l,(ix+002h)
+	ld h,(ix+003h)
+	call sub_4e05h
+	ld de,00004h
+	add ix,de
+	jr l5508h
+l553dh:
+	ld a,(ix+000h)
+	dec a
+	ret m
+	push af
+	ld a,(0f0f4h)
+	and a
+	ld bc,0f800h
+	jr nz,l554fh
+	ld bc,01800h
+l554fh:
+	pop af
+	push af
+	push bc
+	call z,sub_5561h
+	pop bc
+	pop af
+	call nz,sub_55cdh
+	ld bc,00004h
+	add ix,bc
+	jr l553dh
+sub_5561h:
+	ld a,(ix+001h)
+	or a
+	ret z
+	ld (0efd0h),a
+	ld l,(ix+002h)
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,bc
+	ld (0efd2h),hl
+	ld l,(ix+003h)
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,bc
+	ld (0efd4h),hl
+l5581h:
+	ld hl,(0efd2h)
+	ld de,0ef80h
+	ld bc,00020h
+	call sub_4dfbh
+	call sub_55b5h
+	ld de,(0efd4h)
+	ld hl,0efa0h
+	ld bc,00020h
+	call sub_4e05h
+	ld bc,00020h
+	ld hl,(0efd2h)
+	add hl,bc
+	ld (0efd2h),hl
+	ld hl,(0efd4h)
+	add hl,bc
+	ld (0efd4h),hl
+	ld hl,0efd0h
+	dec (hl)
+	jr nz,l5581h
+	ret
+sub_55b5h:
+	ld hl,0ef80h
+	ld de,0efafh
+	call sub_55c4h
+	ld hl,0ef90h
+	ld de,0efbfh
+sub_55c4h:
+	ld b,010h
+l55c6h:
+	ld a,(hl)
+	ld (de),a
+	inc hl
+	dec de
+	djnz l55c6h
+	ret
+sub_55cdh:
+	ld a,(ix+001h)
+	or a
+	ret z
+	ld l,(ix+003h)
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,bc
+	ld a,010h
+	call sub_408fh
+	ex de,hl
+	ld l,(ix+002h)
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,bc
+	ld c,(ix+001h)
+	jp l4e60h
+sub_55f0h:
+	call sub_599dh
+	call sub_41cch
+	ld de,0b116h
+	ld hl,0b120h
+	call l54a0h
+	ld hl,0bb05h
+	ld de,0f800h
+	ld bc,00100h
+	call sub_4e05h
+	ld hl,0a7ceh
+	call l4f1ch
+	call sub_418ah
+	xor a
+	call sub_59dch
+	ld hl,01050h
+	ld bc,0a838h
+	ld a,0ffh
+	ld d,001h
+	call sub_4fedh
+	call sub_41cch
+	ld hl,0b8dbh
+	ld de,01050h
+	call sub_576dh
+	jp sub_418ah
+sub_5634h:
+	call sub_41abh
+	call sub_5640h
+	call sub_5655h
+	jp sub_418ah
+sub_5640h:
+	ld a,(0e241h)
+	ld b,a
+	ld hl,06065h
+	call sub_4d4ch
+	ex de,hl
+	ld a,b
+	ld hl,06177h
+	call sub_4d4ch
+	jp l54a0h
+sub_5655h:
+	ld hl,0602ah
+	ld de,06000h
+	jp l54a0h
+sub_565eh:
+	call sub_41cch
+	ld a,(0e242h)
+	dec a
+	and 002h
+	ld hl,0b97ah
+	jr z,l566fh
+	ld hl,0b9f8h
+l566fh:
+	ld a,(0e241h)
+	call sub_4d4ch
+	call l4f1ch
+	call sub_418ah
+	call sub_41cch
+	ld hl,0b95dh
+	call l4f1ch
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0f800h
+	ld de,0abb9h
+	call sub_4e54h
+	jp sub_418ah
+sub_5696h:
+	call sub_41cch
+	ld ix,098c9h
+	call l5508h
+	ld ix,098eah
+	call l553dh
+	jp sub_418ah
+	call sub_41b0h
+	ld bc,00307h
+	call 00047h
+	ld hl,0afddh
+	ld de,00800h
+	ld bc,035fbh
+	call l514ch
+	call sub_418ah
+	jp l57bbh
+	call l41b5h
+	ld hl,0ef13h
+	ld e,(hl)
+	inc l
+	ld d,(hl)
+	ld hl,0b1d6h
+	ld bc,01010h
+	ld a,000h
+	call sub_506dh
+	jp l57c4h
+	ld c,002h
+sub_56deh:
+	call sub_41cch
+l56e1h:
+	push bc
+	push de
+	ld b,c
+l56e4h:
+	call sub_56f8h
+	ld a,d
+	add a,008h
+	ld d,a
+	djnz l56e4h
+	pop de
+	ld a,e
+	add a,008h
+	ld e,a
+	pop bc
+	djnz l56e1h
+	jp sub_418ah
+sub_56f8h:
+	ld a,(0e241h)
+	ld hl,07ffeh
+	call sub_4d4ch
+	ld a,(0e242h)
+	rra
+	ld a,020h
+	jr c,l570ah
+	xor a
+l570ah:
+	call sub_408fh
+	ld a,e
+	and 018h
+	ld c,a
+	ld a,d
+	srl a
+	srl a
+	srl a
+	and 007h
+	add a,c
+	call sub_408fh
+	ld a,(hl)
+	jp sub_5767h
+	ld b,002h
+l5724h:
+	call 00174h
+	ld (de),a
+	inc hl
+	inc de
+	call 00174h
+	ld (de),a
+	ld a,01fh
+	call sub_408fh
+	inc de
+	djnz l5724h
+	ret
+	ld a,001h
+	jr l573ch
+l573bh:
+	xor a
+l573ch:
+	ld (0efc0h),a
+l573fh:
+	push bc
+	push de
+	ld b,c
+l5742h:
+	ld a,(hl)
+	push hl
+	call sub_5758h
+	pop hl
+	ld a,d
+	add a,008h
+	ld d,a
+	inc hl
+	djnz l5742h
+	pop de
+	ld a,e
+	add a,008h
+	ld e,a
+	pop bc
+	djnz l573fh
+	ret
+sub_5758h:
+	push af
+	ld a,(0efc0h)
+	and a
+	jr nz,l5764h
+	pop af
+	call sub_5767h
+	ret
+l5764h:
+	pop af
+	jr l576ah
+sub_5767h:
+	jp l5219h
+l576ah:
+	jp sub_5207h
+sub_576dh:
+	push de
+l576eh:
+	ld a,(hl)
+	inc hl
+	ld c,a
+	inc a
+	jr z,l578bh
+	inc a
+	jr nz,l5782h
+	pop de
+	ld a,(hl)
+	inc hl
+	add a,d
+	ld d,a
+	ld a,008h
+	add a,e
+	ld e,a
+	jr sub_576dh
+l5782h:
+	ld a,c
+	call sub_522bh
+	call sub_524bh
+	jr l576eh
+l578bh:
+	pop de
+	ret
+	call sub_4ebeh
+	ld b,003h
+	ld c,007h
+	call 00047h
+	call sub_41cch
+	ld bc,00d1ah
+	ld hl,0bc05h
+	ld de,01830h
+	call l573bh
+	call l57c4h
+	jp l4eb1h
+	call sub_41abh
+	ld de,0b7c7h
+	ld hl,0b7dfh
+	call l54a0h
+	call sub_418ah
+l57bbh:
+	call sub_41cch
+	ld hl,0ba78h
+	call l4f1ch
+l57c4h:
+	call sub_418ah
+	jp l41b5h
+	call sub_41cch
+	ld hl,0f800h
+	ld de,0ba9ah
+	call sub_4e54h
+	jr l57c4h
+sub_57d8h:
+	ld hl,(0e210h)
+	bit 2,h
+	ld hl,0f600h
+	ld de,0f400h
+	ld bc,0e705h
+	jr z,l57f1h
+	ld hl,0f200h
+	ld de,0f000h
+	ld bc,0ef05h
+l57f1h:
+	ld (0e212h),hl
+	ld (0e210h),de
+	jp 00047h
+sub_57fbh:
+	ld hl,0e20bh
+	ld a,(hl)
+	add a,068h
+	and 078h
+	ld (hl),a
+	ld a,(00007h)
+	ld c,a
+	ld hl,(0e210h)
+	call 00171h
+	ld a,(0e20bh)
+	ld d,010h
+	add a,a
+l5814h:
+	ld h,069h
+	ld l,a
+	add hl,hl
+	ld b,020h
+	otir
+	add a,090h
+	dec d
+	jr nz,l5814h
+	ld hl,(0e212h)
+	call 00171h
+	ld a,(0e20bh)
+	ld d,010h
+	ld h,0e8h
+l582eh:
+	ld b,008h
+	ld l,a
+	otir
+	add a,048h
+	and 078h
+	dec d
+	jr nz,l582eh
+	ret
+sub_583bh:
+	ld bc,0ef05h
+	call 00047h
+	ld hl,0d200h
+	ld de,0f400h
+	ld bc,00200h
+	call sub_4e05h
+	ld hl,0e800h
+	ld de,0f600h
+	ld bc,00080h
+	jp sub_4e05h
+	call sub_585fh
+	jp sub_418ah
+sub_585fh:
+	call sub_58d2h
+	jr l586ah
+sub_5864h:
+	call l586ah
+	jp sub_418ah
+l586ah:
+	call sub_41cch
+	ld a,(0e24ch)
+	or a
+	jr nz,l58cdh
+	ld a,(0e298h)
+	or a
+	jp nz,l58bah
+	ld a,(0e287h)
+	and 00fh
+	ld hl,0e297h
+	cp (hl)
+	call nz,sub_5925h
+	ld a,(0e285h)
+	add a,a
+	ld e,a
+	ld d,000h
+	ld hl,0869ch
+	add hl,de
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	ld hl,000f0h
+	ex de,hl
+	ld bc,08001h
+	ld a,005h
+	call sub_5029h
+	ld a,(0e285h)
+	add a,a
+	ld e,a
+	ld d,000h
+	ld hl,086b8h
+	add hl,de
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	ld hl,080f0h
+	ex de,hl
+	ld bc,08001h
+	ld a,005h
+	jp sub_5029h
+l58bah:
+	ld a,(0e285h)
+l58bdh:
+	ld de,000f0h
+	ld hl,000c0h
+	add a,l
+	ld l,a
+	ld bc,0ff01h
+	ld a,005h
+l58cah:
+	jp sub_5029h
+l58cdh:
+	ld a,(0e2b3h)
+	jr l58bdh
+sub_58d2h:
+	call sub_41cch
+	call sub_58dbh
+	jp sub_418ah
+sub_58dbh:
+	ld a,(0e24ch)
+	or a
+	jr nz,l5937h
+	ld a,(0e298h)
+	or a
+	jr nz,l5928h
+	ld a,(0e287h)
+	add a,a
+	ld e,a
+	ld d,000h
+	ld hl,0858bh
+	add hl,de
+	ld a,(hl)
+	inc hl
+	ld h,(hl)
+	ld l,a
+l58f6h:
+	ld a,(hl)
+	cp 0ffh
+	ret z
+	and 00fh
+	jr nz,l5910h
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	inc hl
+	ld c,(hl)
+	inc hl
+	ld b,(hl)
+	inc hl
+	push hl
+	ld h,b
+	ld l,c
+	ex de,hl
+	call sub_4e54h
+	pop hl
+	jr l58f6h
+l5910h:
+	ld c,a
+	ld a,(hl)
+	and 0f0h
+	ld e,a
+	inc hl
+	ld d,(hl)
+	inc hl
+	ld a,(hl)
+	inc hl
+	ld b,(hl)
+	inc hl
+	push hl
+	ld h,b
+	ld l,a
+	call l4e60h
+	pop hl
+	jr l58f6h
+sub_5925h:
+	ld (hl),a
+	jr sub_58dbh
+l5928h:
+	call sub_41cch
+	ld hl,0e000h
+	ld de,0953dh
+	call sub_4e54h
+	jp sub_418ah
+l5937h:
+	call sub_41cch
+	ld hl,0e000h
+	ld de,0ab59h
+	call sub_4e54h
+	ld hl,0e080h
+	ld de,0aa00h
+	call sub_4e54h
+	jp sub_418ah
+sub_594fh:
+	call sub_41cch
+	call sub_5958h
+	jp sub_418ah
+sub_5958h:
+	ld hl,0f880h
+	ld de,097a1h
+	jp sub_4e54h
+	call sub_41abh
+	ld hl,0902eh
+	ld de,08ffch
+	call l54a0h
+	jp sub_418ah
+	call sub_41abh
+	ld hl,09043h
+	ld de,08ffch
+	call l54a0h
+	jp sub_418ah
+	call sub_41abh
+	ld hl,09063h
+	ld de,08ffch
+	call l54a0h
+	jp sub_418ah
+	call sub_41abh
+	ld hl,09069h
+	ld de,08ffch
+	call l54a0h
+	jp sub_418ah
+sub_599dh:
+	call sub_41abh
+	ld hl,09074h
+	ld de,08ffch
+	call l54a0h
+	jp sub_418ah
+	ld de,01818h
+	call sub_41cch
+	ld hl,0a358h
+	ld bc,00c0ch
+	call l573bh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a2c8h
+	ld bc,00c0ch
+	call l573bh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a702h
+	ld bc,00c0ch
+	call l573bh
+	jp sub_418ah
+sub_59dch:
+	push af
+	ld bc,0a201h
+	call 00047h
+	pop af
+	call sub_59edh
+	ld bc,0e201h
+	jp 00047h
+sub_59edh:
+	call sub_41cch
+	ld de,00000h
+	ld b,020h
+l59f5h:
+	push bc
+	push af
+	ld hl,09d58h
+	add a,a
+	ld c,a
+	ld b,000h
+	add hl,bc
+	ld a,(hl)
+	inc hl
+	ld h,(hl)
+	ld l,a
+	push de
+	ld bc,01b01h
+	call l573bh
+	pop de
+	ld a,d
+	add a,008h
+	ld d,a
+	pop af
+	inc a
+	pop bc
+	djnz l59f5h
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a5a6h
+	ld de,0b038h
+	ld bc,00c02h
+	call l573bh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a5beh
+	ld de,0a838h
+	ld bc,00c04h
+	call l573bh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a5eeh
+	ld de,0a030h
+	ld bc,00e06h
+	call l573bh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a6e0h
+	ld de,08848h
+	call sub_576dh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a3e8h
+	ld de,00040h
+	call sub_576dh
+	ld hl,0a4c7h
+	ld de,06040h
+	call sub_576dh
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a642h
+	ld de,06040h
+	call sub_576dh
+	ld hl,0a6b1h
+	ld de,09040h
+	call sub_576dh
+	jp sub_418ah
+	call sub_41cch
+	ld de,0af21h
+	ld hl,0f820h
+	call sub_4e54h
+	ld de,0a9fbh
+	ld hl,0fe80h
+	call sub_4e54h
+	jp sub_418ah
+	ret
+	call sub_41cch
+	ld de,0ab59h
+	ld hl,0f800h
+	call sub_4e54h
+	ld de,086d4h
+	ld hl,0f880h
+	call sub_4e54h
+	ld de,08fd9h
+	ld hl,0f940h
+	call sub_4e54h
+	ld de,0ae08h
+	ld hl,0fa00h
+	call sub_4e54h
+	ld de,0a9f6h
+	ld hl,0fe80h
+	call sub_4e54h
+	jp sub_418ah
+	call sub_41cch
+	ld de,0ab59h
+	ld hl,0f800h
+	call sub_4e54h
+	ld de,086d4h
+	ld hl,0fc80h
+	call sub_4e54h
+	ld de,08fd9h
+	ld hl,0fd40h
+	call sub_4e54h
+	ld de,0ae08h
+	ld hl,0fa00h
+	call sub_4e54h
+	ld de,0a9fbh
+	ld hl,0fe80h
+	call sub_4e54h
+	ld hl,0fc80h
+	ld de,0f890h
+	ld c,00ch
+	call l4e60h
+	jp sub_418ah
+	call sub_41b0h
+	ld de,08030h
+	ld hl,0aa29h
+	ld bc,0290ah
+	call l514ch
+	ld de,0b838h
+	ld hl,0ab79h
+	ld bc,0050ah
+	call l514ch
+	jp sub_418ah
+	call sub_41b0h
+	ld de,08030h
+	ld hl,0aa29h
+	ld bc,02a0ch
+	call l514ch
+	ld de,0b838h
+	ld hl,0ab79h
+	ld bc,0050ch
+	call l514ch
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a7ffh
+	call l4f1ch
+	jp sub_418ah
+	call sub_41cch
+	ld hl,0a8bbh
+	call l4f1ch
+	jp sub_418ah
+sub_5b6ah:
+	call sub_41abh
+	call sub_4ebeh
+	ld hl,0bb8bh
+	call l4f1ch
+	ld b,00fh
+	ld c,007h
+	call 00047h
+	ld hl,02840h
+	ld bc,0a848h
+	xor a
+	ld d,001h
+	call sub_4fedh
+	ld hl,0bbdch
+	ld de,00800h
+	ld bc,00d01h
+	call l514ch
+	ld hl,0bc44h
+	ld de,07000h
+	ld bc,00d02h
+	call l514ch
+	ld hl,0bcach
+	ld de,0d800h
+	ld bc,01a03h
+	call l514ch
+	ld de,l403eh+2
+	ld hl,0bb9bh
+	call sub_576dh
+	call l4eb1h
+	ld hl,0e2c0h
+	ld (hl),03ch
+	inc hl
+	ld (hl),031h
+	inc hl
+	ld (hl),000h
+	call sub_418ah
+	ret
+sub_5bc8h:
+	ld hl,0e2c0h
+	dec (hl)
+	ld a,(hl)
+	and 001h
+	ret nz
+	inc hl
+	dec (hl)
+	jr nz,l5bdah
+	ld a,001h
+	ld (0e2c2h),a
+	ret
+l5bdah:
+	ld a,031h
+	sub (hl)
+	ld c,a
+	ld b,0a8h
+	ld hl,02840h
+	ld de,02840h
+	ld a,001h
+	jp sub_5029h
+sub_5bebh:
+	call sub_41b0h
+	ld de,08030h
+	ld hl,0aa29h
+	ld bc,00c0bh
+	call l514ch
+	ld de,00038h
+	ld hl,0aa89h
+	ld bc,01e0bh
+	call l514ch
+	ld hl,0abc1h
+	ld de,09870h
+	ld b,002h
+	call l51bbh
+	jp sub_418ah
+l5c14h:
+	call sub_41cch
+	ld a,(0e241h)
+	ld b,a
+	add a,a
+	add a,a
+	add a,b
+	ld hl,0bd52h
+	call sub_408fh
+	ld b,(hl)
+	inc hl
+	ld c,(hl)
+	inc hl
+	ld a,(hl)
+	exx
+	ld b,a
+	exx
+	inc hl
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	ld hl,0ef00h
+	call sub_5c51h
+	ld a,(0e241h)
+	cp 004h
+	jp nz,sub_418ah
+	exx
+	ld b,005h
+	exx
+	ld bc,00602h
+	ld de,0bdafh
+	ld hl,0ef04h
+	call sub_5c51h
+	jp sub_418ah
+sub_5c51h:
+	inc (hl)
+	ld a,(hl)
+	exx
+	cp b
+	exx
+	ret c
+	ld (hl),000h
+	inc hl
+	ld a,(hl)
+	inc hl
+	and a
+	push hl
+	jr nz,l5c68h
+	inc (hl)
+	ld a,(hl)
+	dec c
+	cp c
+	jr c,l5c72h
+	jr l5c6dh
+l5c68h:
+	dec (hl)
+	ld a,(hl)
+	and a
+	jr nz,l5c72h
+l5c6dh:
+	dec hl
+	ld a,(hl)
+	xor 001h
+	ld (hl),a
+l5c72h:
+	pop hl
+	ld a,(hl)
+	ex de,hl
+	add a,a
+	call sub_408fh
+	ld d,(hl)
+	inc hl
+	ld e,(hl)
+	ld a,b
+	jp sub_4ef2h
+sub_5c80h:
+	ld a,(0e254h)
+	and a
+	jp nz,sub_5cf5h
+	ld a,(0e242h)
+	dec a
+	ld b,001h
+l5c8dh:
+	sub 00ah
+	jr c,l5c94h
+	inc b
+	jr l5c8dh
+l5c94h:
+	ld a,b
+	ld (0e241h),a
+	call sub_5634h
+	call sub_5696h
+	call sub_594fh
+	call sub_565eh
+	ld hl,0e2c0h
+	ld de,0e2c1h
+	ld bc,00d3fh
+	ld (hl),000h
+	ldir
+	call sub_5d41h
+	ld hl,0d200h
+	ld de,0d201h
+	ld bc,001ffh
+	ld (hl),000h
+	ldir
+	call 0929dh
+	call 0674fh
+	call 064e3h
+	call 08f96h
+	call sub_5dach
+	call sub_5eb5h
+	call sub_5de6h
+	call sub_43bbh
+	call 0632dh
+	call 097b2h
+	call 0921ah
+	call l41b5h
+	call 0b400h
+	call sub_418ah
+	xor a
+	ld (0e287h),a
+	ld (0edcdh),a
+	call sub_58d2h
+sub_5cf5h:
+	call sub_4e98h
+	call sub_4ecbh
+	call sub_4ebeh
+	call 0639ch
+	call sub_44d4h
+	call l41b5h
+	call 0b51ch
+	call sub_418ah
+	call 09010h
+	call 093beh
+	call 0644ah
+	call 090f7h
+	call 06461h
+	call 06398h
+	call sub_4c8ah
+	call l4eb1h
+	ld hl,(0e243h)
+	dec l
+	ld h,000h
+	call sub_5d32h
+	ld (0e250h),hl
+	ret
+sub_5d32h:
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	ld d,h
+	ld e,l
+	add hl,hl
+	add hl,de
+	ld de,0e900h
+	add hl,de
+	ret
+sub_5d41h:
+	ld hl,0e800h
+	ld de,0e801h
+	ld bc,0007fh
+	ld (hl),0e0h
+	ldir
+	ret
+sub_5d4fh:
+	ld hl,0e21bh
+	ld a,(hl)
+	and a
+	ret z
+	dec (hl)
+	ld a,(hl)
+	rra
+	ld b,000h
+	jr nc,l5d5eh
+	ld b,00bh
+l5d5eh:
+	ld c,007h
+	jp 00047h
+sub_5d63h:
+	call sub_57d8h
+	call sub_5d6dh
+	call sub_57fbh
+	ret
+sub_5d6dh:
+	call sub_5d4fh
+	call 09ec4h
+	call sub_5864h
+	call 09866h
+	call 0a6bdh
+	call 0916dh
+	call 09a14h
+	call 0999dh
+	call 0671dh
+	call 0654ch
+	call 06645h
+	call 08fbeh
+	call 06483h
+	call 0be15h
+	call l41b5h
+	call 0b422h
+	call sub_418ah
+	call 09ab1h
+	call 09afeh
+	call sub_4371h
+	jp l5c14h
+sub_5dach:
+	call sub_41bfh
+	ld hl,0e780h
+	ld de,0e781h
+	ld bc,0003fh
+	ld (hl),000h
+	ldir
+	ld de,0ab5ah
+	ld a,(0e242h)
+	dec a
+	ld l,a
+	ld h,000h
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,de
+	ex de,hl
+	ld hl,0e788h
+	ld bc,00801h
+l5dd1h:
+	push bc
+	ld a,(de)
+	ld b,008h
+l5dd5h:
+	rla
+	jr nc,l5ddah
+	ld (hl),c
+	inc c
+l5ddah:
+	inc hl
+	djnz l5dd5h
+	inc de
+	ld a,c
+	pop bc
+	ld c,a
+	djnz l5dd1h
+	jp sub_418ah
+sub_5de6h:
+	ld a,(0e243h)
+	call sub_5df0h
+	ld (0e244h),a
+	ret
+sub_5df0h:
+	ld hl,0e788h
+	ld c,000h
+l5df5h:
+	cp (hl)
+	jr z,l5dfch
+	inc hl
+	inc c
+	jr l5df5h
+l5dfch:
+	ld a,c
+	ret
+sub_5dfeh:
+	ld a,(0e244h)
+	ld b,a
+	ld hl,0e248h
+	ld a,(hl)
+	ld (0e2f9h),a
+	ld (hl),000h
+	ld c,a
+	call sub_5e17h
+	ld a,c
+	call sub_5e38h
+	ld (0e243h),hl
+	ret
+sub_5e17h:
+	dec a
+	jr z,l5e2ch
+	dec a
+	jr z,l5e32h
+	dec a
+	jr z,l5e26h
+	ld a,003h
+	ld (0e284h),a
+	ret
+l5e26h:
+	ld a,0f2h
+	ld (0e284h),a
+	ret
+l5e2ch:
+	ld a,0adh
+	ld (0e282h),a
+	ret
+l5e32h:
+	ld a,003h
+	ld (0e282h),a
+	ret
+sub_5e38h:
+	call sub_5e3fh
+	ld hl,(0efc0h)
+	ret
+sub_5e3fh:
+	dec a
+	call sub_4099h
+	ld c,e
+	ld e,(hl)
+	ld d,a
+	ld e,(hl)
+	ld h,l
+	ld e,(hl)
+	ld (hl),e
+	ld e,(hl)
+	ld a,b
+	sub 008h
+	jr nc,l5e52h
+	add a,030h
+l5e52h:
+	ld hl,0ed80h
+	jr l5e7fh
+	ld a,b
+	add a,008h
+	cp 030h
+	jr c,l5e60h
+	sub 030h
+l5e60h:
+	ld hl,0ed90h
+	jr l5e7fh
+	ld a,b
+	dec a
+	and 007h
+	ld c,a
+	ld a,b
+	and 0f8h
+	or c
+	ld hl,0eda0h
+	jr l5e7fh
+	ld a,b
+	inc a
+	and 007h
+	ld c,a
+	ld a,b
+	and 0f8h
+	or c
+	ld hl,0edb0h
+l5e7fh:
+	ld (0efc1h),a
+	ld de,0e788h
+	call sub_4094h
+	ld a,(de)
+	and a
+	jr z,l5e90h
+	ld (0efc0h),a
+	ret
+l5e90h:
+	ld a,(hl)
+	cp 0ffh
+	jr z,l5eafh
+	cp b
+	inc hl
+	jr z,l5e9ch
+	inc hl
+	jr l5e90h
+l5e9ch:
+	ld a,(hl)
+	cp b
+	call z,l5eafh
+	ld (0efc1h),a
+	ld hl,0e788h
+	call sub_408fh
+	ld a,(hl)
+	ld (0efc0h),a
+	ret
+l5eafh:
+	ld hl,0e24dh
+	ld (hl),001h
+	ret
+sub_5eb5h:
+	call sub_41bfh
+	ld hl,0adcfh
+	ld de,0ed80h
+	call sub_5edfh
+	ld hl,0ae47h
+	ld de,0ed90h
+	call sub_5edfh
+	ld hl,0aebfh
+	ld de,0eda0h
+	call sub_5edfh
+	ld hl,0af37h
+	ld de,0edb0h
+	call sub_5edfh
+	jp sub_418ah
+sub_5edfh:
+	ld a,(0e242h)
+	call sub_4d4ch
+l5ee5h:
+	ld a,(hl)
+	inc a
+	jr z,l5eefh
+	ldi
+	ldi
+	jr l5ee5h
+l5eefh:
+	ldi
+	ret
+l5ef2h:
+	djnz $-60
+	ret pe
+	jp (hl)
+	di
+	ex (sp),hl
+	rst 28h
+	jp p,0fee5h
+	ld h,b
+	jp nz,0e3f3h
+	rst 28h
+	jp p,0fee5h
+	sbc a,b
+	jp nz,0f4f3h
+	pop hl
+	rst 20h
+	push hl
+	cp 0d0h
+	jp nz,0e5f2h
+	di
+	call p,060ffh
+	ld c,b
+	di
+	call p,0e7e1h
+	push hl
+	cp 048h
+	ld l,b
+	di
+	rst 28h
+	push af
+	call pe,0f300h
+	call p,0eeefh
+	push hl
+	rst 38h
+l5f28h:
+	ld h,b
+	ld c,b
+	and 0e9h
+	call pe,0ffe5h
+	jr c,l5f81h
+	jp c,0efebh
+	xor 0e1h
+	defb 0edh ;next byte illegal after ed
+	jp (hl)
+	nop
+	pop de
+	exx
+	ret c
+	ret c
+	cp 050h
+	adc a,h
+	rst 20h
+	pop hl
+	defb 0edh ;next byte illegal after ed
+	push hl
+	rst 38h
+l5f45h:
+	ld d,b
+	sbc a,h
+	push hl
+	call po,0f4e9h
+	rst 38h
+l5f4ch:
+	ld e,b
+	ld e,b
+	rst 20h
+	pop hl
+	defb 0edh ;next byte illegal after ed
+	push hl
+	nop
+	nop
+	rst 28h
+	or 0e5h
+	jp p,l50ffh
+	ld l,b
+	and 0d5h
+	nop
+	nop
+	ex (sp),hl
+	rst 28h
+	xor 0f4h
+	jp (hl)
+	xor 0f5h
+	push hl
+	rst 38h
+l5f68h:
+	call c,0ffddh
+l5f6bh:
+	ld c,b
+	ld c,b
+	ret pe
+	jp (hl)
+	di
+	ex (sp),hl
+	rst 28h
+	jp p,000e5h
+	cp 050h
+	ld l,b
+	di
+	call p,0fe00h
+	add a,b
+	ld l,b
+	jp p,0f3e5h
+l5f81h:
+	call p,0fe00h
+	ld e,b
+	ld e,b
+	di
+	ex (sp),hl
+	rst 28h
+	jp p,000e5h
+	rst 38h
+sub_5f8dh:
+	call sub_4e98h
+	call sub_5fa6h
+	ld bc,00007h
+	call 00047h
+	call sub_55f0h
+	call l4ee7h
+	ld hl,00039h
+	ld (0e214h),hl
+	ret
+sub_5fa6h:
+	xor a
+	ld h,a
+	ld l,040h
+	ld b,a
+	ld c,080h
+	ld d,001h
+	jp sub_4fedh
+l5fb2h:
+	ld hl,01050h
+	ld de,01820h
+	ld bc,0a838h
+	ld a,048h
+	call sub_5100h
+	call sub_5fe7h
+	jp l4eb1h
+sub_5fc6h:
+	ld a,(0e203h)
+	rra
+	ret c
+	ld hl,0e214h
+	dec (hl)
+	jr z,sub_5fe7h
+	ld a,(hl)
+	ld c,a
+	add a,01fh
+	ld e,a
+	ld d,018h
+	ld hl,01050h
+	ld a,039h
+	sub c
+	ld c,a
+	ld b,0a8h
+	ld a,001h
+	call sub_5029h
+	ret
+sub_5fe7h:
+	ld hl,03084h
+	ld bc,04828h
+	xor a
+	ld d,a
+	call sub_4fedh
+	ld hl,03084h
+	ld de,04828h
+	ld c,00dh
+	call sub_4fc1h
+	ld hl,05f3eh

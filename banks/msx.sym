@@ -1,0 +1,4 @@
+rom_header: equ 0x4000
+htimi_isr:  equ 0x402E
+cart_init:  equ 0x40A3
+cart_boot:  equ 0x40B5

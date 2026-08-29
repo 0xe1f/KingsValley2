@@ -1,0 +1,28 @@
+name: verify
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build sjasmplus
+        run: |
+          git clone --recursive --branch v1.24.0 https://github.com/z00m128/sjasmplus.git /tmp/sjasmplus
+          make -C /tmp/sjasmplus
+          cp /tmp/sjasmplus/sjasmplus tools/sjasmplus
+
+      - name: make verify
+        run: make verify
+
+      - name: Discard assembled ROM
+        if: always()
+        run: rm -f KingsValley2.rom
