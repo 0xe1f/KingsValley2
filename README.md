@@ -5,8 +5,8 @@
 > This project is a human-guided, largely AI-executed workflow.
 
 A work-in-progress, **byte-exact and reassemblable** disassembly of Konami's
-*King's Valley II* (*The Maze of Galious*, 1988) for the MSX2 — a 128 KiB
-Konami SCC MegaROM (RC761).
+*King's Valley II* (*The Seal of El Giza* / 王家の谷II, 1988) for the MSX2 —
+a 128 KiB Konami SCC MegaROM (RC761). Not *The Maze of Galious*.
 
 The goal is a readable, commented, buildable source that reproduces the original
 ROM exactly, so the game can be understood and modified.
@@ -16,9 +16,9 @@ ROM exactly, so the game can be understood and modified.
 ```
 KingsValley2.asm    master file: stitches 8 KiB banks into the ROM image
 KingsValley2.sha1   SHA-1 of the original 128 KiB ROM (`make verify`)
-banks/              one file per mapper bank
+banks/              one file per mapper bank (boot triplet is one window)
   bank00.asm        bank 0: AB header, cart_init / cart_boot / H.TIMI / pager
-  bank01.asm … 03   boot triplet @ 6000/8000/A000
+  banks123.asm      banks 1–3: boot triplet @ 6000–BFFF (page_banks_123)
   bank04.asm        sound/SCC driver @ 6000 (MODULE bank04)
   bank05.asm … 06   packed-PSG payload @ 8000/A000
   bank07.asm        tables / packed lists @ 6000 (MODULE bank07)
@@ -66,5 +66,5 @@ Original work in this repository (tools, comments, documentation, labels,
 and project structure) is licensed under the Apache License, Version 2.0.
 See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
 
-*King's Valley II* (*The Maze of Galious*) is © 1988 Konami. This project does
+*King's Valley II* (*The Seal of El Giza*) is © 1988 Konami. This project does
 not relicense the original game, ROM, graphics, or music.

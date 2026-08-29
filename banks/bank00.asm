@@ -484,7 +484,7 @@ sound_far:                      ; 0x4326  page 4/5/6, call sound_entry, restore
 	call sub_5d63h
 	jr l4366h
 	call page_banks_123
-	call sub_5c80h
+	call set_world
 l4366h:
 	jp page_bank_12
 	call page_banks_123
@@ -536,17 +536,17 @@ sub_43aeh:
 	ld (0e242h),a
 	ret
 sub_43bbh:
-	call sub_43c2h
-	call sub_4400h
+	call unpack_map
+	call load_map_obj
 	ret
-sub_43c2h:
+unpack_map:                       ; 0x43C2  bank 10 map_ptr[(level)-1] -> 0xE900
 	call page_banks_10_11_12
-	call sub_43cbh
+	call unpack_map_body
 	jp page_banks_123
-sub_43cbh:
+unpack_map_body:
 	ld a,(0e242h)
 	dec a
-	ld hl,06000h
+	ld hl,06000h                  ; map_ptr
 	call sub_4d4ch
 	ex de,hl
 	ld hl,0e900h
@@ -584,17 +584,17 @@ sub_43f1h:
 	exx
 	inc hl
 	ret
-sub_4400h:
+load_map_obj:                     ; 0x4400  obj_ptr overlay + obj2_ptr -> 0xE7C0
 	call page_banks_10_11_12
-	call sub_4416h
-	call sub_440ch
+	call load_obj
+	call load_obj2
 	jp page_banks_123
-sub_440ch:
+load_obj2:                        ; 0x440C  secret-entrance records (editor tool 7)
 	ld a,001h
 	ld (0efc3h),a
-	ld hl,060f0h
+	ld hl,060f0h                  ; obj2_ptr
 	jr l441dh
-sub_4416h:
+load_obj:                         ; 0x4416  packed map-bit overlay from obj_ptr
 	ld hl,06078h
 	xor a
 	ld (0efc3h),a
@@ -1044,7 +1044,7 @@ sub_46bdh:
 	ld d,(hl)
 	ld bc,00302h
 	ld hl,093ach
-	jp l573bh
+	jp draw_tilemap
 sub_46d4h:
 	call sub_46dah
 	jp l4bbah
@@ -1200,14 +1200,14 @@ d_47c2_jp_end:
 	jr z,l4801h
 	ld a,(0e222h)
 	and a
-	ld hl,05f3eh
+	ld hl,l5f3eh
 	jr z,l47f6h
 	ld hl,l5f45h
 l47f6h:
 	ld a,(0e204h)
 	and 004h
-	jp z,l51d0h
-	jp l51d4h
+	jp z,print_stream
+	jp print_stream_blank
 l4801h:
 	call sub_4230h
 	ld a,(0e222h)
@@ -1229,7 +1229,7 @@ l4813h:
 	call sub_4e98h
 	call page_bank_12
 	ld hl,0b284h
-	call l51d0h
+	call print_stream
 	call page_banks_123
 	jp l479ch
 l4835h:
@@ -1298,8 +1298,8 @@ l4835h:
 	sub 001h
 	daa
 	ld (hl),a
-	ld hl,05f13h
-	call l51d0h
+	ld hl,l5f13h
+	call print_stream
 	ld de,09048h
 	call sub_4cefh
 	call page_bank_13
@@ -1308,7 +1308,7 @@ l4835h:
 	add a,a
 	add a,b
 	add a,002h
-	ld hl,0b8f8h
+	ld hl,0b8f8h                  ; exit door packed byte (lo5 = shape)
 	call ADD_HL_A
 	ld a,(hl)
 	and 01fh
@@ -1329,7 +1329,7 @@ l48f7h:
 	ld a,001h
 	ld (0e241h),a
 	ld hl,l5f28h
-	call l51d0h
+	call print_stream
 	ld de,06058h
 	call 08a17h
 l4913h:
@@ -1342,7 +1342,7 @@ l491bh:
 	ret nz
 	call sub_4e98h
 	call sub_431bh
-	call sub_5c80h
+	call set_world
 	call sub_4313h
 	call sub_4388h
 	ld hl,0e246h
@@ -1375,7 +1375,7 @@ l4958h:
 	jp nz,l4a07h
 	ld a,(0e20ch)
 	and 010h
-	jr nz,l49a4h
+	jr nz,l49a4h                  ; bit 4 -> vic_die
 	call sub_5d63h
 	ld a,(0e248h)
 	and a
@@ -1409,7 +1409,7 @@ l49a4h:
 	or a
 	ret nz
 	ld a,004h
-	ld (0e280h),a
+	ld (0e280h),a                 ; vic_die
 	call 092ffh
 	jp l42a3h
 l49b4h:
@@ -1422,7 +1422,7 @@ l49b4h:
 l49c1h:
 	ld a,(0e280h)
 	sub 004h
-	cp 002h
+	cp 002h                       ; vic_die / vic_hit: skip pause
 	ret c
 	ld a,001h
 	ld (0e24ch),a
@@ -1483,14 +1483,14 @@ l4a38h:
 	jr nz,l4a6fh
 	call sub_4e98h
 	ld hl,l5f4ch
-	call l51d0h
+	call print_stream
 	ld a,(0e254h)
 	ld b,a
 	ld a,(0e217h)
 	or b
 	ld (0e218h),a
-	ld hl,05f59h
-	call nz,l51d0h
+	ld hl,l5f59h
+	call nz,print_stream
 	call sub_4c8ah
 	xor a
 	ld (0e247h),a
@@ -1566,8 +1566,8 @@ sub_4adbh:
 	ret nz
 	ld a,001h
 	ld (0e247h),a
-	ld hl,05f59h
-	jp l51d4h
+	ld hl,l5f59h
+	jp print_stream_blank
 	xor a
 	ld (0e24dh),a
 	call sub_5dfeh
@@ -1656,7 +1656,7 @@ l4b8fh:
 	inc hl
 	ld h,(hl)
 	ld l,a
-	call l51d0h
+	call print_stream
 	jp page_banks_123
 	call 0734dh
 	ld a,(0e257h)
@@ -1795,7 +1795,7 @@ sub_4c8ah:
 	ld de,0ff13h
 	call sub_4fc1h
 	ld hl,l5ef2h
-	call l51d0h
+	call print_stream
 	call l4cc0h
 	call sub_4d17h
 	ld a,(0e254h)
@@ -1973,7 +1973,7 @@ l4db1h:
 	pop bc
 	djnz l4db1h
 	ld hl,l5f6bh
-	call l51d0h
+	call print_stream
 	call sub_4d12h
 	call sub_4cd6h
 	jp l4cb8h
@@ -2175,7 +2175,7 @@ l4ee7h:
 	ld b,a
 	ld c,008h
 	jp 00047h
-sub_4ef2h:
+palette_set:                      ; 0x4EF2  A=index, DE=MSX2 palette word
 	push bc
 	push hl
 	ld b,a
@@ -2205,7 +2205,7 @@ sub_4ef2h:
 	pop bc
 	ei
 	ret
-l4f1ch:
+palette_list:                     ; 0x4F1C  [index, pal_lo, pal_hi]... 0xFF
 	ld a,(hl)
 	inc hl
 	inc a
@@ -2215,8 +2215,8 @@ l4f1ch:
 	inc hl
 	ld e,(hl)
 	inc hl
-	call sub_4ef2h
-	jr l4f1ch
+	call palette_set
+	jr palette_list
 l4f2ah:
 	ld a,002h
 	call sub_4f34h
@@ -2583,10 +2583,10 @@ sub_5100h:
 	out (c),a
 	ei
 	ret
-l514ch:
+copy_tiles:                       ; 0x514C  B tiles from HL → VRAM DE; C=colour
 	call sub_5181h
 	call sub_524bh
-	djnz l514ch
+	djnz copy_tiles
 	ret
 sub_5155h:
 	ld b,008h
@@ -2681,10 +2681,10 @@ l51cbh:
 	pop bc
 	djnz l51bbh
 	ret
-l51d0h:
+print_stream:                     ; 0x51D0  TEXT/CHAR (text.inc); 0xFE next pos, 0xFF end
 	ld c,0ffh
 	jr l51d6h
-l51d4h:
+print_stream_blank:               ; 0x51D4  same stream, glyphs masked to 0
 	ld c,000h
 l51d6h:
 	ld d,(hl)
@@ -3204,7 +3204,7 @@ sub_5479h:
 	and 040h
 	or e
 	ret
-l54a0h:
+blit_list:                        ; 0x54A0  5-byte records, 0xFF end; tiles @ 0x8000
 	ld a,(hl)
 	inc a
 	ret z
@@ -3264,7 +3264,7 @@ l54b9h:
 	pop hl
 	pop de
 	inc hl
-	jr l54a0h
+	jr blit_list
 sub_54efh:
 	ld a,c
 	and 007h
@@ -3412,13 +3412,13 @@ sub_55f0h:
 	call page_banks_14_15
 	ld de,0b116h
 	ld hl,0b120h
-	call l54a0h
+	call blit_list
 	ld hl,0bb05h
 	ld de,0f800h
 	ld bc,00100h
 	call sub_4e05h
 	ld hl,0a7ceh
-	call l4f1ch
+	call palette_list
 	call page_banks_123
 	xor a
 	call sub_59dch
@@ -3432,25 +3432,25 @@ sub_55f0h:
 	ld de,01050h
 	call sub_576dh
 	jp page_banks_123
-sub_5634h:
+load_world_gfx:                   ; 0x5634  page triplet 7/8/9, blit world + common gfx
 	call page_banks_789
-	call sub_5640h
-	call sub_5655h
+	call blit_world
+	call blit_common
 	jp page_banks_123
-sub_5640h:
-	ld a,(0e241h)
+blit_world:                       ; 0x5640  per-world palette+tiles for world (0xE241)=1..6
+	ld a,(0e241h)                 ; world index (see set_world: ceil(level/10))
 	ld b,a
-	ld hl,06065h
+	ld hl,06065h                  ; e241_tbl[world] -> palette-index source (DE)
 	call sub_4d4ch
 	ex de,hl
 	ld a,b
-	ld hl,06177h
+	ld hl,06177h                  ; blit_ptr[world] -> blit list (HL)
 	call sub_4d4ch
-	jp l54a0h
-sub_5655h:
+	jp blit_list
+blit_common:                      ; 0x5655  shared blit list at 0x602A (all worlds)
 	ld hl,0602ah
 	ld de,06000h
-	jp l54a0h
+	jp blit_list
 sub_565eh:
 	call page_banks_14_15
 	ld a,(0e242h)
@@ -3462,11 +3462,11 @@ sub_565eh:
 l566fh:
 	ld a,(0e241h)
 	call sub_4d4ch
-	call l4f1ch
+	call palette_list
 	call page_banks_123
 	call page_banks_14_15
 	ld hl,0b95dh
-	call l4f1ch
+	call palette_list
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0f800h
@@ -3486,7 +3486,7 @@ sub_5696h:
 	ld hl,0afddh
 	ld de,00800h
 	ld bc,035fbh
-	call l514ch
+	call copy_tiles
 	call page_banks_123
 	jp l57bbh
 	call page_bank_12
@@ -3557,7 +3557,7 @@ l5724h:
 	ret
 	ld a,001h
 	jr l573ch
-l573bh:
+draw_tilemap:                     ; 0x573B  B×C tile-id grid at HL → DE
 	xor a
 l573ch:
 	ld (0efc0h),a
@@ -3632,18 +3632,18 @@ l578bh:
 	ld bc,00d1ah
 	ld hl,0bc05h
 	ld de,01830h
-	call l573bh
+	call draw_tilemap
 	call l57c4h
 	jp l4eb1h
 	call page_banks_789
 	ld de,0b7c7h
 	ld hl,0b7dfh
-	call l54a0h
+	call blit_list
 	call page_banks_123
 l57bbh:
 	call page_banks_14_15
 	ld hl,0ba78h
-	call l4f1ch
+	call palette_list
 l57c4h:
 	call page_banks_123
 	jp page_bank_12
@@ -3865,44 +3865,44 @@ sub_5958h:
 	call page_banks_789
 	ld hl,0902eh
 	ld de,08ffch
-	call l54a0h
+	call blit_list
 	jp page_banks_123
 	call page_banks_789
 	ld hl,09043h
 	ld de,08ffch
-	call l54a0h
+	call blit_list
 	jp page_banks_123
 	call page_banks_789
 	ld hl,09063h
 	ld de,08ffch
-	call l54a0h
+	call blit_list
 	jp page_banks_123
 	call page_banks_789
 	ld hl,09069h
 	ld de,08ffch
-	call l54a0h
+	call blit_list
 	jp page_banks_123
 sub_599dh:
 	call page_banks_789
 	ld hl,09074h
 	ld de,08ffch
-	call l54a0h
+	call blit_list
 	jp page_banks_123
 	ld de,01818h
 	call page_banks_14_15
 	ld hl,0a358h
 	ld bc,00c0ch
-	call l573bh
+	call draw_tilemap
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a2c8h
 	ld bc,00c0ch
-	call l573bh
+	call draw_tilemap
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a702h
 	ld bc,00c0ch
-	call l573bh
+	call draw_tilemap
 	jp page_banks_123
 sub_59dch:
 	push af
@@ -3930,7 +3930,7 @@ l59f5h:
 	ld l,a
 	push de
 	ld bc,01b01h
-	call l573bh
+	call draw_tilemap
 	pop de
 	ld a,d
 	add a,008h
@@ -3944,19 +3944,19 @@ l59f5h:
 	ld hl,0a5a6h
 	ld de,0b038h
 	ld bc,00c02h
-	call l573bh
+	call draw_tilemap
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a5beh
 	ld de,0a838h
 	ld bc,00c04h
-	call l573bh
+	call draw_tilemap
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a5eeh
 	ld de,0a030h
 	ld bc,00e06h
-	call l573bh
+	call draw_tilemap
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a6e0h
@@ -4030,35 +4030,35 @@ l59f5h:
 	ld de,08030h
 	ld hl,0aa29h
 	ld bc,0290ah
-	call l514ch
+	call copy_tiles
 	ld de,0b838h
 	ld hl,0ab79h
 	ld bc,0050ah
-	call l514ch
+	call copy_tiles
 	jp page_banks_123
 	call page_banks_10_11_12
 	ld de,08030h
 	ld hl,0aa29h
 	ld bc,02a0ch
-	call l514ch
+	call copy_tiles
 	ld de,0b838h
 	ld hl,0ab79h
 	ld bc,0050ch
-	call l514ch
+	call copy_tiles
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a7ffh
-	call l4f1ch
+	call palette_list
 	jp page_banks_123
 	call page_banks_14_15
 	ld hl,0a8bbh
-	call l4f1ch
+	call palette_list
 	jp page_banks_123
 sub_5b6ah:
 	call page_banks_789
 	call sub_4ebeh
 	ld hl,0bb8bh
-	call l4f1ch
+	call palette_list
 	ld b,00fh
 	ld c,007h
 	call 00047h
@@ -4070,15 +4070,15 @@ sub_5b6ah:
 	ld hl,0bbdch
 	ld de,00800h
 	ld bc,00d01h
-	call l514ch
+	call copy_tiles
 	ld hl,0bc44h
 	ld de,07000h
 	ld bc,00d02h
-	call l514ch
+	call copy_tiles
 	ld hl,0bcach
 	ld de,0d800h
 	ld bc,01a03h
-	call l514ch
+	call copy_tiles
 	ld de,l403eh+2
 	ld hl,0bb9bh
 	call sub_576dh
@@ -4117,11 +4117,11 @@ sub_5bebh:
 	ld de,08030h
 	ld hl,0aa29h
 	ld bc,00c0bh
-	call l514ch
+	call copy_tiles
 	ld de,00038h
 	ld hl,0aa89h
 	ld bc,01e0bh
-	call l514ch
+	call copy_tiles
 	ld hl,0abc1h
 	ld de,09870h
 	ld b,002h
@@ -4201,23 +4201,23 @@ l5c72h:
 	inc hl
 	ld e,(hl)
 	ld a,b
-	jp sub_4ef2h
-sub_5c80h:
+	jp palette_set
+set_world:                        ; 0x5C80  world (0xE241) = ceil(level (0xE242)/10), 1..6
 	ld a,(0e254h)
 	and a
 	jp nz,sub_5cf5h
-	ld a,(0e242h)
+	ld a,(0e242h)                 ; level number (1-based)
 	dec a
 	ld b,001h
 l5c8dh:
-	sub 00ah
+	sub 00ah                      ; divide (level-1) by 10, B = quotient+1 = world
 	jr c,l5c94h
 	inc b
 	jr l5c8dh
 l5c94h:
 	ld a,b
 	ld (0e241h),a
-	call sub_5634h
+	call load_world_gfx
 	call sub_5696h
 	call sub_594fh
 	call sub_565eh
@@ -4315,10 +4315,10 @@ sub_5d63h:
 	ret
 sub_5d6dh:
 	call sub_5d4fh
-	call 09ec4h
+	call vic_tick
 	call sub_5864h
 	call 09866h
-	call 0a6bdh
+	call tick_map_tools
 	call 0916dh
 	call 09a14h
 	call 0999dh
@@ -4327,15 +4327,15 @@ sub_5d6dh:
 	call 06645h
 	call 08fbeh
 	call 06483h
-	call 0be15h
+	call 0be15h                   ; secret_hit (bank 3): jump-reveal obj2
 	call page_bank_12
 	call 0b422h
 	call page_banks_123
-	call 09ab1h
+	call vic_e500_overlap
 	call 09afeh
 	call sub_4371h
 	jp l5c14h
-sub_5dach:
+sub_5dach:                        ; 0x5DAC  pyramid screen-present bits (ab5a_flags) -> 0xE788
 	call page_bank_13
 	ld hl,0e780h
 	ld de,0e781h
@@ -4503,7 +4503,7 @@ l5eafh:
 	ld hl,0e24dh
 	ld (hl),001h
 	ret
-sub_5eb5h:
+sub_5eb5h:                        ; 0x5EB5  door links (adcf/ae47/aebf/af37) -> ED80..EDB0
 	call page_bank_13
 	ld hl,0adcfh
 	ld de,0ed80h
@@ -4531,118 +4531,63 @@ l5ee5h:
 l5eefh:
 	ldi
 	ret
-l5ef2h:
-	djnz $-60
-	ret pe
-	jp (hl)
-	di
-	ex (sp),hl
-	rst 28h
-	jp p,0fee5h
-	ld h,b
-	jp nz,0e3f3h
-	rst 28h
-	jp p,0fee5h
-	sbc a,b
-	jp nz,0f4f3h
-	pop hl
-	rst 20h
-	push hl
-	cp 0d0h
-	jp nz,0e5f2h
-	di
-	call p,060ffh
-	ld c,b
-	di
-	call p,0e7e1h
-	push hl
-	cp 048h
-	ld l,b
-	di
-	rst 28h
-	push af
-	call pe,0f300h
-	call p,0eeefh
-	push hl
-	rst 38h
-l5f28h:
-	ld h,b
-	ld c,b
-	and 0e9h
-	call pe,0ffe5h
-	jr c,l5f81h
-	jp c,0efebh
-	xor 0e1h
-	defb 0edh ;next byte illegal after ed
-	jp (hl)
-	nop
-	pop de
-	exx
-	ret c
-	ret c
-	cp 050h
-	adc a,h
-	rst 20h
-	pop hl
-	defb 0edh ;next byte illegal after ed
-	push hl
-	rst 38h
-l5f45h:
-	ld d,b
-	sbc a,h
-	push hl
-	call po,0f4e9h
-	rst 38h
-l5f4ch:
-	ld e,b
-	ld e,b
-	rst 20h
-	pop hl
-	defb 0edh ;next byte illegal after ed
-	push hl
-	nop
-	nop
-	rst 28h
-	or 0e5h
-	jp p,l50ffh
-	ld l,b
-	and 0d5h
-	nop
-	nop
-	ex (sp),hl
-	rst 28h
-	xor 0f4h
-	jp (hl)
-	xor 0f5h
-	push hl
-	rst 38h
-l5f68h:
-	call c,0ffddh
-l5f6bh:
-	ld c,b
-	ld c,b
-	ret pe
-	jp (hl)
-	di
-	ex (sp),hl
-	rst 28h
-	jp p,000e5h
-	cp 050h
-	ld l,b
-	di
-	call p,0fe00h
-	add a,b
-	ld l,b
-	jp p,0f3e5h
-l5f81h:
-	call p,0fe00h
-	ld e,b
-	ld e,b
-	di
-	ex (sp),hl
-	rst 28h
-	jp p,000e5h
-	rst 38h
+; BLOCK 'print_txt' (start 0x5ef2 end 0x5f8d)
+print_txt_start:
+l5ef2h:                         ; 0x5EF2  hiscore / score / stage / rest
+	TEXT_AT 010h, 0c2h
+	TEXT "hiscore"
+	TEXT_NEXT 060h, 0c2h
+	TEXT "score"
+	TEXT_NEXT 098h, 0c2h
+	TEXT "stage"
+	TEXT_NEXT 0d0h, 0c2h
+l5f0eh:                         ; 0x5F0E  glyphs only; DE preloaded
+	TEXT "rest"
+	TEXT_END
+l5f13h:                         ; 0x5F13  stage / soul stone
+	TEXT_AT 060h, 048h
+	TEXT "stage"
+	TEXT_NEXT 048h, 068h
+	TEXT "soul stone"
+	TEXT_END
+l5f28h:                         ; 0x5F28  file; then Konami / 1988 (':' = ©)
+	TEXT_AT 060h, 048h
+	TEXT "file"
+	TEXT_END
+	TEXT_AT 038h, 050h
+	TEXT ":konami 1988"
+	db 0feh                   ; next D,E is l5f3eh if the stream is walked
+l5f3eh:                         ; 0x5F3E  game
+	TEXT_AT 050h, 08ch
+	TEXT "game"
+	TEXT_END
+l5f45h:                         ; 0x5F45  edit
+	TEXT_AT 050h, 09ch
+	TEXT "edit"
+	TEXT_END
+l5f4ch:                         ; 0x5F4C  game  over
+	TEXT_AT 058h, 058h
+	TEXT "game  over"
+	TEXT_END
+l5f59h:                         ; 0x5F59  continue
+	TEXT_AT 050h, 068h
+	TEXT "f5  continue"
+	TEXT_END
+l5f68h:                         ; 0x5F68  glyphs only; DE preloaded
+	TEXT "<="
+	TEXT_END
+l5f6bh:                         ; 0x5F6B  hiscore / st / rest / score
+	TEXT_AT 048h, 048h
+	TEXT "hiscore "
+	TEXT_NEXT 050h, 068h
+	TEXT "st "
+	TEXT_NEXT 080h, 068h
+	TEXT "rest "
+	TEXT_NEXT 058h, 058h
+	TEXT "score "
+	TEXT_END
+print_txt_end:
+
 sub_5f8dh:
 	call sub_4e98h
 	call sub_5fa6h
@@ -4699,4 +4644,4 @@ sub_5fe7h:
 	ld de,04828h
 	ld c,00dh
 	call sub_4fc1h
-	ld hl,05f3eh
+	ld hl,l5f3eh

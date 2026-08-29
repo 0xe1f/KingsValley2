@@ -1,7 +1,10 @@
 ; z80dasm block file for bank 1 @ 0x6000. Rendering only.
 e800_copy:   start 0x6039 end 0x6059 type bytedata
 edc0_jp:     start 0x605F end 0x6067 type worddata
+actor_hgt:   start 0x6445 end 0x644A type bytedata
 d_64a1_jp:   start 0x64A4 end 0x64AE type worddata
+l64cfh:      start 0x64CF end 0x64D9 type worddata
+l64d9h:      start 0x64D9 end 0x64E3 type worddata
 d_65fb_jp:   start 0x65FE end 0x6608 type worddata
 e257_jp:     start 0x6865 end 0x687B type worddata
 edcb_delta:  start 0x68DD end 0x68FB type bytedata

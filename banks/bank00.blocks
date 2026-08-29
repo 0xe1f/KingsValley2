@@ -6,3 +6,4 @@ d_46ea_jp:  start 0x46ED end 0x4709 type worddata
 d_470a_jp:  start 0x470D end 0x4717 type worddata
 d_47c2_jp:  start 0x47C5 end 0x47DD type worddata
 d_5e40_jp:  start 0x5E43 end 0x5E4B type worddata
+print_txt:  start 0x5EF2 end 0x5F8D type bytedata

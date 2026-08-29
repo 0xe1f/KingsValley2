@@ -10,25 +10,17 @@
 
     INCLUDE "banks/bios.inc"
     INCLUDE "banks/ram.inc"
+    INCLUDE "banks/text.inc"
+    INCLUDE "banks/objects.inc"
 
 ; --- bank 00 ---
     PHASE 0x4000
     INCLUDE "banks/bank00.asm"
     DEPHASE
 
-; --- bank 01 ---
+; --- banks 1–3 ---  boot triplet @ 6000/8000/A000 (page_banks_123)
     PHASE 0x6000
-    INCLUDE "banks/bank01.asm"
-    DEPHASE
-
-; --- bank 02 ---
-    PHASE 0x8000
-    INCLUDE "banks/bank02.asm"
-    DEPHASE
-
-; --- bank 03 ---
-    PHASE 0xA000
-    INCLUDE "banks/bank03.asm"
+    INCLUDE "banks/banks123.asm"
     DEPHASE
 
 ; --- bank 04 ---  triplet 4,5,6 @ 6000/8000/A000

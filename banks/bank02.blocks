@@ -1,5 +1,4 @@
 ; z80dasm block file for bank 2 @ 0x8000. Rendering only.
-ldhl_tail: start 0x8000 end 0x8001 type bytedata
 d823e_jp:  start 0x8241 end 0x824B type worddata
 d830f_jp:  start 0x8312 end 0x8320 type worddata
 d88af_jp:  start 0x88B2 end 0x88BE type worddata

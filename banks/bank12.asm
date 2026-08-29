@@ -40,7 +40,7 @@ lb413h:
 	exx
 	call DISPATCH_A
 
-; BLOCK 'disp_b42f' (start 0xb42f end 0xb437)
+; disp_b42f: DISPATCH_A on state (0xEF11), 4 states (init far-call from bank 0).
 disp_b42f_start:
 	defw 0b437h
 	defw 0b462h
@@ -154,7 +154,7 @@ sub_b4e3h:
 	ld d,(hl)
 	ld hl,pat_b4f8_start
 	ld bc,00202h
-	jp 0573bh
+	jp draw_tilemap
 
 ; BLOCK 'pat_b4f8' (start 0xb4f8 end 0xb4fc)
 pat_b4f8_start:
@@ -269,99 +269,23 @@ data_b548_start:
 	defb 0c0h
 	defb 000h
 lb585h:
-	defb 050h
-	defb 018h
-	defb 0f3h
-	defb 0efh
-	defb 0f5h
-	defb 0eeh
-	defb 0e4h
-	defb 000h
-	defb 0f3h
-	defb 0e5h
-	defb 0ech
-	defb 0e5h
-	defb 0e3h
-	defb 0f4h
-	defb 0feh
-	defb 040h
-	defb 0a8h
-	defb 0f3h
-	defb 0e5h
-	defb 0ech
-	defb 0e5h
-	defb 0e3h
-	defb 0f4h
-	defb 000h
-	defb 0fch
-	defb 0fch
-	defb 0fch
-	defb 000h
-	defb 0f3h
-	defb 0f0h
-	defb 0e1h
-	defb 0e3h
-	defb 0e5h
-	defb 0feh
-	defb 058h
-	defb 0b8h
-	defb 0e5h
-	defb 0eeh
-	defb 0e4h
-	defb 000h
-	defb 0fch
-	defb 0fch
-	defb 0fch
-	defb 000h
-	defb 0f2h
-	defb 0e5h
-	defb 0f4h
-	defb 0f5h
-	defb 0f2h
-	defb 0eeh
-	defb 0ffh
+	TEXT_AT 050h, 018h
+	TEXT "sound select"
+	TEXT_NEXT 040h, 0a8h
+	TEXT "select ||| space"
+	TEXT_NEXT 058h, 0b8h
+	TEXT "end ||| return"
+	TEXT_END
 lb5b8h:
-	defb 050h
-	defb 018h
-	defb 0f0h
-	defb 0f5h
-	defb 0fah
-	defb 0fah
-	defb 0ech
-	defb 0e5h
-	defb 000h
-	defb 000h
-	defb 0e7h
-	defb 0e1h
-	defb 0edh
-	defb 0e5h
-	defb 0ffh
+	TEXT_AT 050h, 018h
+	TEXT "puzzle  game"
+	TEXT_END
 lb5c7h:
-	defb 060h
-	defb 090h
-	defb 0e1h
-	defb 0ech
-	defb 0ech
-	defb 000h
-	defb 0f2h
-	defb 0e9h
-	defb 0e7h
-	defb 0e8h
-	defb 0f4h
-	defb 0feh
-	defb 060h
-	defb 0a0h
-	defb 0f2h
-	defb 0e5h
-	defb 0f3h
-	defb 0f4h
-	defb 000h
-	defb 000h
-	defb 0d3h
-	defb 000h
-	defb 0f5h
-	defb 0f0h
-	defb 0ffh
+	TEXT_AT 060h, 090h
+	TEXT "all right"
+	TEXT_NEXT 060h, 0a0h
+	TEXT "rest  3 up"
+	TEXT_END
 lb5e0h:
 	defb 0e8h
 	defb 0b5h
@@ -580,14 +504,14 @@ data_b548_end:
 	ld a,(ix+001h)
 	call DISPATCH_A
 
-; BLOCK 'disp_b6be' (start 0xb6be end 0xb6ca)
+; disp_b6be: password / 5x5 sliding-puzzle UI. DISPATCH_A on (ix+1), 6 states.
 disp_b6be_start:
-	defw 0b6cah
-	defw 0b6f2h
-	defw 0b701h
-	defw 0b749h
-	defw 0b85eh
-	defw 0b89dh
+	defw 0b6cah                   ; init: draw "esc key", wait
+	defw 0b6f2h                   ; wait space, blank prompt
+	defw 0b701h                   ; load 5x5 from (0xE203), "puzzle game"
+	defw 0b749h                   ; cursor + slide (disp_b7a5)
+	defw 0b85eh                   ; solved? "all right" / bump (0xE240)
+	defw 0b89dh                   ; wait space, exit
 disp_b6be_end:
 	call 04e98h
 	call 05d41h
@@ -604,7 +528,7 @@ lb6deh:
 	djnz lb6deh
 	call sub_b71eh
 	ld hl,lb8afh
-	call 051d0h
+	call print_stream
 	inc (ix+001h)
 	jp 0420dh
 	ld a,(0e207h)
@@ -612,7 +536,7 @@ lb6deh:
 	ret z
 	inc (ix+001h)
 	ld hl,0b8beh
-	jp 051d4h
+	jp print_stream_blank
 	ld hl,lb5e0h
 	ld a,(0e203h)
 	and 003h
@@ -653,7 +577,7 @@ lb72ah:
 	pop bc
 	djnz lb727h
 	ld hl,lb5b8h
-	jp 051d0h
+	jp print_stream
 	call sub_b8cfh
 	ld a,(0e207h)
 	rra
@@ -711,12 +635,14 @@ lb78ah:
 	dec a
 	call DISPATCH_A
 
-; BLOCK 'disp_b7a5' (start 0xb7a5 end 0xb7ad)
+; disp_b7a5: slide current tile into the adjacent empty cell (5x5, stride 5).
+; DISPATCH_A on (C-1) from sub_b824h: C=1..4 = empty at D-1 / D+1 / E-1 / E+1.
+; [3] overlaps the first instruction after the table (move +E), not a no-op.
 disp_b7a5_start:
-	defw 0b7b8h
-	defw 0b7d2h
-	defw 0b7e1h
-	defw 0b7adh
+	defw 0b7b8h                   ; empty at D-1: -5, dec (ix+2)
+	defw 0b7d2h                   ; empty at D+1: +5, inc (ix+2)
+	defw 0b7e1h                   ; empty at E-1: -1, dec (ix+3)
+	defw 0b7adh                   ; empty at E+1: +1, inc (ix+3)
 disp_b7a5_end:
 	ex de,hl
 	ld (hl),000h
@@ -876,9 +802,9 @@ lb88ch:
 lb88eh:
 	ld (0e240h),a
 	ld hl,lb8afh
-	call 051d4h
+	call print_stream_blank
 	ld hl,lb5c7h
-	jp 051d0h
+	jp print_stream
 	ld a,(0e207h)
 	and 010h
 	ret z
@@ -887,37 +813,12 @@ lb8a3h:
 	ld (ix+000h),b
 	call 00047h
 	jp 041e0h
-lb8afh:
-	ld d,b
-	and b
-	push hl
-	xor 0e4h
-	nop
-	nop
-	push hl
-	di
-	ex (sp),hl
-	nop
-	ex de,hl
-	push hl
-	ld sp,hl
-	cp 048h
-	sub b
-	ret p
-	push af
-	di
-	ret pe
-	nop
-	di
-	ret p
-	pop hl
-	ex (sp),hl
-	push hl
-	nop
-	ex de,hl
-	push hl
-	ld sp,hl
-	rst 38h
+lb8afh:                           ; print_stream: "end  esc key" / "push space key"
+	TEXT_AT 050h, 0a0h
+	TEXT "end  esc key"
+	TEXT_NEXT 048h, 090h
+	TEXT "push space key"
+	TEXT_END
 sub_b8cfh:
 	ld hl,0e800h
 	ld de,lb913h
@@ -986,7 +887,7 @@ lb917h:
 	call 05d41h
 	inc (ix+001h)
 	ld hl,lb585h
-	jp 051d0h
+	jp print_stream
 lb938h:
 	call disp_b98a_end
 	ld a,(0e207h)
@@ -1029,7 +930,8 @@ lb981h:
 	ld a,(ix+002h)
 	call DISPATCH_A
 
-; BLOCK 'disp_b98a' (start 0xb98a end 0xb9b0)
+; disp_b98a: DISPATCH_A on (ix+2), 19 states; every target is a bank-0 thunk
+; (0x41EA..0x42A3, sound_far region) reached via the paged-in bank 0.
 disp_b98a_start:
 	defw 041eah
 	defw 041f4h
@@ -1158,7 +1060,7 @@ lba2dh:
 	jr nz,lba57h
 	call 04358h
 	ld a,(0e280h)
-	cp 005h
+	cp 005h                       ; wait vic_hit
 	ret nz
 lba50h:
 	xor a
@@ -1199,481 +1101,270 @@ sub_ba80h:
 	inc hl
 
 ; BLOCK 'ba92_tbl' (start 0xba92 end 0xbaa0)
+; ba92_tbl[world] -> per-world word sub-table in ba_lists (sub_ba80h, world 1..6).
+; [0] 0xC97E is the world-0 sentinel; its bytes 7E C9 double as the preceding
+; routine's tail (ld a,(hl) / ret) so sub_ba80h returns A:C = ba_lists word.
 ba92_tbl_start:
-	defw 0c97eh
-	defw 0baa0h
-	defw 0bad6h
-	defw 0bb14h
-	defw 0bb5ah
-	defw 0bbbah
-	defw 0bc16h
+	defw 0c97eh                   ; world 0 (unused) / ld a,(hl)+ret overlap
+	defw 0baa0h                   ; world 1  (ba_lists+0x000, 27 words)
+	defw 0bad6h                   ; world 2  (ba_lists+0x036, 31 words)
+	defw 0bb14h                   ; world 3  (ba_lists+0x074, 35 words)
+	defw 0bb5ah                   ; world 4  (ba_lists+0x0BA, 48 words)
+	defw 0bbbah                   ; world 5  (ba_lists+0x11A, 46 words)
+	defw 0bc16h                   ; world 6  (ba_lists+0x176, 44 words)
 ba92_tbl_end:
 
-; BLOCK 'ba_lists' (start 0xbaa0 end 0xbc6e)
-ba_lists_start:
-	defb 02eh
-	defb 000h
-	defb 00fh
-	defb 008h
-	defb 010h
-	defb 000h
-	defb 00dh
-	defb 004h
-	defb 011h
-	defb 000h
-	defb 037h
-	defb 008h
-	defb 01bh
-	defb 000h
-	defb 019h
-	defb 008h
-	defb 011h
-	defb 000h
-	defb 010h
-	defb 008h
-	defb 00dh
-	defb 000h
-	defb 043h
-	defb 008h
-	defb 00ch
-	defb 000h
-	defb 058h
-	defb 004h
-	defb 013h
-	defb 000h
-	defb 003h
-	defb 008h
-	defb 008h
-	defb 000h
-	defb 009h
-	defb 010h
-	defb 012h
-	defb 000h
-	defb 039h
-	defb 008h
-	defb 015h
-	defb 000h
-	defb 01fh
-	defb 004h
-	defb 047h
-	defb 000h
-	defb 010h
-	defb 004h
-	defb 00eh
-	defb 000h
-	defb 009h
-	defb 008h
-	defb 000h
-	defb 0ffh
-	defb 029h
-	defb 000h
-	defb 090h
-	defb 004h
-	defb 01bh
-	defb 000h
-	defb 0adh
-	defb 008h
-	defb 01ah
-	defb 000h
-	defb 003h
-	defb 008h
-	defb 00bh
-	defb 000h
-	defb 018h
-	defb 001h
-	defb 00ah
-	defb 000h
-	defb 019h
-	defb 008h
-	defb 008h
-	defb 000h
-	defb 023h
-	defb 001h
-	defb 006h
-	defb 000h
-	defb 004h
-	defb 004h
-	defb 00dh
-	defb 000h
-	defb 00dh
-	defb 010h
-	defb 033h
-	defb 000h
-	defb 00eh
-	defb 008h
-	defb 00ah
-	defb 000h
-	defb 01eh
-	defb 004h
-	defb 008h
-	defb 000h
-	defb 017h
-	defb 001h
-	defb 004h
-	defb 000h
-	defb 00dh
-	defb 004h
-	defb 00dh
-	defb 000h
-	defb 01eh
-	defb 010h
-	defb 02fh
-	defb 000h
-	defb 06ch
-	defb 004h
-	defb 042h
-	defb 000h
-	defb 030h
-	defb 004h
-	defb 000h
-	defb 0ffh
-	defb 036h
-	defb 000h
-	defb 02dh
-	defb 004h
-	defb 008h
-	defb 014h
-	defb 01ah
-	defb 004h
-	defb 010h
-	defb 000h
-	defb 02dh
-	defb 008h
-	defb 002h
-	defb 009h
-	defb 033h
-	defb 001h
-	defb 001h
-	defb 009h
-	defb 072h
-	defb 008h
-	defb 014h
-	defb 000h
-	defb 032h
-	defb 002h
-	defb 011h
-	defb 000h
-	defb 01ah
-	defb 008h
-	defb 00ah
-	defb 018h
-	defb 01eh
-	defb 008h
-	defb 006h
-	defb 000h
-	defb 032h
-	defb 004h
-	defb 007h
-	defb 000h
-	defb 008h
-	defb 008h
-	defb 00dh
-	defb 000h
-	defb 008h
-	defb 010h
-	defb 037h
-	defb 000h
-	defb 051h
-	defb 008h
-	defb 002h
-	defb 009h
-	defb 024h
-	defb 001h
-	defb 008h
-	defb 000h
-	defb 012h
-	defb 008h
-	defb 002h
-	defb 018h
-	defb 016h
-	defb 008h
-	defb 001h
-	defb 009h
-	defb 028h
-	defb 001h
-	defb 001h
-	defb 005h
-	defb 0a0h
-	defb 004h
-	defb 000h
-	defb 0ffh
-	defb 041h
-	defb 000h
-	defb 040h
-	defb 004h
-	defb 001h
-	defb 000h
-	defb 0a4h
-	defb 008h
-	defb 002h
-	defb 00ah
-	defb 015h
-	defb 002h
-	defb 006h
-	defb 000h
-	defb 01eh
-	defb 004h
-	defb 001h
-	defb 006h
-	defb 00bh
-	defb 002h
-	defb 001h
-	defb 006h
-	defb 00fh
-	defb 004h
-	defb 001h
-	defb 006h
-	defb 00ch
-	defb 002h
-	defb 001h
-	defb 006h
-	defb 00fh
-	defb 004h
-	defb 001h
-	defb 006h
-	defb 00ch
-	defb 002h
-	defb 002h
-	defb 006h
-	defb 00eh
-	defb 004h
-	defb 001h
-	defb 006h
-	defb 00bh
-	defb 002h
-	defb 002h
-	defb 006h
-	defb 015h
-	defb 004h
-	defb 001h
-	defb 006h
-	defb 00eh
-	defb 002h
-	defb 001h
-	defb 006h
-	defb 016h
-	defb 004h
-	defb 00fh
-	defb 000h
-	defb 013h
-	defb 004h
-	defb 007h
-	defb 000h
-	defb 001h
-	defb 004h
-	defb 003h
-	defb 000h
-	defb 002h
-	defb 004h
-	defb 01fh
-	defb 000h
-	defb 01eh
-	defb 004h
-	defb 01dh
-	defb 000h
-	defb 005h
-	defb 004h
-	defb 009h
-	defb 014h
-	defb 001h
-	defb 004h
-	defb 00eh
-	defb 000h
-	defb 006h
-	defb 014h
-	defb 05eh
-	defb 004h
-	defb 013h
-	defb 000h
-	defb 037h
-	defb 008h
-	defb 002h
-	defb 018h
-	defb 012h
-	defb 010h
-	defb 000h
-	defb 0ffh
-	defb 036h
-	defb 000h
-	defb 051h
-	defb 004h
-	defb 033h
-	defb 000h
-	defb 006h
-	defb 010h
-	defb 02eh
-	defb 000h
-	defb 084h
-	defb 004h
-	defb 00dh
-	defb 000h
-	defb 007h
-	defb 010h
-	defb 012h
-	defb 000h
-	defb 00eh
-	defb 008h
-	defb 009h
-	defb 000h
-	defb 019h
-	defb 001h
-	defb 00ch
-	defb 008h
-	defb 018h
-	defb 001h
-	defb 005h
-	defb 000h
-	defb 008h
-	defb 004h
-	defb 001h
-	defb 005h
-	defb 014h
-	defb 001h
-	defb 002h
-	defb 000h
-	defb 008h
-	defb 008h
-	defb 001h
-	defb 000h
-	defb 015h
-	defb 001h
-	defb 032h
-	defb 004h
-	defb 00ah
-	defb 000h
-	defb 019h
-	defb 004h
-	defb 007h
-	defb 000h
-	defb 00dh
-	defb 010h
-	defb 022h
-	defb 000h
-	defb 012h
-	defb 004h
-	defb 00eh
-	defb 000h
-	defb 012h
-	defb 004h
-	defb 004h
-	defb 014h
-	defb 00dh
-	defb 004h
-	defb 004h
-	defb 014h
-	defb 007h
-	defb 004h
-	defb 00fh
-	defb 000h
-	defb 00fh
-	defb 008h
-	defb 007h
-	defb 018h
-	defb 00dh
-	defb 008h
-	defb 01dh
-	defb 000h
-	defb 015h
-	defb 008h
-	defb 043h
-	defb 000h
-	defb 00fh
-	defb 004h
-	defb 001h
-	defb 000h
-	defb 025h
-	defb 008h
-	defb 000h
-	defb 0ffh
-	defb 040h
-	defb 000h
-	defb 032h
-	defb 008h
-	defb 004h
-	defb 000h
-	defb 013h
-	defb 004h
-	defb 00ah
-	defb 000h
-	defb 04dh
-	defb 002h
-	defb 003h
-	defb 000h
-	defb 009h
-	defb 004h
-	defb 00bh
-	defb 000h
-	defb 026h
-	defb 004h
-	defb 00bh
-	defb 014h
-	defb 01bh
-	defb 004h
-	defb 006h
-	defb 014h
-	defb 010h
-	defb 004h
-	defb 005h
-	defb 014h
-	defb 00dh
-	defb 004h
-	defb 01dh
-	defb 000h
-	defb 008h
-	defb 004h
-	defb 004h
-	defb 014h
-	defb 028h
-	defb 004h
-	defb 007h
-	defb 014h
-	defb 013h
-	defb 004h
-	defb 028h
-	defb 000h
-	defb 045h
-	defb 004h
-	defb 00eh
-	defb 000h
-	defb 004h
-	defb 004h
-	defb 00eh
-	defb 000h
-	defb 01dh
-	defb 004h
-	defb 00bh
-	defb 000h
-	defb 014h
-	defb 010h
-	defb 01ch
-	defb 000h
-	defb 029h
-	defb 004h
-	defb 005h
-	defb 014h
-	defb 00bh
-	defb 004h
-	defb 005h
-	defb 014h
-	defb 019h
-	defb 004h
-	defb 003h
-	defb 014h
-	defb 022h
-	defb 004h
-	defb 006h
-	defb 014h
-	defb 005h
-	defb 004h
-	defb 033h
-	defb 000h
-	defb 00bh
-	defb 018h
-	defb 008h
-	defb 008h
-	defb 000h
-	defb 0ffh
-ba_lists_end:
+; ba_lists (0xBAA0-0xBC6E): 6 per-world word sub-tables (ba_w1..ba_w6),
+; selected by ba92_tbl[world] and indexed by C in sub_ba80h (word read as
+; A:C, little-endian). Each list ends with a 0xFF00 word (0x00 hi / 0xFF lo).
+ba_w1_start:
+	defw 0002eh
+	defw 0080fh
+	defw 00010h
+	defw 0040dh
+	defw 00011h
+	defw 00837h
+	defw 0001bh
+	defw 00819h
+	defw 00011h
+	defw 00810h
+	defw 0000dh
+	defw 00843h
+	defw 0000ch
+	defw 00458h
+	defw 00013h
+	defw 00803h
+	defw 00008h
+	defw 01009h
+	defw 00012h
+	defw 00839h
+	defw 00015h
+	defw 0041fh
+	defw 00047h
+	defw 00410h
+	defw 0000eh
+	defw 00809h
+	defw 0ff00h
+ba_w1_end:
+
+ba_w2_start:
+	defw 00029h
+	defw 00490h
+	defw 0001bh
+	defw 008adh
+	defw 0001ah
+	defw 00803h
+	defw 0000bh
+	defw 00118h
+	defw 0000ah
+	defw 00819h
+	defw 00008h
+	defw 00123h
+	defw 00006h
+	defw 00404h
+	defw 0000dh
+	defw 0100dh
+	defw 00033h
+	defw 0080eh
+	defw 0000ah
+	defw 0041eh
+	defw 00008h
+	defw 00117h
+	defw 00004h
+	defw 0040dh
+	defw 0000dh
+	defw 0101eh
+	defw 0002fh
+	defw 0046ch
+	defw 00042h
+	defw 00430h
+	defw 0ff00h
+ba_w2_end:
+
+ba_w3_start:
+	defw 00036h
+	defw 0042dh
+	defw 01408h
+	defw 0041ah
+	defw 00010h
+	defw 0082dh
+	defw 00902h
+	defw 00133h
+	defw 00901h
+	defw 00872h
+	defw 00014h
+	defw 00232h
+	defw 00011h
+	defw 0081ah
+	defw 0180ah
+	defw 0081eh
+	defw 00006h
+	defw 00432h
+	defw 00007h
+	defw 00808h
+	defw 0000dh
+	defw 01008h
+	defw 00037h
+	defw 00851h
+	defw 00902h
+	defw 00124h
+	defw 00008h
+	defw 00812h
+	defw 01802h
+	defw 00816h
+	defw 00901h
+	defw 00128h
+	defw 00501h
+	defw 004a0h
+	defw 0ff00h
+ba_w3_end:
+
+ba_w4_start:
+	defw 00041h
+	defw 00440h
+	defw 00001h
+	defw 008a4h
+	defw 00a02h
+	defw 00215h
+	defw 00006h
+	defw 0041eh
+	defw 00601h
+	defw 0020bh
+	defw 00601h
+	defw 0040fh
+	defw 00601h
+	defw 0020ch
+	defw 00601h
+	defw 0040fh
+	defw 00601h
+	defw 0020ch
+	defw 00602h
+	defw 0040eh
+	defw 00601h
+	defw 0020bh
+	defw 00602h
+	defw 00415h
+	defw 00601h
+	defw 0020eh
+	defw 00601h
+	defw 00416h
+	defw 0000fh
+	defw 00413h
+	defw 00007h
+	defw 00401h
+	defw 00003h
+	defw 00402h
+	defw 0001fh
+	defw 0041eh
+	defw 0001dh
+	defw 00405h
+	defw 01409h
+	defw 00401h
+	defw 0000eh
+	defw 01406h
+	defw 0045eh
+	defw 00013h
+	defw 00837h
+	defw 01802h
+	defw 01012h
+	defw 0ff00h
+ba_w4_end:
+
+ba_w5_start:
+	defw 00036h
+	defw 00451h
+	defw 00033h
+	defw 01006h
+	defw 0002eh
+	defw 00484h
+	defw 0000dh
+	defw 01007h
+	defw 00012h
+	defw 0080eh
+	defw 00009h
+	defw 00119h
+	defw 0080ch
+	defw 00118h
+	defw 00005h
+	defw 00408h
+	defw 00501h
+	defw 00114h
+	defw 00002h
+	defw 00808h
+	defw 00001h
+	defw 00115h
+	defw 00432h
+	defw 0000ah
+	defw 00419h
+	defw 00007h
+	defw 0100dh
+	defw 00022h
+	defw 00412h
+	defw 0000eh
+	defw 00412h
+	defw 01404h
+	defw 0040dh
+	defw 01404h
+	defw 00407h
+	defw 0000fh
+	defw 0080fh
+	defw 01807h
+	defw 0080dh
+	defw 0001dh
+	defw 00815h
+	defw 00043h
+	defw 0040fh
+	defw 00001h
+	defw 00825h
+	defw 0ff00h
+ba_w5_end:
+
+ba_w6_start:
+	defw 00040h
+	defw 00832h
+	defw 00004h
+	defw 00413h
+	defw 0000ah
+	defw 0024dh
+	defw 00003h
+	defw 00409h
+	defw 0000bh
+	defw 00426h
+	defw 0140bh
+	defw 0041bh
+	defw 01406h
+	defw 00410h
+	defw 01405h
+	defw 0040dh
+	defw 0001dh
+	defw 00408h
+	defw 01404h
+	defw 00428h
+	defw 01407h
+	defw 00413h
+	defw 00028h
+	defw 00445h
+	defw 0000eh
+	defw 00404h
+	defw 0000eh
+	defw 0041dh
+	defw 0000bh
+	defw 01014h
+	defw 0001ch
+	defw 00429h
+	defw 01405h
+	defw 0040bh
+	defw 01405h
+	defw 00419h
+	defw 01403h
+	defw 00422h
+	defw 01406h
+	defw 00405h
+	defw 00033h
+	defw 0180bh
+	defw 00808h
+	defw 0ff00h
+ba_w6_end:
 	xor a
 	ld hl,0e910h
 	ld de,0e911h
@@ -1946,23 +1637,17 @@ sub_be5dh:
 	ld (hl),04eh
 	ldir
 	ret
-lbe67h:
-	ld c,b
-	ld (hl),b
-	di
-	ex de,hl
-	jp (hl)
-	ret p
-	rst 38h
-lbe6eh:
-	ld c,b
-	ld (hl),b
-	and 0e9h
-	xor 0e4h
-	rst 38h
+lbe67h:                           ; print_stream: "skip"
+	TEXT_AT 048h, 070h
+	TEXT "skip"
+	TEXT_END
+lbe6eh:                           ; print_stream: "find"
+	TEXT_AT 048h, 070h
+	TEXT "find"
+	TEXT_END
 lbe75h:
 	ld hl,lbe67h
-	call 051d0h
+	call print_stream
 	call sub_bef3h
 	call 000e1h
 	jp c,lbefch
@@ -1993,7 +1678,7 @@ lbeabh:
 	inc hl
 	djnz lbeabh
 	ld hl,lbe6eh
-	call 051d0h
+	call print_stream
 	call sub_bef3h
 	call 000e1h
 	jr c,lbefch
@@ -2029,17 +1714,15 @@ lbefch:
 	call 000f0h
 	call 04e98h
 	ld hl,lbf0eh
-	call 051d0h
+	call print_stream
 	ld a,002h
 	ld (0e27fh),a
 	ret
-lbf0eh:
-	ld d,b
-	ld h,b
-	call pe,0e1efh
-	call po,0e500h
-	jp p,0eff2h
-	jp p,0d9ffh
+lbf0eh:                           ; print_stream: "load error"
+	TEXT_AT 050h, 060h
+	TEXT "load error"
+	TEXT_END
+	exx
 	call 000e4h
 	exx
 	ret c
@@ -2096,20 +1779,15 @@ lbf82h:
 	call 000f0h
 	call 04e98h
 	ld hl,lbf94h
-	call 051d0h
+	call print_stream
 	ld a,002h
 	ld (0e27fh),a
 	ret
-lbf94h:
-	ld d,b
-	ld h,b
-	di
-	pop hl
-	or 0e5h
-	nop
-	push hl
-	jp p,0eff2h
-	jp p,07effh
+lbf94h:                           ; print_stream: "save error"
+	TEXT_AT 050h, 060h
+	TEXT "save error"
+	TEXT_END
+	ld a,(hl)
 	ld e,a
 	inc hl
 	exx
