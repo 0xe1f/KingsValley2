@@ -143,8 +143,11 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `gfx/fonts/`, `gfx/metatiles/` from `palette_list` / `copy_tiles` / minimaps.
   World-map font is bank 0C `0xAA29` (not bank 0B). `0xBECF` is SAT pattern
   ids, not sprite planes.
+- `make music` / `make sfx` (`tools/psgplay.py`) write `music/` and `sfx/`
+  WAVs from packed-PSG ids 1–0x41 via workbench `konami/sccplay.py`.
 
 ## Next
 
-1. No leftover payload bins. Graphics catalogue (`make gfx`) is still paused.
+1. Name remaining `NN_psg` / `NN_sfx` stems from call sites. Tighten the
+   SCC player against in-game timing where a preview is obviously wrong.
 

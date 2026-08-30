@@ -311,9 +311,9 @@ Ids 0x80–0x84 are special-cased. SCC enable `ld a,3Fh / ld (9000h),a`;
 opcode loads `wave_ptr` (0x7210, 72 words) and copies 32 bytes to
 `9800` + n*0x20. Unique waves `wave_72a0`..`wave_7680`; many index slots
 point at `env_0`. Envelope tables `env_0`..`env_5` (`sub_653dh`); channel
-streams `ch_785e`..`ch_7fd7` then banks 05–06. This is not Vampire Killer’s
-6-byte music-rec driver — do not point workbench `psgplay.py` at these
-headers without adapting it.
+streams `ch_785e`..`ch_7fd7` then banks 05–06. This is the 18-byte packed
+header / 8-slot SCC driver (`konami/sccplay.py`), not Vampire Killer’s
+6-byte music-rec player. `make music` / `make sfx` wrap it (`tools/psgplay.py`).
 
 ## Banks 05–06 (@ 0x8000 / 0xA000)
 

@@ -27,7 +27,10 @@ banks/              one file per paging window (stems banks_0 / banks_123 / …)
   banks_*.blocks    z80dasm code/data map, one per window (regen-bank.sh)
 tools/workbench/    MSXDAW submodule (regen, romscan, RLE, PSG)
 tools/gfxdump.py    `make gfx` contact sheets
-  gfx/                PNG catalogue (`palettes/` `tilesets/` `fonts/` `metatiles/`)
+tools/psgplay.py    `make music` / `make sfx` WAV catalogue
+gfx/                PNG catalogue (`palettes/` `tilesets/` `fonts/` `metatiles/`)
+music/              BGM WAV previews
+sfx/                SFX WAV previews
 docs/               reverse-engineering notes (`game-notes.md`, `progress.md`)
 Makefile            build / verify
 ```
@@ -50,8 +53,8 @@ make verify     # assemble, then SHA-1 check against KingsValley2.sha1
 `make` alone produces `KingsValley2.rom` in the repo root (gitignored).
 `KingsValley2.sha1` is the SHA-1 of the original 128 KiB MSX2 ROM; `make verify`
 rebuilds and confirms the output matches it. `make gfx` writes labelled PNG
-sheets under `gfx/` from identified palettes, `copy_tiles` 1bpp sources,
-and editor minimaps (needs a built ROM).
+sheets under `gfx/`. `make music` / `make sfx` write WAV previews under
+`music/` and `sfx/` (needs a built ROM and the workbench player).
 
 ## How it works
 
