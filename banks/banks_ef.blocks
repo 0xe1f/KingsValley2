@@ -1,0 +1,27 @@
+; z80dasm code/data map for banks e-f (font/UI @ 0x8000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+; These banks are glyph / RLE / UI lists, not code.
+
+; ===========================================================================
+;  bank e @ 0x8000
+; ===========================================================================
+; glyph_ptr[0] == 0x80E4. held_ptr @ 0x858B. RLE 0x86D4–0x98C9.
+; l5508h @ 0x98C9; draw_cols col_ptr @ 0x9D58 (col_21 continues in bank 15).
+glyph_ptr: start 0x8000 end 0x80E4 type worddata
+
+; ===========================================================================
+;  bank f @ 0xA000
+; ===========================================================================
+; blit_list after page_banks_ef: DE=idx2 (0xB116), HL=blit_recs.
+; Tilemaps/stamps 0xA2C8–0xA792; sat_fx 0xA792; RLE 0xA9F6–0xB116; tail 0xB8DB–0xBDCB.
+; draw_cols columns 0xA000–0xA2C8 continue from bank 14 col_21.
+sat_fx_tbl: start 0xA792 end 0xA7CE type bytedata
+pal_a7ce:  start 0xA7CE end 0xA7FF type bytedata
+pal_a7ff:  start 0xA7FF end 0xA830 type bytedata
+pal_a870:  start 0xA870 end 0xA89B type bytedata
+pal_a8bb:  start 0xA8BB end 0xA8E6 type bytedata
+idx2:      start 0xB116 end 0xB118 type worddata
+pal_list:  start 0xB118 end 0xB120 type bytedata
+blit_recs: start 0xB120 end 0xB12B type bytedata
+pat_b12b:  start 0xB12B end 0xB72B type bytedata
+pat_b72b:  start 0xB72B end 0xB8DB type bytedata

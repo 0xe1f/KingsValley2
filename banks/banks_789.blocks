@@ -1,0 +1,34 @@
+; z80dasm code/data map for banks 7-9 (gfx triplet @ 0x6000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+; These banks are tables / dest planes / title tiles, not code.
+
+; ===========================================================================
+;  bank 7 @ 0x6000
+; ===========================================================================
+; idx6[0] == 0x600C (first byte after the 6-word table).
+; e241_tbl[0] overlaps last dest_hi + 0xFF terminator of the 602A blit list.
+idx6:      start 0x6000 end 0x600C type worddata
+pal_list:  start 0x600C end 0x602A type bytedata
+blit_recs: start 0x602A end 0x6065 type bytedata
+e241_tbl:  start 0x6065 end 0x60AD type worddata
+blit_ptr:  start 0x6177 end 0x6185 type worddata
+
+; ===========================================================================
+;  bank 8 @ 0x8000
+; ===========================================================================
+; pal_idx[0] == pal_9006. Packed blit lists 0x902E–0x907F share DE=pal_idx.
+; blit_9058 is unreferenced (duplicate of blit_9074).
+tiles:     start 0x8000 end 0x8FFC type bytedata
+pal_idx:   start 0x8FFC end 0x9006 type worddata
+pal_9006:  start 0x9006 end 0x902E type bytedata
+blit_902e: start 0x902E end 0x907F type bytedata
+
+; ===========================================================================
+;  bank 9 @ 0xA000
+; ===========================================================================
+; b7c7_idx[0] == b7d1_pal. blit dests 0xB82B–0xBB8B. stamp_bb9b / title tiles.
+b7c7_idx:  start 0xB7C7 end 0xB7D1 type worddata
+b7d1_pal:  start 0xB7D1 end 0xB7DF type bytedata
+b7df_blit: start 0xB7DF end 0xB82B type bytedata
+bb8b_pal:  start 0xBB8B end 0xBB9B type bytedata
+stamp_bb9b: start 0xBB9B end 0xBBDC type bytedata

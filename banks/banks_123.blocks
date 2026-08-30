@@ -1,0 +1,68 @@
+; z80dasm code/data map for banks 1-3 (boot triplet @ 0x6000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+; Block names avoid colliding with in-source labels (z80dasm emits NAME_start).
+
+; ===========================================================================
+;  bank 1 @ 0x6000
+; ===========================================================================
+e800_copy:   start 0x6039 end 0x6059 type bytedata
+edc0_jp:     start 0x605F end 0x6067 type worddata
+actor_hgt:   start 0x6445 end 0x644A type bytedata
+d_64a1_jp:   start 0x64A4 end 0x64AE type worddata
+l64cfh:      start 0x64CF end 0x64D9 type worddata
+l64d9h:      start 0x64D9 end 0x64E3 type worddata
+d_65fb_jp:   start 0x65FE end 0x6608 type worddata
+e257_jp:     start 0x6865 end 0x687B type worddata
+edcb_delta:  start 0x68DD end 0x68FB type bytedata
+pwd_txt:     start 0x69FF end 0x6A0B type bytedata
+d_6f6b_jp:   start 0x6F6E end 0x6F84 type worddata
+world_len:   start 0x7177 end 0x717C type bytedata
+world_xy:    start 0x71CA end 0x71D4 type bytedata
+world_xy2:   start 0x71D4 end 0x71DE type bytedata
+d_71e3_jp:   start 0x71E6 end 0x71F6 type worddata
+clear_spr:   start 0x7280 end 0x7288 type bytedata
+d_735f_jp:   start 0x7362 end 0x73E4 type worddata
+pose_tbl:    start 0x7782 end 0x7786 type bytedata
+pose_pat:    start 0x77BB end 0x77D7 type bytedata
+d_7835_jp:   start 0x7838 end 0x783E type worddata
+d_7924_jp:   start 0x7927 end 0x7933 type worddata
+d_7b0b_jp:   start 0x7B0E end 0x7B1A type worddata
+edit_sz:     start 0x7CE4 end 0x7CFF type bytedata
+d_7e6c_jp:   start 0x7E6F end 0x7E81 type worddata
+
+; ===========================================================================
+;  bank 2 @ 0x8000
+; ===========================================================================
+d823e_jp:  start 0x8241 end 0x824B type worddata
+d830f_jp:  start 0x8312 end 0x8320 type worddata
+d88af_jp:  start 0x88B2 end 0x88BE type worddata
+d_8b99_jp: start 0x8B9C end 0x8BAC type worddata
+d_8ede_jp: start 0x8EE1 end 0x8EF1 type worddata
+d93f6_jp:  start 0x93F9 end 0x93FF type worddata
+d9804_jp:  start 0x9807 end 0x980F type worddata
+d9a67_jp:  start 0x9A6A end 0x9A72 type worddata
+d_9ecd_jp: start 0x9ED0 end 0x9EEE type worddata
+tool_cc:   start 0x9292 end 0x9296 type worddata
+tool_pat:  start 0x9296 end 0x929D type bytedata
+vic_pose:  start 0x92F7 end 0x92FF type bytedata
+
+; ===========================================================================
+;  bank 3 @ 0xA000
+; ===========================================================================
+d_a072_jp: start 0xA075 end 0xA081 type worddata
+d_a6dd_jp: start 0xA6E0 end 0xA6EC type worddata
+d_a6f2_jp: start 0xA6F5 end 0xA6FF type worddata
+d_a8a1_jp: start 0xA8A4 end 0xA8AE type worddata
+d_aa6c_jp: start 0xAA6F end 0xAA75 type worddata
+d_ab0f_jp: start 0xAB12 end 0xAB1A type worddata
+d_ab63_jp: start 0xAB66 end 0xAB6C type worddata
+d_abfb_jp: start 0xABFE end 0xAC06 type worddata
+d_acd9_jp: start 0xACDC end 0xACE4 type worddata
+d_ad83_jp: start 0xAD86 end 0xAD90 type worddata
+d_ae26_jp: start 0xAE29 end 0xAE35 type worddata
+d_b2ad_jp: start 0xB2B0 end 0xB2BA type worddata
+d_b691_jp: start 0xB694 end 0xB6A0 type worddata
+ix14_da:   start 0xB595 end 0xB5A6 type bytedata
+ix14_db:   start 0xB5A6 end 0xB5B8 type bytedata
+ix14_dc:   start 0xB926 end 0xB938 type bytedata
+pad_ff:    start 0xBEE5 end 0xC000 type bytedata

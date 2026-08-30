@@ -1,5 +1,5 @@
 ; ===========================================================================
-;  print_stream glyph encoding (bank 0 @ 0x51D0).
+;  print_stream glyph encoding (bank 00 @ 0x51D0).
 ;
 ;    ' '          -> 00h
 ;    '0'..'?'     -> ch + A0h   digits, ':' = ©, '<'/'=' extra HUD

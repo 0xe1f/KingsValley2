@@ -1,0 +1,48 @@
+; z80dasm code/data map for banks a-c (map triplet @ 0x6000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+; Bank b is unpack_map continuation (already labeled data); no extra code map.
+
+; ===========================================================================
+;  bank a @ 0x6000
+; ===========================================================================
+; Three parallel 60-word tables (e242-1). map_ptr[0] == 0x6168 (first stream).
+; map_ptr entries 33.. continue into banks 11 (0x80B0) and 12 (0xA121).
+map_ptr: start 0x6000 end 0x6078 type worddata
+obj_ptr: start 0x6078 end 0x60F0 type worddata
+obj2_ptr: start 0x60F0 end 0x6168 type worddata
+
+; ===========================================================================
+;  bank c @ 0xA000
+; ===========================================================================
+; Head is map-stream tail + object lists + tiles (l514ch / print_stream).
+; Earliest far call into this bank is 0xB400.
+gfx:        start 0xA000 end 0xAC01 type bytedata
+; 0xAC01–0xAF37 source print_stream / world_txt / ad76_tbl
+; 0xAF37–0xAFDD end_stamp_tbl + disk_err_tbl + error TEXT
+; 0xB185 file menu, 0xB256 stage-clear, 0xB284 secret command
+gfx_afdd:   start 0xAFDD end 0xB185 type bytedata
+gfx_b1b6:   start 0xB1B6 end 0xB256 type bytedata
+gfx_b2ab:   start 0xB2AB end 0xB400 type bytedata
+disp_b42f:  start 0xB42F end 0xB437 type worddata
+pat_b4f8:   start 0xB4F8 end 0xB4FC type bytedata
+data_b548:  start 0xB548 end 0xB6B0 type bytedata
+disp_b6be:  start 0xB6BE end 0xB6CA type worddata
+disp_b7a5:  start 0xB7A5 end 0xB7AD type worddata
+disp_b98a:  start 0xB98A end 0xB9B0 type worddata
+pat_b9fa:   start 0xB9FA end 0xBA11 type bytedata
+demo_lvls:  start 0xBA3A end 0xBA41 type bytedata
+ba92_tbl:   start 0xBA92 end 0xBAA0 type worddata
+ba_w1:      start 0xBAA0 end 0xBAD6 type worddata
+ba_w2:      start 0xBAD6 end 0xBB14 type worddata
+ba_w3:      start 0xBB14 end 0xBB5A type worddata
+ba_w4:      start 0xBB5A end 0xBBBA type worddata
+ba_w5:      start 0xBBBA end 0xBC16 type worddata
+ba_w6:      start 0xBC16 end 0xBC6E type worddata
+bd97_tbl:   start 0xBD97 end 0xBDB7 type worddata
+bdb7_tbl:   start 0xBDB7 end 0xBDD7 type worddata
+; print_stream islands (ASCII+80h; 0xFE next-pos, 0xFF end):
+str_b8af:   start 0xB8AF end 0xB8CF type bytedata
+str_be67:   start 0xBE67 end 0xBE75 type bytedata
+str_bf0e:   start 0xBF0E end 0xBF1B type bytedata
+str_bf94:   start 0xBF94 end 0xBFA1 type bytedata
+pad_ff:     start 0xBFB3 end 0xC000 type bytedata

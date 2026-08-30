@@ -7,6 +7,9 @@ tools/sjasmplus
 # Disassembler scratch
 generated/
 
+# Local CocoaMSX prefs (workbench default snap is c000-dfff; this cart is e000-efff)
+/cocoamsx.json
+
 # Python
 **/__pycache__/
 

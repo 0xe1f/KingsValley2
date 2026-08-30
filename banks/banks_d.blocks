@@ -1,0 +1,25 @@
+; z80dasm code/data map for bank d (A000-only @ 0xA000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+
+; ===========================================================================
+;  bank d @ 0xA000
+; ===========================================================================
+; Several tables are 60/61 words indexed by (0xE242) (1-based; [0] sentinel).
+; Packed gems / actors / tools / screens / links / pickups / doors are source.
+; afb1_tbl is 60 words indexed by level-1 (no sentinel); packed tools -> 0xE300.
+; ba57[0] == 0xBA61; bb38[0] == 0xBB3C.
+a75d_tbl:  start 0xA75D end 0xA7D7 type worddata
+aae0_tbl:  start 0xAAE0 end 0xAB5A type worddata
+ab5a_flags: start 0xAB5A end 0xAD3A type bytedata
+adcf_tbl:  start 0xADCF end 0xAE47 type worddata
+ae47_tbl:  start 0xAE47 end 0xAEBF type worddata
+aebf_tbl:  start 0xAEBF end 0xAF37 type worddata
+af37_tbl:  start 0xAF37 end 0xAFAF type worddata
+afb1_tbl:  start 0xAFB1 end 0xB029 type worddata
+b7cd_tbl:  start 0xB7CD end 0xB847 type worddata
+b9ad_tbl:  start 0xB9AD end 0xB9CF type worddata
+ba57_tbl:  start 0xBA57 end 0xBA61 type worddata
+bb38_tbl:  start 0xBB38 end 0xBB3C type worddata
+print_legend: start 0xBC54 end 0xBCBB type bytedata
+bcbb_tbl:  start 0xBCBB end 0xBCC3 type worddata
+print_names: start 0xBCC3 end 0xBECF type bytedata

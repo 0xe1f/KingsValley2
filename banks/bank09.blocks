@@ -1,6 +1,0 @@
-; z80dasm block file for bank 9 @ 0xA000. Rendering only; bank is not code.
-; b7c7_idx[0] == 0xB7D1. blit_list DE=0xB7C7 HL=0xB7DF. palette_list @ 0xBB8B.
-b7c7_idx:  start 0xB7C7 end 0xB7D1 type worddata
-b7d1_pal:  start 0xB7D1 end 0xB7DF type bytedata
-b7df_blit: start 0xB7DF end 0xB82B type bytedata
-bb8b_pal:  start 0xBB8B end 0xBB9B type bytedata

@@ -1,0 +1,233 @@
+; E500 SAT pattern-id table (ix+11 index into 0xBECF), then RLE @ 0xBF29
+; (sub_4e54h → F800) and HUD copy_tiles 1bpp at 0xBF36 / 0xBFC6.
+
+sat_pat:                            ; 0xBECF  90 bytes
+	defb 058h, 048h, 04ch, 050h, 054h, 05ch, 060h, 064h, 070h, 068h
+	defb 06ch, 074h, 078h, 07ch, 080h, 090h, 094h, 098h, 09ch, 0a0h
+	defb 0a4h, 0b4h, 0b8h, 0bch, 084h, 088h, 08ch, 0a8h, 0ach, 0b0h
+	defb 068h, 06ch, 048h, 04ch, 050h, 054h, 058h, 05ch, 060h, 064h
+	defb 070h, 074h, 078h, 07ch, 080h, 084h, 098h, 09ch, 088h, 08ch
+	defb 090h, 094h, 0a0h, 0a4h, 0a8h, 0ach, 0b0h, 0b4h, 0b8h, 0bch
+	defb 0c0h, 0c4h, 0c8h, 0cch, 0d0h, 0d4h, 0d8h, 0dch, 0d0h, 0d4h
+	defb 0d8h, 0dch, 0f0h, 0f4h, 0f8h, 0fch, 000h, 000h, 0e0h, 0e4h
+	defb 0e8h, 0ech, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+rle_bf29:                           ; 0xBF29 Konami RLE → F800
+	defb 004h, 003h, 00ch, 000h, 004h, 0c0h, 00ch, 000h, 003h, 00eh, 01dh, 000h, 000h
+hud_bf36:                           ; 0xBF36  18 tiles C=0x8B → VRAM 0838h
+; BF36
+	defb %11111111
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+; BF3E
+	defb %11111111
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BF46
+	defb %11111111
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+; BF4E
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+; BF56
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BF5E
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+; BF66
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %11111111
+; BF6E
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %11111111
+; BF76
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %11111111
+; BF7E
+	defb %11111111
+	defb %10000000
+	defb %10000000
+	defb %10011000
+	defb %10011000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+; BF86
+	defb %11111111
+	defb %00000000
+	defb %00000000
+	defb %00011000
+	defb %00011000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BF8E
+	defb %11111111
+	defb %00000001
+	defb %00000001
+	defb %00011001
+	defb %00011001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+; BF96
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10011000
+	defb %10011000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+; BF9E
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00011000
+	defb %00011000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BFA6
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00011001
+	defb %00011001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+; BFAE
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %10011000
+	defb %10011000
+	defb %10000000
+	defb %10000000
+	defb %11111111
+; BFB6
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00011000
+	defb %00011000
+	defb %00000000
+	defb %00000000
+	defb %11111111
+; BFBE
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00011001
+	defb %00011001
+	defb %00000001
+	defb %00000001
+	defb %11111111
+hud_bfc6:                           ; 0xBFC6  6 tiles C=0x07 → VRAM 9838h
+; BFC6
+	defb %00000001
+	defb %00000011
+	defb %00000111
+	defb %00001111
+	defb %00000011
+	defb %00000011
+	defb %00000011
+	defb %00000000
+; BFCE
+	defb %10000000
+	defb %11000000
+	defb %11100000
+	defb %11110000
+	defb %11000000
+	defb %11000000
+	defb %11000000
+	defb %00000000
+; BFD6
+	defb %00000000
+	defb %00000011
+	defb %00000011
+	defb %00000011
+	defb %00001111
+	defb %00000111
+	defb %00000011
+	defb %00000001
+; BFDE
+	defb %00000000
+	defb %11000000
+	defb %11000000
+	defb %11000000
+	defb %11110000
+	defb %11100000
+	defb %11000000
+	defb %10000000
+; BFE6
+	defb %00010000
+	defb %00110000
+	defb %01111110
+	defb %11111110
+	defb %11111110
+	defb %01111110
+	defb %00110000
+	defb %00010000
+; BFEE
+	defb %00001000
+	defb %00001100
+	defb %01111110
+	defb %01111111
+	defb %01111111
+	defb %01111110
+	defb %00001100
+	defb %00001000

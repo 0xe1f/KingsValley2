@@ -1,0 +1,476 @@
+; title copy_tiles 1bpp (title_load after stamp_bb9b).
+
+title_bbdc:                            ; 0xBBDC  copy_tiles B=0Dh C=01h
+; BBDC
+	defb %00000111
+	defb %00000111
+	defb %00001111
+	defb %00001111
+	defb %00001111
+	defb %00011111
+	defb %00011111
+	defb %00111111
+; BBE4
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+; BBEC
+	defb %11111000
+	defb %11111000
+	defb %11110000
+	defb %11110000
+	defb %11110000
+	defb %11100000
+	defb %11100000
+	defb %11100000
+; BBF4
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000001
+	defb %00000011
+	defb %00001111
+	defb %01111111
+; BBFC
+	defb %00111111
+	defb %01111111
+	defb %01111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+; BC04
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111100
+	defb %11110000
+	defb %11000000
+; BC0C
+	defb %11000000
+	defb %11000000
+	defb %10000000
+	defb %10000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BC14
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000001
+	defb %00000011
+	defb %00000111
+	defb %00001111
+	defb %00001111
+; BC1C
+	defb %00001111
+	defb %00111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+; BC24
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111110
+	defb %11111100
+	defb %11111000
+	defb %11111000
+	defb %11110000
+; BC2C
+	defb %11111000
+	defb %11000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BC34
+	defb %00011111
+	defb %00011111
+	defb %00011111
+	defb %00111111
+	defb %00111111
+	defb %00111111
+	defb %01111111
+	defb %01111111
+; BC3C
+	defb %11110000
+	defb %11100000
+	defb %11100000
+	defb %11000000
+	defb %11000000
+	defb %11000000
+	defb %10000000
+	defb %10000000
+
+title_bc44:                            ; 0xBC44  copy_tiles B=0Dh C=02h
+; BC44
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000001
+	defb %00000001
+	defb %00000011
+; BC4C
+	defb %01111111
+	defb %01111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+; BC54
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111110
+	defb %11111110
+	defb %11111100
+; BC5C
+	defb %10000000
+	defb %10000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+; BC64
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000111
+; BC6C
+	defb %00000011
+	defb %00000111
+	defb %00000111
+	defb %00001111
+	defb %00011111
+	defb %00111111
+	defb %11111111
+	defb %11111111
+; BC74
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111000
+; BC7C
+	defb %11111100
+	defb %11111000
+	defb %11111000
+	defb %11110000
+	defb %11100000
+	defb %11000000
+	defb %00000000
+	defb %00000000
+; BC84
+	defb %00000000
+	defb %00000011
+	defb %00001111
+	defb %00011111
+	defb %00111111
+	defb %01111111
+	defb %11111111
+	defb %11111111
+; BC8C
+	defb %11111111
+	defb %11111100
+	defb %11110000
+	defb %11100000
+	defb %11000000
+	defb %10000000
+	defb %10000000
+	defb %00000000
+; BC94
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000011
+	defb %00000011
+	defb %00000011
+	defb %00000111
+	defb %00000111
+; BC9C
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %11111111
+; BCA4
+	defb %11111111
+	defb %11111110
+	defb %11111110
+	defb %11111100
+	defb %11111100
+	defb %11111100
+	defb %11111000
+	defb %11111000
+
+title_bcac:                            ; 0xBCAC  copy_tiles B=1Ah C=03h
+; BCAC
+	defb %00111100
+	defb %00111100
+	defb %01111000
+	defb %01111000
+	defb %01111001
+	defb %11110011
+	defb %11110111
+	defb %11111111
+; BCB4
+	defb %00011111
+	defb %00111110
+	defb %01111100
+	defb %11111001
+	defb %11110011
+	defb %11100011
+	defb %11000011
+	defb %10000111
+; BCBC
+	defb %00011111
+	defb %01111111
+	defb %11111000
+	defb %11110000
+	defb %11100000
+	defb %11100000
+	defb %11000000
+	defb %11000000
+; BCC4
+	defb %11000000
+	defb %11110000
+	defb %11111000
+	defb %01111000
+	defb %01111000
+	defb %01111001
+	defb %01111001
+	defb %01111001
+; BCCC
+	defb %01111111
+	defb %01111111
+	defb %11111111
+	defb %11110111
+	defb %11110111
+	defb %11100111
+	defb %11100111
+	defb %11100111
+; BCD4
+	defb %00001111
+	defb %00001111
+	defb %00011110
+	defb %00011110
+	defb %00011110
+	defb %00111100
+	defb %00111100
+	defb %00111100
+; BCDC
+	defb %00000011
+	defb %00000111
+	defb %00001111
+	defb %00001110
+	defb %00011110
+	defb %00111100
+	defb %00111000
+	defb %01111000
+; BCE4
+	defb %11100000
+	defb %11100000
+	defb %11100000
+	defb %11100000
+	defb %11100000
+	defb %11100001
+	defb %11100001
+	defb %11100001
+; BCEC
+	defb %01111110
+	defb %01111110
+	defb %11111110
+	defb %11110110
+	defb %11110110
+	defb %11101110
+	defb %11101110
+	defb %11101110
+; BCF4
+	defb %00001111
+	defb %00001111
+	defb %00011111
+	defb %00011101
+	defb %00111101
+	defb %00111011
+	defb %01111011
+	defb %01110011
+; BCFC
+	defb %11110001
+	defb %11110001
+	defb %11100011
+	defb %11100011
+	defb %11100011
+	defb %11000111
+	defb %11000111
+	defb %11000111
+; BD04
+	defb %11100000
+	defb %11100000
+	defb %11000000
+	defb %11000000
+	defb %11000000
+	defb %10000000
+	defb %10000000
+	defb %10000000
+; BD0C
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00000011
+	defb %00000011
+	defb %00000011
+	defb %00000111
+	defb %00000111
+; BD14
+	defb %11101111
+	defb %11100111
+	defb %11100111
+	defb %11000111
+	defb %11000111
+	defb %11000011
+	defb %10000011
+	defb %10000011
+; BD1C
+	defb %10000111
+	defb %10000111
+	defb %10000111
+	defb %11000111
+	defb %11000111
+	defb %11000111
+	defb %11100011
+	defb %11100000
+; BD24
+	defb %10000000
+	defb %10000000
+	defb %10000001
+	defb %10000001
+	defb %10000011
+	defb %11000111
+	defb %11111111
+	defb %11111110
+; BD2C
+	defb %11111011
+	defb %11110011
+	defb %11110011
+	defb %11110111
+	defb %11100111
+	defb %11000111
+	defb %10001111
+	defb %00001111
+; BD34
+	defb %11000111
+	defb %11000111
+	defb %11000111
+	defb %10000111
+	defb %10000111
+	defb %10000111
+	defb %00000111
+	defb %00000111
+; BD3C
+	defb %01111000
+	defb %01111000
+	defb %01111001
+	defb %11110001
+	defb %11110011
+	defb %11110111
+	defb %11100111
+	defb %11101111
+; BD44
+	defb %01110000
+	defb %11110000
+	defb %11111111
+	defb %11111111
+	defb %11111111
+	defb %10000000
+	defb %10000000
+	defb %00000000
+; BD4C
+	defb %11100011
+	defb %11100011
+	defb %11100011
+	defb %11100111
+	defb %11100111
+	defb %11100111
+	defb %11101111
+	defb %11101111
+; BD54
+	defb %11001110
+	defb %11001110
+	defb %11001111
+	defb %10001111
+	defb %10001111
+	defb %10001111
+	defb %00001111
+	defb %00001111
+; BD5C
+	defb %11110111
+	defb %11100111
+	defb %11000111
+	defb %11001111
+	defb %10001111
+	defb %10001111
+	defb %00011110
+	defb %00011110
+; BD64
+	defb %10001111
+	defb %10001111
+	defb %10001111
+	defb %00011110
+	defb %00011110
+	defb %00011110
+	defb %00111100
+	defb %00111100
+; BD6C
+	defb %00000111
+	defb %00001000
+	defb %00010111
+	defb %00010100
+	defb %00010111
+	defb %00010100
+	defb %00001000
+	defb %00000111
+; BD74
+	defb %10000000
+	defb %01000000
+	defb %00100000
+	defb %10100000
+	defb %00100000
+	defb %10100000
+	defb %01000000
+	defb %10000000
+

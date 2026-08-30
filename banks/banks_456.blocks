@@ -1,0 +1,10 @@
+; z80dasm code/data map for banks 4-6 (sound triplet @ 0x6000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+; Banks 5-6 are packed-PSG streams (already labeled data); no extra code map.
+
+; ===========================================================================
+;  bank 4 @ 0x6000
+; ===========================================================================
+; sound_ptr id 0 overlaps ld (9000h),a / ret at 0x6F2A (bytes 90 C9).
+sound_ptr:    start 0x6F2E end 0x6FB0 type worddata
+psg_payload:  start 0x6FB0 end 0x8000 type bytedata

@@ -1,8 +1,0 @@
-; z80dasm block file for bank 7 @ 0x6000. Rendering only; bank is not code.
-; idx6[0] == 0x600C (first byte after the 6-word table).
-; e241_tbl[0] overlaps last dest_hi + 0xFF terminator of the 602A blit list.
-idx6:      start 0x6000 end 0x600C type worddata
-pal_list:  start 0x600C end 0x602A type bytedata
-blit_recs: start 0x602A end 0x6065 type bytedata
-e241_tbl:  start 0x6065 end 0x60AD type worddata
-blit_ptr:  start 0x6177 end 0x6185 type worddata

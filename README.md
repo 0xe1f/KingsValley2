@@ -6,7 +6,7 @@
 
 A work-in-progress, **byte-exact and reassemblable** disassembly of Konami's
 *King's Valley II* (*The Seal of El Giza* / 王家の谷II, 1988) for the MSX2 —
-a 128 KiB Konami SCC MegaROM (RC761). Not *The Maze of Galious*.
+a 128 KiB Konami SCC MegaROM (RC761).
 
 The goal is a readable, commented, buildable source that reproduces the original
 ROM exactly, so the game can be understood and modified.
@@ -14,25 +14,25 @@ ROM exactly, so the game can be understood and modified.
 ## What's here
 
 ```
-KingsValley2.asm    master file: stitches 8 KiB banks into the ROM image
+KingsValley2.asm    master file: stitches paging windows into the ROM image
 KingsValley2.sha1   SHA-1 of the original 128 KiB ROM (`make verify`)
-banks/              one file per mapper bank (boot triplet is one window)
-  bank00.asm        bank 0: AB header, cart_init / cart_boot / H.TIMI / pager
-  banks123.asm      banks 1–3: boot triplet @ 6000–BFFF (page_banks_123)
-  bank04.asm        sound/SCC driver @ 6000 (MODULE bank04)
-  bank05.asm … 06   packed-PSG payload @ 8000/A000
-  bank07.asm        tables / packed lists @ 6000 (MODULE bank07)
-  bank08.asm … 09   tileset + gfx @ 8000/A000
-  bank10.asm … 11   map tables / streams @ 6000/8000
-  bank12.asm        gfx prefix + code @ A000 (MODULE bank12)
-  bank13.asm        tables / streams / tiles @ A000 (page_bank_13)
-  bank14.asm … 15   font + UI gfx @ 8000/A000 (page_banks_14_15)
+banks/              one file per paging window (stems banks_0 / banks_123 / …)
+  banks_0.asm       bank 0: AB header, cart_init / cart_boot / H.TIMI / pager
+  banks_123.asm     banks 1-3: boot triplet @ 6000–BFFF
+  banks_456.asm     banks 4-6: sound/SCC + packed-PSG (MODULE banks_456)
+  banks_789.asm     banks 7-9: blit dests + title tiles (MODULE banks_789)
+  banks_abc.asm     banks a-c: maps / overlays / bank c code (MODULE banks_abc)
+  banks_d.asm       bank d: tables / streams / tiles (MODULE banks_d)
+  banks_ef.asm      banks e-f: font + UI gfx (MODULE banks_ef)
+  banks_*.blocks    z80dasm code/data map, one per window (regen-bank.sh)
 tools/workbench/    MSXDAW submodule (regen, romscan, RLE, PSG)
+tools/gfxdump.py    `make gfx` contact sheets
+  gfx/                PNG catalogue (`palettes/` `tilesets/` `fonts/` `metatiles/`)
 docs/               reverse-engineering notes (`game-notes.md`, `progress.md`)
 Makefile            build / verify
 ```
 
-Bank 0–15 assemble from labeled `.asm`. A clean checkout can assemble and
+Bank 00–0F assemble from labeled `.asm`. A clean checkout can assemble and
 verify with no leftover `INCBIN` bins.
 
 ## Building
@@ -49,13 +49,17 @@ make verify     # assemble, then SHA-1 check against KingsValley2.sha1
 
 `make` alone produces `KingsValley2.rom` in the repo root (gitignored).
 `KingsValley2.sha1` is the SHA-1 of the original 128 KiB MSX2 ROM; `make verify`
-rebuilds and confirms the output matches it.
+rebuilds and confirms the output matches it. `make gfx` writes labelled PNG
+sheets under `gfx/` from identified palettes, `copy_tiles` 1bpp sources,
+and editor minimaps (needs a built ROM).
 
 ## How it works
 
-128 KiB = 16 × 8 KiB banks (Konami SCC mapping). Each bank is labeled
-source (code, named payload `INCBIN`, or a mix). After every change the ROM
-is rebuilt and SHA-1 checked so it stays byte-for-byte identical.
+128 KiB = 16 × 8 KiB banks (hex `0`–`f`, Konami SCC mapping). Shared CPU
+windows are one labelled `.asm` plus a matching `.blocks` map (stems
+`banks_0`, `banks_123`, `banks_456`, `banks_789`, `banks_abc`, `banks_d`,
+`banks_ef`). After every change the ROM is rebuilt and SHA-1 checked so it
+stays byte-for-byte identical.
 
 See `docs/game-notes.md` for reverse-engineering notes and `docs/progress.md`
 for current status and next steps.

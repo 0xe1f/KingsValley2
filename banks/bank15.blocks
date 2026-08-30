@@ -1,8 +1,0 @@
-; z80dasm block file for bank 15 @ 0xA000. Rendering only; bank is not code.
-; blit_list after page_banks_14_15: DE=0xB116, HL=0xB120. idx2[0] == 0xB118.
-pal_a7ce:  start 0xA7CE end 0xA7FF type bytedata
-pal_a7ff:  start 0xA7FF end 0xA830 type bytedata
-pal_a8bb:  start 0xA8BB end 0xA8E6 type bytedata
-idx2:      start 0xB116 end 0xB118 type worddata
-pal_list:  start 0xB118 end 0xB120 type bytedata
-blit_recs: start 0xB120 end 0xB12B type bytedata

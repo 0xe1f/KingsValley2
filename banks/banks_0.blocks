@@ -1,0 +1,16 @@
+; z80dasm code/data map for bank 0 (resident @ 0x4000).
+; regen-bank.sh keeps only blocks whose start falls in the 8K being disassembled.
+; Block names avoid colliding with in-source labels (z80dasm emits NAME_start).
+
+; ===========================================================================
+;  bank 0 @ 0x4000
+; ===========================================================================
+rom_header: start 0x4000 end 0x4010 type bytedata
+gm_opt:     start 0x4010 end 0x402E type bytedata
+d_43a1_jp:  start 0x43A4 end 0x43AE type worddata
+d_46ea_jp:  start 0x46ED end 0x4709 type worddata
+d_470a_jp:  start 0x470D end 0x4717 type worddata
+d_47c2_jp:  start 0x47C5 end 0x47DD type worddata
+d_5e40_jp:  start 0x5E43 end 0x5E4B type worddata
+vdp_spr:    start 0x5413 end 0x541B type bytedata
+print_txt:  start 0x5EF2 end 0x5F8D type bytedata

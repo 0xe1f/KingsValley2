@@ -1,3 +1,0 @@
-; z80dasm block file for bank 14 @ 0x8000. Rendering only; bank is not code.
-; glyph_ptr[0] == 0x80E4 (first glyph after the 114-word index table).
-glyph_ptr: start 0x8000 end 0x80E4 type worddata

@@ -1,4 +1,0 @@
-; z80dasm block file for bank 4 @ 0x6000. Rendering only.
-; sound_ptr id 0 overlaps ld (9000h),a / ret at 0x6F2A (bytes 90 C9).
-sound_ptr:    start 0x6F2E end 0x6FB0 type worddata
-psg_payload:  start 0x6FB0 end 0x8000 type bytedata

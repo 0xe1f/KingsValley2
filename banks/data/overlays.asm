@@ -1,0 +1,1087 @@
+; packed map-bit overlays -> E900 / secret-entrance E7C0 (bank 0C).
+; load_obj (obj_ptr) / load_obj2 (obj2_ptr): 2-byte stamps, 0xFF = next
+; screen (+0xC0 dest), 0 end. Byte0 bit7 is part of the map offset
+; (DE>>7), not the 2-bit tile (bits 5-6); keep raw bytes.
+
+obj_a363:                         ; pyramid 1
+	OVERLAY 026h, 003h
+	OVERLAY 0a6h, 041h
+	OVERLAY 022h, 05bh
+	OVERLAY_END
+obj_a36a:                         ; pyramid 2
+	OVERLAY_END
+obj_a36b:                         ; pyramid 3
+	OVERLAY 050h, 018h
+	OVERLAY 090h, 01bh
+	OVERLAY_NEXT
+	OVERLAY 04ah, 01ah
+	OVERLAY 005h, 02dh
+	OVERLAY 0c6h, 042h
+	OVERLAY_END
+obj_a377:                         ; pyramid 4
+	OVERLAY 007h, 001h
+	OVERLAY 0c7h, 002h
+	OVERLAY 048h, 01ch
+	OVERLAY 088h, 01fh
+	OVERLAY 007h, 03dh
+	OVERLAY 0c7h, 03eh
+	OVERLAY 082h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 087h, 003h
+	OVERLAY 088h, 01ch
+	OVERLAY 048h, 01fh
+	OVERLAY 047h, 03ch
+	OVERLAY 087h, 03fh
+	OVERLAY 002h, 059h
+	OVERLAY 0c2h, 05ah
+	OVERLAY_END
+obj_a395:                         ; pyramid 5
+	OVERLAY 034h, 00ch
+	OVERLAY_NEXT
+	OVERLAY 08bh, 01ah
+	OVERLAY 0b4h, 00fh
+	OVERLAY_END
+obj_a39d:                         ; pyramid 6
+	OVERLAY 095h, 013h
+	OVERLAY_NEXT
+	OVERLAY 096h, 003h
+	OVERLAY_END
+obj_a3a3:                         ; pyramid 7
+	OVERLAY 0c5h, 022h
+	OVERLAY 005h, 037h
+	OVERLAY 0c5h, 04ah
+	OVERLAY 001h, 05fh
+	OVERLAY_NEXT
+	OVERLAY 003h, 003h
+	OVERLAY 0c5h, 00eh
+	OVERLAY 005h, 023h
+	OVERLAY 0c5h, 036h
+	OVERLAY 005h, 04bh
+	OVERLAY_END
+obj_a3b7:                         ; pyramid 8
+	OVERLAY 005h, 04dh
+	OVERLAY 0e5h, 04dh
+	OVERLAY 0e5h, 04eh
+	OVERLAY 0a1h, 05fh
+	OVERLAY_NEXT
+	OVERLAY 0c5h, 011h
+	OVERLAY 045h, 025h
+	OVERLAY 0c5h, 038h
+	OVERLAY_NEXT
+	OVERLAY 004h, 001h
+	OVERLAY 0eah, 001h
+	OVERLAY 0e4h, 002h
+	OVERLAY 0b7h, 003h
+	OVERLAY 0a4h, 012h
+	OVERLAY 0ech, 022h
+	OVERLAY 06ah, 028h
+	OVERLAY 023h, 053h
+	OVERLAY 023h, 050h
+	OVERLAY_END
+obj_a3da:                         ; pyramid 9
+	OVERLAY 092h, 017h
+	OVERLAY_END
+obj_a3dd:                         ; pyramid 10
+	OVERLAY_END
+obj2_a3de:                        ; secret pyramid 1,2,3,4,5,6,7,8
+	OVERLAY_END
+obj2_a3df:                        ; secret pyramid 9
+	OVERLAY 086h, 03eh
+	OVERLAY_END
+obj2_a3e2:                        ; secret pyramid 10
+	OVERLAY_NEXT
+	OVERLAY 06eh, 014h
+	OVERLAY_END
+obj_a3e6:                         ; pyramid 11
+	OVERLAY 0a6h, 018h
+	OVERLAY 028h, 021h
+	OVERLAY 024h, 023h
+	OVERLAY 0a4h, 032h
+	OVERLAY 0a9h, 039h
+	OVERLAY 026h, 042h
+	OVERLAY_END
+obj_a3f3:                         ; pyramid 12
+	OVERLAY_END
+obj_a3f4:                         ; pyramid 13
+	OVERLAY 0d2h, 01ah
+	OVERLAY 082h, 058h
+	OVERLAY 082h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 08eh, 000h
+	OVERLAY 0c6h, 002h
+	OVERLAY 098h, 003h
+	OVERLAY 084h, 050h
+	OVERLAY 004h, 052h
+	OVERLAY_NEXT
+	OVERLAY 090h, 000h
+	OVERLAY 007h, 002h
+	OVERLAY 094h, 003h
+	OVERLAY_END
+obj_a40d:                         ; pyramid 14
+	OVERLAY 044h, 019h
+	OVERLAY 0c4h, 019h
+	OVERLAY 044h, 01bh
+	OVERLAY 0c6h, 028h
+	OVERLAY 046h, 02ah
+	OVERLAY 046h, 040h
+	OVERLAY 046h, 041h
+	OVERLAY 0c8h, 042h
+	OVERLAY 082h, 058h
+	OVERLAY 0c2h, 059h
+	OVERLAY_NEXT
+	OVERLAY 08fh, 018h
+	OVERLAY 04fh, 01bh
+	OVERLAY 047h, 039h
+	OVERLAY 087h, 03ah
+	OVERLAY_NEXT
+	OVERLAY 086h, 000h
+	OVERLAY 0c6h, 001h
+	OVERLAY 0c6h, 002h
+	OVERLAY 046h, 019h
+	OVERLAY 04ch, 01ah
+	OVERLAY 048h, 01bh
+	OVERLAY 046h, 030h
+	OVERLAY 0c4h, 039h
+	OVERLAY 0c6h, 042h
+	OVERLAY 0c4h, 048h
+	OVERLAY_END
+obj_a440:                         ; pyramid 15
+	OVERLAY 0a9h, 015h
+	OVERLAY 0a9h, 017h
+	OVERLAY 0a9h, 038h
+	OVERLAY 0a9h, 03ah
+	OVERLAY_NEXT
+	OVERLAY 0a9h, 021h
+	OVERLAY 0a9h, 023h
+	OVERLAY 0a9h, 02ch
+	OVERLAY 0a9h, 02eh
+	OVERLAY_NEXT
+	OVERLAY 026h, 014h
+	OVERLAY 0b2h, 017h
+	OVERLAY 029h, 038h
+	OVERLAY_END
+obj_a459:                         ; pyramid 16
+	OVERLAY 0a1h, 05fh
+	OVERLAY_NEXT
+	OVERLAY 0a4h, 003h
+	OVERLAY 046h, 029h
+	OVERLAY 086h, 039h
+	OVERLAY 044h, 042h
+	OVERLAY_END
+obj_a465:                         ; pyramid 17
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 0b2h, 017h
+	OVERLAY_END
+obj_a46a:                         ; pyramid 18
+	OVERLAY 005h, 00fh
+	OVERLAY 069h, 01eh
+	OVERLAY 007h, 033h
+	OVERLAY 084h, 04eh
+	OVERLAY_NEXT
+	OVERLAY 0a4h, 020h
+	OVERLAY 006h, 029h
+	OVERLAY 0c6h, 02ah
+	OVERLAY 0a3h, 040h
+	OVERLAY_NEXT
+	OVERLAY 045h, 00ch
+	OVERLAY 064h, 011h
+	OVERLAY 024h, 021h
+	OVERLAY 0a8h, 023h
+	OVERLAY 0c7h, 031h
+	OVERLAY 047h, 043h
+	OVERLAY 004h, 04dh
+	OVERLAY_END
+obj_a48b:                         ; pyramid 19
+	OVERLAY 066h, 002h
+	OVERLAY 085h, 02ah
+	OVERLAY 062h, 05ah
+	OVERLAY_END
+obj_a492:                         ; pyramid 20
+	OVERLAY 0a4h, 013h
+	OVERLAY 064h, 023h
+	OVERLAY 0a4h, 033h
+	OVERLAY 064h, 043h
+	OVERLAY 0a4h, 053h
+	OVERLAY 0c4h, 052h
+	OVERLAY_NEXT
+	OVERLAY 0c4h, 002h
+	OVERLAY 0a4h, 003h
+	OVERLAY 064h, 013h
+	OVERLAY 0a4h, 023h
+	OVERLAY 066h, 027h
+	OVERLAY 0a6h, 037h
+	OVERLAY 064h, 04fh
+	OVERLAY 024h, 03fh
+	OVERLAY_END
+obj2_a4b0:                        ; secret pyramid 12
+	OVERLAY 086h, 019h
+obj2_a4b2:                        ; secret pyramid 11,13,14,15
+	OVERLAY_END
+obj2_a4b3:                        ; secret pyramid 16
+	OVERLAY 084h, 015h
+	OVERLAY 004h, 026h
+	OVERLAY 084h, 036h
+	OVERLAY 004h, 047h
+	OVERLAY_END
+obj2_a4bc:                        ; secret pyramid 17
+	OVERLAY 0e5h, 04ah
+	OVERLAY_NEXT
+	OVERLAY 02bh, 01ch
+	OVERLAY 045h, 049h
+	OVERLAY 0a5h, 04ah
+	OVERLAY_NEXT
+	OVERLAY 066h, 014h
+	OVERLAY 0edh, 014h
+	OVERLAY 044h, 027h
+	OVERLAY 005h, 037h
+	OVERLAY 045h, 048h
+	OVERLAY 005h, 04ah
+	OVERLAY 0c5h, 04ah
+	OVERLAY_END
+obj2_a4d5:                        ; secret pyramid 18
+	OVERLAY 028h, 03dh
+obj2_a4d7:                        ; secret pyramid 19,20
+	OVERLAY_END
+obj_a4d8:                         ; pyramid 21
+	OVERLAY 032h, 014h
+	OVERLAY 0abh, 017h
+	OVERLAY 024h, 021h
+	OVERLAY 0a4h, 022h
+	OVERLAY 0a3h, 042h
+	OVERLAY 003h, 04eh
+	OVERLAY 063h, 016h
+	OVERLAY_END
+obj_a4e7:                         ; pyramid 22
+	OVERLAY 046h, 010h
+	OVERLAY 042h, 027h
+	OVERLAY 047h, 029h
+	OVERLAY 002h, 037h
+	OVERLAY 0c6h, 03eh
+	OVERLAY_NEXT
+	OVERLAY 043h, 010h
+	OVERLAY 086h, 044h
+	OVERLAY 006h, 045h
+	OVERLAY_NEXT
+	OVERLAY 089h, 010h
+	OVERLAY 046h, 013h
+	OVERLAY 0c5h, 021h
+	OVERLAY 045h, 035h
+	OVERLAY 047h, 043h
+	OVERLAY 005h, 04ah
+	OVERLAY_END
+obj_a506:                         ; pyramid 23
+	OVERLAY 037h, 004h
+	OVERLAY 0c4h, 010h
+	OVERLAY 0ceh, 021h
+	OVERLAY 04eh, 023h
+	OVERLAY 0c6h, 030h
+	OVERLAY 046h, 032h
+	OVERLAY 042h, 05ah
+	OVERLAY_NEXT
+	OVERLAY 0c8h, 011h
+	OVERLAY 0b7h, 007h
+	OVERLAY 0c4h, 028h
+	OVERLAY 046h, 029h
+	OVERLAY 044h, 032h
+	OVERLAY 044h, 038h
+	OVERLAY 0c4h, 051h
+	OVERLAY 042h, 058h
+	OVERLAY_NEXT
+	OVERLAY 037h, 000h
+	OVERLAY 04eh, 002h
+	OVERLAY 0d0h, 011h
+	OVERLAY 04ch, 01bh
+	OVERLAY 0c6h, 020h
+	OVERLAY 0c5h, 048h
+	OVERLAY 085h, 04bh
+	OVERLAY_NEXT
+	OVERLAY 0b7h, 003h
+	OVERLAY 048h, 000h
+	OVERLAY 0c6h, 001h
+	OVERLAY 044h, 011h
+	OVERLAY 044h, 012h
+	OVERLAY 004h, 021h
+	OVERLAY 08dh, 028h
+	OVERLAY 087h, 042h
+	OVERLAY_END
+obj_a546:                         ; pyramid 24
+	OVERLAY 048h, 013h
+	OVERLAY 044h, 021h
+	OVERLAY 0c4h, 031h
+	OVERLAY 084h, 042h
+	OVERLAY 0c4h, 050h
+	OVERLAY_NEXT
+	OVERLAY 0c4h, 000h
+	OVERLAY 0c8h, 022h
+	OVERLAY 044h, 031h
+	OVERLAY 0c4h, 040h
+	OVERLAY 044h, 043h
+	OVERLAY 084h, 051h
+	OVERLAY 0c4h, 052h
+	OVERLAY_NEXT
+	OVERLAY 0c7h, 020h
+	OVERLAY 08eh, 023h
+	OVERLAY 004h, 02fh
+	OVERLAY_NEXT
+	OVERLAY 083h, 001h
+	OVERLAY 0c3h, 002h
+	OVERLAY 084h, 01dh
+	OVERLAY 048h, 03fh
+	OVERLAY 024h, 02ch
+	OVERLAY 084h, 04eh
+	OVERLAY_END
+obj_a574:                         ; pyramid 25
+	OVERLAY 0e2h, 016h
+	OVERLAY 022h, 01fh
+	OVERLAY 0a2h, 02fh
+	OVERLAY 022h, 02fh
+	OVERLAY 0e2h, 036h
+	OVERLAY 062h, 037h
+	OVERLAY 0a2h, 03eh
+	OVERLAY 022h, 03fh
+	OVERLAY 0a2h, 03fh
+	OVERLAY 062h, 046h
+	OVERLAY 0e2h, 046h
+	OVERLAY 062h, 047h
+	OVERLAY 022h, 044h
+	OVERLAY 062h, 04ch
+	OVERLAY 0a2h, 04fh
+	OVERLAY 022h, 054h
+	OVERLAY 062h, 027h
+	OVERLAY_END
+obj_a597:                         ; pyramid 26
+	OVERLAY 051h, 014h
+	OVERLAY 0cbh, 015h
+	OVERLAY_NEXT
+	OVERLAY 045h, 034h
+	OVERLAY 02dh, 015h
+	OVERLAY 0c5h, 048h
+	OVERLAY_NEXT
+	OVERLAY 085h, 014h
+	OVERLAY 00eh, 015h
+	OVERLAY 08ch, 017h
+	OVERLAY 006h, 047h
+	OVERLAY_END
+obj_a5ac:                         ; pyramid 27
+	OVERLAY 065h, 01ch
+	OVERLAY 083h, 025h
+	OVERLAY 044h, 033h
+	OVERLAY 0e3h, 040h
+	OVERLAY_NEXT
+	OVERLAY 084h, 010h
+	OVERLAY 00ch, 003h
+	OVERLAY 0c5h, 01dh
+	OVERLAY 0abh, 030h
+	OVERLAY 067h, 031h
+	OVERLAY 003h, 041h
+	OVERLAY 0a4h, 04fh
+	OVERLAY 001h, 05dh
+	OVERLAY_NEXT
+	OVERLAY 004h, 001h
+	OVERLAY 084h, 013h
+	OVERLAY 084h, 020h
+	OVERLAY 044h, 021h
+	OVERLAY 087h, 032h
+	OVERLAY 004h, 04dh
+	OVERLAY 001h, 05fh
+	OVERLAY_END
+obj_a5d5:                         ; pyramid 28
+	OVERLAY 086h, 018h
+	OVERLAY 0c6h, 01ah
+	OVERLAY 082h, 032h
+	OVERLAY 042h, 03ah
+	OVERLAY 082h, 042h
+	OVERLAY 046h, 048h
+	OVERLAY 006h, 04ah
+	OVERLAY 082h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 0d0h, 019h
+	OVERLAY_NEXT
+	OVERLAY 045h, 000h
+	OVERLAY 005h, 002h
+	OVERLAY 085h, 003h
+	OVERLAY 089h, 014h
+	OVERLAY 08ah, 033h
+	OVERLAY 007h, 017h
+	OVERLAY_END
+obj_a5f6:                         ; pyramid 29
+	OVERLAY 023h, 018h
+	OVERLAY 003h, 01bh
+	OVERLAY_END
+obj_a5fb:                         ; pyramid 30
+	OVERLAY 034h, 00ch
+	OVERLAY 084h, 00eh
+	OVERLAY 084h, 02ch
+	OVERLAY 024h, 04dh
+	OVERLAY 084h, 04fh
+	OVERLAY_NEXT
+	OVERLAY 0a4h, 01fh
+	OVERLAY 0a4h, 02dh
+	OVERLAY 004h, 02fh
+	OVERLAY 0a4h, 03ch
+	OVERLAY 004h, 03eh
+	OVERLAY 0a4h, 04fh
+	OVERLAY_END
+obj2_a613:                        ; secret pyramid 21
+	OVERLAY_END
+obj2_a614:                        ; secret pyramid 22
+	OVERLAY_NEXT
+	OVERLAY 06ah, 02fh
+obj2_a617:                        ; secret pyramid 23
+	OVERLAY_END
+obj2_a618:                        ; secret pyramid 24
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 0c6h, 044h
+obj2_a61d:                        ; secret pyramid 25,26
+	OVERLAY_END
+obj2_a61e:                        ; secret pyramid 27
+	OVERLAY 027h, 040h
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 0a4h, 033h
+	OVERLAY_END
+obj2_a625:                        ; secret pyramid 28
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 046h, 038h
+	OVERLAY_END
+obj2_a62a:                        ; secret pyramid 29
+	OVERLAY 0abh, 01bh
+obj2_a62c:                        ; secret pyramid 30
+	OVERLAY_END
+obj_a62d:                         ; pyramid 31
+	OVERLAY 024h, 01ch
+	OVERLAY 026h, 015h
+	OVERLAY 0e2h, 015h
+	OVERLAY 0a2h, 016h
+	OVERLAY 0a4h, 017h
+	OVERLAY 0a2h, 024h
+	OVERLAY 062h, 02ch
+	OVERLAY 0e2h, 02ch
+	OVERLAY 022h, 035h
+	OVERLAY 062h, 03dh
+	OVERLAY 0a2h, 045h
+	OVERLAY 0e4h, 03eh
+	OVERLAY 024h, 02fh
+	OVERLAY 064h, 01fh
+	OVERLAY 0a4h, 04fh
+	OVERLAY_END
+obj_a64c:                         ; pyramid 32
+	OVERLAY 003h, 003h
+	OVERLAY 004h, 019h
+	OVERLAY 0c4h, 01ah
+	OVERLAY 0c4h, 03ah
+	OVERLAY 021h, 05ch
+	OVERLAY_NEXT
+	OVERLAY 024h, 000h
+	OVERLAY 02ah, 038h
+	OVERLAY 0cah, 010h
+	OVERLAY 0d3h, 011h
+	OVERLAY 0c9h, 012h
+	OVERLAY 0b4h, 013h
+	OVERLAY_NEXT
+	OVERLAY 026h, 000h
+	OVERLAY 0a6h, 003h
+	OVERLAY 00ch, 01ah
+	OVERLAY 005h, 04fh
+	OVERLAY_END
+obj_a66d:                         ; pyramid 33
+	OVERLAY 087h, 002h
+	OVERLAY 0c6h, 01ch
+	OVERLAY 086h, 034h
+	OVERLAY 08bh, 036h
+	OVERLAY_NEXT
+	OVERLAY 085h, 001h
+	OVERLAY 0cch, 01ch
+	OVERLAY 046h, 037h
+	OVERLAY 004h, 04eh
+	OVERLAY 081h, 05dh
+	OVERLAY 046h, 01eh
+	OVERLAY_NEXT
+	OVERLAY 00ch, 01eh
+	OVERLAY 006h, 01fh
+	OVERLAY_END
+obj_a688:                         ; pyramid 34
+	OVERLAY 037h, 004h
+	OVERLAY 086h, 048h
+	OVERLAY 0c7h, 02ch
+	OVERLAY 0c5h, 035h
+	OVERLAY 006h, 026h
+	OVERLAY 047h, 012h
+	OVERLAY_NEXT
+	OVERLAY 066h, 034h
+	OVERLAY 0b3h, 013h
+	OVERLAY 001h, 05fh
+	OVERLAY_NEXT
+	OVERLAY 037h, 000h
+	OVERLAY 08ah, 000h
+	OVERLAY 0c2h, 020h
+	OVERLAY 042h, 021h
+	OVERLAY 042h, 022h
+	OVERLAY 0c2h, 022h
+	OVERLAY 002h, 029h
+	OVERLAY 082h, 029h
+	OVERLAY 082h, 02ah
+	OVERLAY 0c2h, 030h
+	OVERLAY 042h, 031h
+	OVERLAY 042h, 032h
+	OVERLAY 0c2h, 032h
+	OVERLAY 002h, 039h
+	OVERLAY 082h, 039h
+	OVERLAY 082h, 03ah
+	OVERLAY 044h, 042h
+	OVERLAY 083h, 052h
+	OVERLAY_NEXT
+	OVERLAY 048h, 014h
+	OVERLAY 08ah, 034h
+	OVERLAY 0c6h, 00eh
+	OVERLAY 003h, 003h
+	OVERLAY 082h, 00ch
+	OVERLAY_END
+obj_a6cc:                         ; pyramid 35
+	OVERLAY_NEXT
+	OVERLAY 0c1h, 05eh
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 0c5h, 002h
+	OVERLAY_END
+obj_a6d4:                         ; pyramid 36
+	OVERLAY 046h, 003h
+	OVERLAY 089h, 03fh
+	OVERLAY_NEXT
+	OVERLAY 0c8h, 028h
+	OVERLAY 048h, 032h
+	OVERLAY 08eh, 02bh
+	OVERLAY 084h, 050h
+	OVERLAY 084h, 051h
+	OVERLAY 002h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 084h, 003h
+	OVERLAY 046h, 028h
+	OVERLAY 00dh, 029h
+	OVERLAY 0cbh, 02ah
+	OVERLAY 0c5h, 049h
+	OVERLAY 048h, 043h
+	OVERLAY_NEXT
+	OVERLAY 088h, 000h
+	OVERLAY 086h, 001h
+	OVERLAY 008h, 003h
+	OVERLAY 084h, 003h
+	OVERLAY 0cah, 028h
+	OVERLAY 0c8h, 021h
+	OVERLAY 0aeh, 023h
+	OVERLAY_END
+obj_a702:                         ; pyramid 37
+	OVERLAY 051h, 014h
+	OVERLAY_NEXT
+	OVERLAY 047h, 014h
+	OVERLAY 046h, 02ah
+	OVERLAY 088h, 02bh
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 0c5h, 000h
+	OVERLAY 0c8h, 040h
+	OVERLAY 045h, 02eh
+	OVERLAY 084h, 03ah
+	OVERLAY 0c4h, 04ah
+	OVERLAY 08dh, 017h
+	OVERLAY_END
+obj_a71a:                         ; pyramid 38
+	OVERLAY 053h, 014h
+	OVERLAY 025h, 01ah
+	OVERLAY 00bh, 02dh
+	OVERLAY 086h, 02fh
+	OVERLAY_NEXT
+	OVERLAY 0d1h, 015h
+	OVERLAY 086h, 016h
+	OVERLAY 046h, 02fh
+	OVERLAY 0c2h, 05ah
+	OVERLAY_NEXT
+	OVERLAY 056h, 000h
+	OVERLAY_NEXT
+	OVERLAY 0ceh, 002h
+	OVERLAY 046h, 031h
+	OVERLAY_END
+obj_a734:                         ; pyramid 39
+	OVERLAY 022h, 04ch
+	OVERLAY 0a2h, 04fh
+	OVERLAY_END
+obj_a739:                         ; pyramid 40
+	OVERLAY 041h, 05ch
+	OVERLAY 082h, 042h
+	OVERLAY 002h, 03bh
+	OVERLAY 082h, 043h
+	OVERLAY_NEXT
+	OVERLAY 042h, 040h
+	OVERLAY 0c2h, 038h
+	OVERLAY 042h, 041h
+	OVERLAY 081h, 05fh
+	OVERLAY_NEXT
+	OVERLAY 045h, 000h
+	OVERLAY 082h, 014h
+	OVERLAY 002h, 01dh
+	OVERLAY 082h, 025h
+	OVERLAY 002h, 02eh
+	OVERLAY 082h, 036h
+	OVERLAY 002h, 03fh
+	OVERLAY_NEXT
+	OVERLAY 082h, 014h
+	OVERLAY 082h, 015h
+	OVERLAY 082h, 016h
+	OVERLAY 002h, 01dh
+	OVERLAY 002h, 01eh
+	OVERLAY 0c2h, 01eh
+	OVERLAY 082h, 024h
+	OVERLAY 082h, 025h
+	OVERLAY 042h, 026h
+	OVERLAY 002h, 02dh
+	OVERLAY 0c2h, 02dh
+	OVERLAY 082h, 034h
+	OVERLAY 042h, 035h
+	OVERLAY 0c2h, 03ch
+	OVERLAY 083h, 003h
+	OVERLAY_END
+obj2_a779:                        ; secret pyramid 31
+	OVERLAY_END
+obj2_a77a:                        ; secret pyramid 32
+	OVERLAY_END
+obj2_a77b:                        ; secret pyramid 33
+	OVERLAY_END
+obj2_a77c:                        ; secret pyramid 34
+	OVERLAY_END
+obj2_a77d:                        ; secret pyramid 35
+	OVERLAY 02bh, 030h
+	OVERLAY 0abh, 033h
+	OVERLAY_NEXT
+	OVERLAY 04bh, 033h
+	OVERLAY 0b1h, 01bh
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 066h, 014h
+	OVERLAY 066h, 017h
+	OVERLAY 0e6h, 02ch
+	OVERLAY 0e6h, 02eh
+	OVERLAY 086h, 045h
+	OVERLAY 046h, 046h
+	OVERLAY_END
+obj2_a795:                        ; secret pyramid 36
+	OVERLAY_END
+obj2_a796:                        ; secret pyramid 37
+	OVERLAY_END
+obj2_a797:                        ; secret pyramid 38
+	OVERLAY_END
+obj2_a798:                        ; secret pyramid 39
+	OVERLAY 024h, 01ch
+	OVERLAY 064h, 01dh
+	OVERLAY 0e4h, 01eh
+	OVERLAY 0e6h, 015h
+	OVERLAY 024h, 034h
+	OVERLAY 024h, 036h
+	OVERLAY 024h, 037h
+	OVERLAY_END
+obj2_a7a7:                        ; secret pyramid 40
+	OVERLAY_END
+obj_a7a8:                         ; pyramid 41
+	OVERLAY 086h, 028h
+	OVERLAY 046h, 021h
+	OVERLAY 046h, 02bh
+	OVERLAY 002h, 043h
+	OVERLAY 0c2h, 04ah
+	OVERLAY 082h, 052h
+	OVERLAY_END
+obj_a7b5:                         ; pyramid 42
+	OVERLAY 082h, 021h
+	OVERLAY_NEXT
+	OVERLAY 0c2h, 035h
+	OVERLAY 044h, 01fh
+	OVERLAY 004h, 03fh
+	OVERLAY_END
+obj_a7bf:                         ; pyramid 43
+	OVERLAY 06bh, 034h
+	OVERLAY 0a2h, 02dh
+	OVERLAY 0e4h, 025h
+	OVERLAY 022h, 026h
+	OVERLAY 0a9h, 002h
+	OVERLAY_NEXT
+	OVERLAY 028h, 001h
+	OVERLAY 0ach, 002h
+	OVERLAY_NEXT
+	OVERLAY 066h, 000h
+	OVERLAY 0a1h, 05eh
+	OVERLAY_NEXT
+	OVERLAY 068h, 018h
+	OVERLAY 021h, 05dh
+	OVERLAY 0a1h, 05eh
+	OVERLAY_END
+obj_a7db:                         ; pyramid 44
+	OVERLAY 08bh, 000h
+	OVERLAY 04bh, 003h
+	OVERLAY 085h, 04ch
+	OVERLAY 045h, 04fh
+	OVERLAY_NEXT
+	OVERLAY 08bh, 000h
+	OVERLAY 04bh, 003h
+	OVERLAY 081h, 05ch
+	OVERLAY 041h, 05fh
+	OVERLAY_NEXT
+	OVERLAY 08bh, 000h
+	OVERLAY 04bh, 003h
+	OVERLAY 085h, 04ch
+	OVERLAY 045h, 04fh
+	OVERLAY 04ah, 02eh
+	OVERLAY_NEXT
+	OVERLAY 08bh, 000h
+	OVERLAY 04bh, 003h
+	OVERLAY 085h, 04ch
+	OVERLAY 045h, 04fh
+	OVERLAY_NEXT
+	OVERLAY 08bh, 000h
+	OVERLAY 04bh, 003h
+	OVERLAY 085h, 04ch
+	OVERLAY 045h, 04fh
+	OVERLAY 0e8h, 02dh
+	OVERLAY_NEXT
+	OVERLAY 08bh, 000h
+	OVERLAY 04bh, 003h
+	OVERLAY 088h, 040h
+	OVERLAY 048h, 043h
+	OVERLAY_END
+obj_a815:                         ; pyramid 45
+	OVERLAY_NEXT
+	OVERLAY 086h, 040h
+	OVERLAY 004h, 01ah
+	OVERLAY_NEXT
+	OVERLAY 044h, 018h
+	OVERLAY 006h, 042h
+	OVERLAY 082h, 03ah
+	OVERLAY 002h, 033h
+	OVERLAY 087h, 017h
+	OVERLAY_END
+obj_a826:                         ; pyramid 46
+	OVERLAY 082h, 018h
+	OVERLAY 082h, 028h
+	OVERLAY 082h, 038h
+	OVERLAY 0c2h, 020h
+	OVERLAY 0c2h, 030h
+	OVERLAY 0c2h, 040h
+	OVERLAY 002h, 029h
+	OVERLAY 002h, 039h
+	OVERLAY 002h, 049h
+	OVERLAY 042h, 031h
+	OVERLAY 042h, 041h
+	OVERLAY 082h, 032h
+	OVERLAY 082h, 042h
+	OVERLAY 0c2h, 02ah
+	OVERLAY 0c2h, 03ah
+	OVERLAY 0c2h, 04ah
+	OVERLAY 002h, 023h
+	OVERLAY 002h, 033h
+	OVERLAY 002h, 043h
+	OVERLAY 042h, 01bh
+	OVERLAY 042h, 02bh
+	OVERLAY 042h, 03bh
+	OVERLAY 0c2h, 050h
+	OVERLAY_NEXT
+	OVERLAY 04ah, 032h
+	OVERLAY 0c8h, 012h
+	OVERLAY_NEXT
+	OVERLAY 046h, 002h
+	OVERLAY 004h, 051h
+	OVERLAY 042h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 004h, 001h
+	OVERLAY 04ah, 003h
+	OVERLAY 042h, 05ah
+	OVERLAY_END
+obj_a868:                         ; pyramid 47
+	OVERLAY 053h, 014h
+	OVERLAY 0a3h, 045h
+	OVERLAY 0e4h, 035h
+	OVERLAY 022h, 052h
+	OVERLAY 082h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 056h, 000h
+	OVERLAY 064h, 04ah
+	OVERLAY 096h, 003h
+	OVERLAY_NEXT
+	OVERLAY_END
+obj_a87b:                         ; pyramid 48
+	OVERLAY 044h, 014h
+	OVERLAY 044h, 034h
+	OVERLAY 084h, 024h
+	OVERLAY 083h, 044h
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 044h, 027h
+	OVERLAY 045h, 047h
+	OVERLAY 084h, 037h
+	OVERLAY_END
+obj_a88c:                         ; pyramid 49
+	OVERLAY 0e2h, 014h
+	OVERLAY 0e2h, 016h
+	OVERLAY 0a2h, 01ch
+	OVERLAY 022h, 01fh
+	OVERLAY 067h, 024h
+	OVERLAY 067h, 027h
+	OVERLAY 0a4h, 034h
+	OVERLAY 024h, 037h
+	OVERLAY 0e6h, 03ch
+	OVERLAY 0e2h, 03dh
+	OVERLAY 0e6h, 03eh
+	OVERLAY 0a2h, 045h
+	OVERLAY 022h, 046h
+	OVERLAY 022h, 04dh
+	OVERLAY 0e2h, 04dh
+	OVERLAY 0a2h, 04eh
+	OVERLAY 0a2h, 055h
+	OVERLAY 022h, 056h
+	OVERLAY_END
+obj_a8b1:                         ; pyramid 50
+	OVERLAY 0e6h, 02ch
+	OVERLAY 024h, 023h
+	OVERLAY_NEXT
+	OVERLAY 002h, 01ah
+	OVERLAY 0b0h, 023h
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 010h, 01ah
+	OVERLAY 0a6h, 003h
+	OVERLAY_END
+obj2_a8c1:                        ; secret pyramid 41
+	OVERLAY 088h, 022h
+	OVERLAY_END
+obj2_a8c4:                        ; secret pyramid 42
+	OVERLAY 086h, 037h
+	OVERLAY_END
+obj2_a8c7:                        ; secret pyramid 45
+	OVERLAY 064h, 028h
+	OVERLAY 064h, 029h
+	OVERLAY 064h, 02ah
+	OVERLAY 064h, 02bh
+	OVERLAY 0a4h, 038h
+	OVERLAY 024h, 039h
+	OVERLAY 0a4h, 039h
+	OVERLAY 024h, 03ah
+	OVERLAY 0a4h, 03ah
+	OVERLAY 024h, 03bh
+	OVERLAY 0e4h, 048h
+	OVERLAY 0e4h, 049h
+	OVERLAY 0e4h, 04ah
+	OVERLAY_NEXT
+	OVERLAY 002h, 039h
+	OVERLAY 082h, 031h
+	OVERLAY 0c6h, 019h
+	OVERLAY_END
+obj2_a8e9:                        ; secret pyramid 46
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 008h, 022h
+	OVERLAY_END
+obj2_a8ef:                        ; secret pyramid 48
+	OVERLAY_NEXT
+	OVERLAY 00ah, 025h
+	OVERLAY_NEXT
+	OVERLAY 084h, 017h
+	OVERLAY_END
+obj2_a8f6:                        ; secret pyramid 43,44,47,49,50
+	OVERLAY_END
+obj_a8f7:                         ; pyramid 51
+	OVERLAY 0e5h, 045h
+	OVERLAY_END
+obj_a8fa:                         ; pyramid 52
+	OVERLAY 0c5h, 048h
+	OVERLAY_END
+obj_a8fd:                         ; pyramid 53
+	OVERLAY_NEXT
+	OVERLAY 052h, 014h
+	OVERLAY 042h, 022h
+	OVERLAY 082h, 01ah
+	OVERLAY 0c2h, 022h
+	OVERLAY 002h, 01bh
+	OVERLAY 042h, 023h
+	OVERLAY 085h, 017h
+	OVERLAY_NEXT
+	OVERLAY_END
+obj_a90e:                         ; pyramid 54
+	OVERLAY 0e4h, 052h
+	OVERLAY_NEXT
+	OVERLAY 0e4h, 002h
+	OVERLAY 0e5h, 015h
+	OVERLAY_END
+obj_a916:                         ; pyramid 55
+	OVERLAY 0a5h, 000h
+	OVERLAY 048h, 017h
+	OVERLAY 006h, 02dh
+	OVERLAY 002h, 037h
+	OVERLAY_NEXT
+	OVERLAY 0a1h, 05ch
+	OVERLAY_END
+obj_a922:                         ; pyramid 57
+	OVERLAY 02fh, 010h
+	OVERLAY 0a4h, 013h
+	OVERLAY_NEXT
+	OVERLAY 024h, 010h
+	OVERLAY_END
+obj_a92a:                         ; pyramid 58
+	OVERLAY 0ach, 024h
+	OVERLAY_NEXT
+	OVERLAY 02eh, 017h
+	OVERLAY 0e4h, 04eh
+	OVERLAY_END
+obj_a932:                         ; pyramid 56
+	OVERLAY_END
+obj_a933:                         ; pyramid 59
+	OVERLAY 034h, 010h
+	OVERLAY 0c9h, 018h
+	OVERLAY 046h, 035h
+	OVERLAY 045h, 042h
+	OVERLAY 0c7h, 02ah
+	OVERLAY 049h, 013h
+	OVERLAY 0b4h, 013h
+	OVERLAY_NEXT
+	OVERLAY 034h, 010h
+	OVERLAY 0c5h, 014h
+	OVERLAY 042h, 019h
+	OVERLAY 0c3h, 01ah
+	OVERLAY 047h, 013h
+	OVERLAY 0b4h, 013h
+	OVERLAY 085h, 04ch
+	OVERLAY 083h, 042h
+	OVERLAY 003h, 04bh
+	OVERLAY 041h, 05eh
+	OVERLAY_NEXT
+	OVERLAY 037h, 000h
+	OVERLAY 0b7h, 003h
+	OVERLAY 0c2h, 044h
+	OVERLAY 004h, 03dh
+	OVERLAY 046h, 035h
+	OVERLAY 048h, 026h
+	OVERLAY 088h, 01eh
+	OVERLAY_NEXT
+	OVERLAY 037h, 000h
+	OVERLAY 0b7h, 003h
+	OVERLAY 093h, 000h
+	OVERLAY 005h, 00dh
+	OVERLAY 043h, 00dh
+	OVERLAY 081h, 00dh
+	OVERLAY 043h, 002h
+	OVERLAY 084h, 026h
+	OVERLAY 0c4h, 01eh
+	OVERLAY 0c4h, 036h
+	OVERLAY 006h, 02fh
+	OVERLAY_END
+obj2_a97d:                        ; secret pyramid 59
+	OVERLAY 089h, 010h
+	OVERLAY 007h, 029h
+	OVERLAY 085h, 041h
+	OVERLAY 086h, 036h
+	OVERLAY 008h, 01fh
+	OVERLAY_NEXT
+	OVERLAY 087h, 010h
+	OVERLAY 003h, 019h
+	OVERLAY 082h, 01ah
+	OVERLAY 005h, 017h
+	OVERLAY 0c3h, 048h
+	OVERLAY 043h, 041h
+	OVERLAY 0c3h, 046h
+	OVERLAY 044h, 04fh
+	OVERLAY 003h, 045h
+	OVERLAY_NEXT
+	OVERLAY 088h, 02dh
+	OVERLAY 007h, 00fh
+	OVERLAY_END
+obj_a9a0:                         ; pyramid 60
+	OVERLAY 035h, 00ch
+	OVERLAY 0c5h, 028h
+	OVERLAY 082h, 058h
+	OVERLAY 0c2h, 059h
+	OVERLAY_NEXT
+	OVERLAY 0cah, 03ah
+	OVERLAY 082h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 091h, 00ch
+	OVERLAY 046h, 022h
+	OVERLAY 044h, 042h
+	OVERLAY 0b5h, 00fh
+	OVERLAY 042h, 058h
+	OVERLAY 082h, 059h
+	OVERLAY 002h, 05bh
+	OVERLAY_NEXT
+	OVERLAY 023h, 000h
+	OVERLAY 096h, 000h
+	OVERLAY 0c5h, 001h
+	OVERLAY 0c4h, 01dh
+	OVERLAY_NEXT
+	OVERLAY 0c4h, 002h
+	OVERLAY 096h, 003h
+	OVERLAY_NEXT
+	OVERLAY 056h, 000h
+	OVERLAY 08ch, 001h
+	OVERLAY 006h, 003h
+	OVERLAY 0b6h, 003h
+	OVERLAY_END
+obj2_a9d4:                        ; secret pyramid 51
+	OVERLAY 066h, 029h
+	OVERLAY 066h, 02ah
+	OVERLAY_END
+obj2_a9d9:                        ; secret pyramid 52
+	OVERLAY 04ah, 020h
+	OVERLAY 08ch, 021h
+	OVERLAY 048h, 023h
+	OVERLAY_NEXT
+	OVERLAY 044h, 011h
+	OVERLAY 008h, 022h
+	OVERLAY 047h, 041h
+	OVERLAY 005h, 04bh
+	OVERLAY_END
+obj2_a9e9:                        ; secret pyramid 53
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 005h, 025h
+	OVERLAY_END
+obj2_a9ee:                        ; secret pyramid 54
+	OVERLAY 065h, 03eh
+	OVERLAY_END
+obj2_a9f1:                        ; secret pyramid 55
+	OVERLAY 024h, 034h
+	OVERLAY_NEXT
+	OVERLAY 0aeh, 027h
+	OVERLAY_END
+obj2_a9f7:                        ; secret pyramid 56
+	OVERLAY 08ch, 010h
+	OVERLAY 04ah, 013h
+	OVERLAY 0e3h, 029h
+	OVERLAY 006h, 029h
+	OVERLAY 0e5h, 039h
+	OVERLAY 046h, 040h
+	OVERLAY 086h, 043h
+	OVERLAY_END
+obj2_aa06:                        ; secret pyramid 57
+	OVERLAY 0c4h, 010h
+	OVERLAY 0e8h, 01dh
+	OVERLAY_NEXT
+	OVERLAY 0e4h, 01dh
+	OVERLAY 0e8h, 03dh
+	OVERLAY 0abh, 023h
+	OVERLAY 004h, 013h
+	OVERLAY_END
+obj2_aa14:                        ; secret pyramid 58
+	OVERLAY 0a4h, 02eh
+	OVERLAY 028h, 02fh
+	OVERLAY_NEXT
+	OVERLAY 02ah, 02eh
+	OVERLAY 0b0h, 015h
+	OVERLAY_END
+obj2_aa1e:                        ; secret pyramid 60
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY_NEXT
+	OVERLAY 0c3h, 00ch
+	OVERLAY 003h, 019h
+	OVERLAY 043h, 025h
+	OVERLAY_END

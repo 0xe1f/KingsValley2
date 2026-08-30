@@ -1,0 +1,682 @@
+; bank 0F draw_tilemap grids + sub_576dh stamp streams (0xA2C8–0xA792).
+
+pic_a2c8:                            ; 0xA2C8  12×12 draw_tilemap
+	defb 001h, 002h, 002h, 002h, 002h, 002h, 002h, 002h, 002h, 002h, 002h, 006h
+	defb 003h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 000h, 009h, 00ah, 00bh, 00ch, 00dh, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 000h, 00eh, 00fh, 000h, 010h, 011h, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 012h, 013h, 000h, 014h, 015h, 016h, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 017h, 018h, 000h, 019h, 01ah, 01bh, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 01ch, 01dh, 01eh, 01fh, 020h, 021h, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 022h, 023h, 024h, 025h, 026h, 027h, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 028h, 029h, 02ah, 02bh, 02ch, 02dh, 02eh, 000h, 007h
+	defb 003h, 000h, 000h, 02fh, 030h, 031h, 032h, 033h, 034h, 000h, 000h, 007h
+	defb 003h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 007h
+	defb 004h, 005h, 005h, 005h, 005h, 005h, 005h, 005h, 005h, 005h, 005h, 008h
+
+pic_a358:                            ; 0xA358  12×12 draw_tilemap
+	defb 04eh, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 043h
+	defb 010h, 018h, 018h, 018h, 018h, 03ch, 018h, 018h, 018h, 018h, 018h, 041h
+	defb 010h, 018h, 018h, 018h, 002h, 003h, 008h, 009h, 018h, 018h, 018h, 041h
+	defb 010h, 018h, 018h, 018h, 026h, 013h, 026h, 019h, 01ah, 01bh, 018h, 041h
+	defb 010h, 045h, 020h, 021h, 022h, 018h, 028h, 029h, 004h, 018h, 02ah, 041h
+	defb 010h, 04ah, 030h, 031h, 032h, 033h, 038h, 026h, 02ch, 026h, 03ah, 041h
+	defb 010h, 049h, 004h, 005h, 006h, 007h, 00ch, 00dh, 018h, 00fh, 040h, 041h
+	defb 010h, 02fh, 014h, 015h, 016h, 017h, 01ch, 01dh, 01eh, 01fh, 040h, 041h
+	defb 010h, 018h, 04fh, 050h, 026h, 027h, 018h, 02dh, 02eh, 026h, 046h, 041h
+	defb 010h, 018h, 034h, 004h, 036h, 037h, 004h, 00fh, 03eh, 03fh, 00bh, 041h
+	defb 010h, 039h, 04ch, 04dh, 042h, 04bh, 036h, 00eh, 035h, 023h, 048h, 041h
+	defb 011h, 012h, 012h, 012h, 044h, 044h, 044h, 044h, 044h, 012h, 044h, 00ah
+
+stamp_a3e8:                            ; 0xA3E8  sub_576dh world-map
+	STAMP 091h
+	STAMP 051h
+	STAMP 052h
+	STAMP 052h
+	STAMP 052h
+	STAMP 052h
+	STAMP 052h
+	STAMP 052h
+	STAMP 052h
+	STAMP 052h
+	STAMP 05ah
+	STAMP 05bh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 062h
+	STAMP 063h
+	STAMP 064h
+	STAMP 064h
+	STAMP 064h
+	STAMP 064h
+	STAMP 068h
+	STAMP 069h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 074h
+	STAMP 075h
+	STAMP 075h
+	STAMP 077h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 084h
+	STAMP 000h
+	STAMP 000h
+	STAMP 087h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 072h
+	STAMP 061h
+	STAMP 0a5h
+	STAMP 0a6h
+	STAMP 0a6h
+	STAMP 0a8h
+	STAMP 061h
+	STAMP 079h
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 060h
+	STAMP 061h
+	STAMP 082h
+	STAMP 070h
+	STAMP 0b5h
+	STAMP 061h
+	STAMP 061h
+	STAMP 0b5h
+	STAMP 07bh
+	STAMP 07ch
+	STAMP 061h
+	STAMP 07eh
+	STAMP_NEXT 000h
+	STAMP 05fh
+	STAMP 070h
+	STAMP 071h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 071h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 07bh
+	STAMP 08eh
+	STAMP_END
+
+stamp_a4c7:                            ; 0xA4C7  sub_576dh world-map
+	STAMP 065h
+	STAMP 0b1h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 0b4h
+	STAMP 094h
+	STAMP 05dh
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 088h
+	STAMP 07fh
+	STAMP 07ah
+	STAMP 07ah
+	STAMP 07ah
+	STAMP 07ah
+	STAMP 083h
+	STAMP 053h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 08fh
+	STAMP 06dh
+	STAMP 06dh
+	STAMP 0aeh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0afh
+	STAMP 000h
+	STAMP 000h
+	STAMP 06eh
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 061h
+	STAMP 0abh
+	STAMP 0ach
+	STAMP 0adh
+	STAMP 0adh
+	STAMP 078h
+	STAMP 07dh
+	STAMP 061h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 061h
+	STAMP 08ah
+	STAMP 057h
+	STAMP 058h
+	STAMP 061h
+	STAMP 05eh
+	STAMP 061h
+	STAMP 05eh
+	STAMP 08dh
+	STAMP 067h
+	STAMP 08bh
+	STAMP 061h
+	STAMP_NEXT 000h
+	STAMP 057h
+	STAMP 076h
+	STAMP 061h
+	STAMP 061h
+	STAMP 06bh
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 06bh
+	STAMP 09fh
+	STAMP 067h
+	STAMP_END
+
+wpic0:                            ; 0xA5A6  12×2 world-complete
+	defb 09bh, 09ch
+	defb 05ch, 0b2h
+	defb 05ch, 0b2h
+	defb 05ch, 0b2h
+	defb 05ch, 0b2h
+	defb 05ch, 0b2h
+	defb 05ch, 0b2h
+	defb 0c6h, 0bdh
+	defb 0beh, 0bfh
+	defb 0beh, 0bfh
+	defb 0beh, 0bfh
+	defb 0b8h, 0b9h
+
+wpic1:                            ; 0xA5BE  12×4 world-complete
+	defb 09dh, 09eh, 09eh, 0a2h
+	defb 05ch, 061h, 061h, 0b2h
+	defb 05ch, 061h, 061h, 0b2h
+	defb 05ch, 061h, 061h, 0b2h
+	defb 05ch, 061h, 061h, 0b2h
+	defb 05ch, 061h, 061h, 0b2h
+	defb 05ch, 061h, 061h, 0b2h
+	defb 0c8h, 0c9h, 0c9h, 0c1h
+	defb 0beh, 0cch, 0cch, 0bfh
+	defb 0beh, 0cch, 0cch, 0bfh
+	defb 0beh, 0cch, 0cch, 0bfh
+	defb 0c2h, 0c3h, 0c3h, 0cbh
+
+wpic2:                            ; 0xA5EE  14×6 world-complete
+	defb 0b6h, 073h, 073h, 073h, 073h, 06ah
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 05ch, 061h, 061h, 061h, 061h, 066h
+	defb 0c4h, 0c5h, 0c5h, 0c5h, 0c5h, 0cah
+	defb 0c7h, 0cch, 0cch, 0cch, 0cch, 0c0h
+	defb 0c7h, 0cch, 0cch, 0cch, 0cch, 0c0h
+	defb 0c7h, 0cch, 0cch, 0cch, 0cch, 0c0h
+	defb 0c7h, 0cch, 0cch, 0cch, 0cch, 0c0h
+	defb 0bbh, 0bah, 0bah, 0bah, 0bah, 0bch
+
+stamp_a642:                            ; 0xA642  sub_576dh
+	STAMP 0b6h
+	STAMP 073h
+	STAMP 073h
+	STAMP 073h
+	STAMP 073h
+	STAMP 06ah
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 05ch
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 059h
+	STAMP_NEXT 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP_NEXT 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP_NEXT 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP_NEXT 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP_NEXT 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP 000h
+	STAMP_NEXT 000h
+	STAMP 0b5h
+	STAMP 061h
+	STAMP 061h
+	STAMP 061h
+	STAMP 0b5h
+	STAMP 061h
+	STAMP_END
+
+stamp_a6b1:                            ; 0xA6B1  sub_576dh
+	STAMP 0c4h
+	STAMP 0c5h
+	STAMP 0c5h
+	STAMP 0c5h
+	STAMP 0c5h
+	STAMP 0cah
+	STAMP_NEXT 000h
+	STAMP 0c7h
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0c0h
+	STAMP_NEXT 000h
+	STAMP 0c7h
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0c0h
+	STAMP_NEXT 000h
+	STAMP 0c7h
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0c0h
+	STAMP_NEXT 000h
+	STAMP 0c7h
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0cch
+	STAMP 0c0h
+	STAMP_NEXT 000h
+	STAMP 0ceh
+	STAMP 0ceh
+	STAMP 0ceh
+	STAMP 0ceh
+	STAMP 0ceh
+	STAMP 0ceh
+	STAMP_END
+
+stamp_a6e0:                            ; 0xA6E0  sub_576dh → 8848h
+	STAMP 037h
+	STAMP 038h
+	STAMP 039h
+	STAMP_NEXT 000h
+	STAMP 047h
+	STAMP 048h
+	STAMP 049h
+	STAMP_NEXT 000h
+	STAMP 040h
+	STAMP 041h
+	STAMP 02ah
+	STAMP_NEXT 000h
+	STAMP 03fh
+	STAMP 02fh
+	STAMP 03ah
+	STAMP_NEXT 000h
+	STAMP 042h
+	STAMP 041h
+	STAMP 01dh
+	STAMP_NEXT 000h
+	STAMP 04ch
+	STAMP 041h
+	STAMP 02dh
+	STAMP_NEXT 000h
+	STAMP 013h
+	STAMP 014h
+	STAMP 015h
+	STAMP_END
+
+pic_a702:                            ; 0xA702  12×12 draw_tilemap
+	defb 04dh, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 00bh
+	defb 010h, 011h, 012h, 012h, 012h, 012h, 012h, 012h, 012h, 012h, 012h, 01bh
+	defb 010h, 021h, 022h, 022h, 022h, 025h, 026h, 027h, 028h, 029h, 026h, 01bh
+	defb 010h, 031h, 032h, 033h, 033h, 035h, 026h, 037h, 00dh, 00eh, 026h, 01bh
+	defb 010h, 031h, 033h, 033h, 033h, 035h, 046h, 044h, 041h, 00ch, 04ah, 01bh
+	defb 010h, 03eh, 02ch, 02ch, 02ch, 036h, 045h, 034h, 041h, 01ch, 02bh, 01bh
+	defb 010h, 021h, 022h, 022h, 022h, 025h, 00ah, 006h, 007h, 008h, 03bh, 01bh
+	defb 010h, 031h, 03ch, 03dh, 03dh, 035h, 00fh, 016h, 017h, 018h, 01eh, 01bh
+	defb 010h, 031h, 03dh, 03dh, 03dh, 035h, 01fh, 003h, 004h, 005h, 02eh, 01bh
+	defb 010h, 03eh, 02ch, 02ch, 02ch, 036h, 026h, 013h, 014h, 015h, 026h, 01bh
+	defb 010h, 043h, 026h, 026h, 026h, 026h, 026h, 002h, 002h, 002h, 026h, 01bh
+	defb 04eh, 04bh, 04bh, 04bh, 04bh, 04bh, 04bh, 04bh, 04bh, 04bh, 04bh, 024h
+

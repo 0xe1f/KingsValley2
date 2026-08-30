@@ -1,6 +1,0 @@
-; z80dasm block file for bank 8 @ 0x8000. Rendering only; bank is not code.
-; pal_idx[0] == 0x9006. Packed blit lists at 0x902E.. share DE=0x8FFC.
-tiles:     start 0x8000 end 0x8FFC type bytedata
-pal_idx:   start 0x8FFC end 0x9006 type worddata
-pal_list:  start 0x9006 end 0x902E type bytedata
-blit_902e: start 0x902E end 0x907F type bytedata

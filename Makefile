@@ -2,6 +2,7 @@
 #
 #   make            assemble KingsValley2.asm -> KingsValley2.rom
 #   make verify     SHA-1 check against KingsValley2.sha1
+#   make gfx        PNG contact sheets (palettes / copy_tiles / minimaps)
 #   make banks      extract leftover 8 KiB bins / drop migrated ones
 #   make clean      remove build output
 #
@@ -15,7 +16,7 @@ SHA1FILE := KingsValley2.sha1
 ASM      ?= tools/sjasmplus --longptr
 SHA1SUM  ?= $(shell command -v sha1sum 2>/dev/null || echo "shasum -a 1")
 
-.PHONY: all verify clean banks
+.PHONY: all verify clean banks gfx
 
 all: $(SRC)
 	$(ASM) $(SRC)
@@ -28,3 +29,6 @@ clean:
 
 banks:
 	tools/workbench/msx/split-rom.sh
+
+gfx: all
+	python3 tools/gfxdump.py
