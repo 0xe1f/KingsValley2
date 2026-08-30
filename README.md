@@ -28,7 +28,7 @@ banks/              one file per paging window (stems banks_0 / banks_123 / …)
 tools/workbench/    MSXDAW submodule (regen, romscan, RLE, PSG)
 tools/gfxdump.py    `make gfx` contact sheets
 tools/psgplay.py    `make music` / `make sfx` WAV catalogue
-gfx/                PNG catalogue (`palettes/` `tilesets/` `fonts/` `metatiles/`)
+gfx/                PNG catalogue (`palettes/` `tilesets/` `sprites/` `fonts/` `metatiles/`)
 music/              BGM WAV previews
 sfx/                SFX WAV previews
 docs/               reverse-engineering notes (`game-notes.md`, `progress.md`)

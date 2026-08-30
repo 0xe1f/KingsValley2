@@ -1,6 +1,6 @@
 ; bank 0F tail: stamp, pal_15, RLE, F800 copy, tilemap, hud_world.
 
-stamp_b8db:                            ; 0xB8DB  sub_576dh at 1050h
+stamp_b8db:                            ; 0xB8DB  Japanese title (title_jp_gfx at 1050h)
 	STAMP 001h
 	STAMP_NEXT 000h
 	STAMP 02eh

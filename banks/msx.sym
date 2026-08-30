@@ -201,6 +201,8 @@ tiles_wmap:         equ 0x5B16
 pal_a7ff:           equ 0x5B52
 pal_a8bb:           equ 0x5B5E
 title_load:         equ 0x5B6A
+title_jp_gfx:       equ 0x55F0
+title_jp:           equ 0x5F8D
 hud_world:          equ 0x5C14
 set_world:          equ 0x5C80
 room_draw:          equ 0x5CF5

@@ -1120,7 +1120,7 @@ boot_clear:                       ; 0x4742
 	call sat_wipe
 	call spr_clear
 	call sub_5bebh
-	call sub_5f8dh
+	call title_jp
 	call sfx_03
 	xor a
 	ld (0e2c2h),a
@@ -1725,7 +1725,7 @@ l4beah:
 	ld (0e200h),hl
 	call sfx_01
 	call sub_5bebh
-	call sub_5f8dh
+	call title_jp
 	jp l5fb2h
 l4bfch:
 	ld a,(de)
@@ -3445,7 +3445,7 @@ sub_55cdh:
 	add hl,bc
 	ld c,(ix+001h)
 	jp l4e60h
-sub_55f0h:
+title_jp_gfx:                     ; 0x55F0  Japanese title dests + stamp_b8db
 	call blit_9074
 	call page_banks_ef
 	ld de,0b116h
@@ -4652,12 +4652,12 @@ l5f6bh:                         ; 0x5F6B  hiscore / st / rest / score
 	TEXT_END
 print_txt_end:
 
-sub_5f8dh:
+title_jp:                         ; 0x5F8D  Japanese title screen (boot / return)
 	call scr_reset
 	call vdp_fill
 	ld bc,00007h
 	call WRTVDP
-	call sub_55f0h
+	call title_jp_gfx
 	call vdp_spr_on
 	ld hl,00039h
 	ld (0e214h),hl

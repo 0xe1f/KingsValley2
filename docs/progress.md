@@ -37,7 +37,8 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `dest07.asm` (hole `pat_651c`; last blit_recs dest `pat_69d4`). Bank 08/9
   dests are `dest08.asm` / `dest08b.asm` / `dest09.asm` / `dest09b.asm`; title
   `stamp_bb9b` / `title_bbdc`.. are source. Bank 0F dests `pat_b12b` /
-  `pat_b72b` are [`dest0F.asm`](../banks/data/dest0F.asm).
+  `pat_b72b` are Japanese title glyphs ([`dest0F.asm`](../banks/data/dest0F.asm),
+  `title_jp` / `title_jp_gfx`).
 - `print_stream` string islands in bank 0C: password / per-world / ending
   credits at 0xAC01–0xAF37 are `TEXT` (`str_pwd_best`, `world_txt`,
   `ad76_tbl`); `end_stamp_tbl` / disk errors / `str_start_sel` /
@@ -109,7 +110,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `put_trap` / `editor_spawn` (`d_7e6c`).
 - `d_46ea` handlers labeled (`mode_boot`..`mode_endtxt`). `mode_goto` /
   `mode_next` / `sub_next`. `sat_wipe` @ 0x5D41, `play_tick` @ 0x5D6D,
-  `scr_reset` @ 0x4E98, `title_load` @ 0x5B6A, `bgm_stage` @ 0x4388.
+  `scr_reset` @ 0x4E98, `title_load` @ 0x5B6A, `title_jp` @ 0x5F8D, `bgm_stage` @ 0x4388.
   H.TIMI calls `poll_keys` then `mode_frame`.
 - `play_tick` callees named (`vic_sat`, `tools_sat`, `tick_actors`,
   `touch_gems`, `probe_pickup`, `probe_exit`, `tick_e500`, …). Title
@@ -140,7 +141,10 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `vdp_hmmv` / `vdp_lmmv` / `vdp_hmmm` / `vdp_hmmc` (`vdp_ce_wait`).
 - Generic split/graduation workflow: workbench skill `msx-code-data`.
 - `make gfx` (`tools/gfxdump.py`) writes `gfx/palettes/`, `gfx/tilesets/`,
-  `gfx/fonts/`, `gfx/metatiles/` from `palette_list` / `copy_tiles` / minimaps.
+  `gfx/sprites/`, `gfx/fonts/`, `gfx/metatiles/` from `palette_list` /
+  dest-plane `BLIT` lists (`dest_w1`..`dest_w6`, common / UI) / `copy_tiles`
+  / held-tool Konami RLE / `pat_copy` / minimaps. Overlay applies explicit
+  black (pal_a7ce 0F); 1bpp inks are palette indices, not canvas-off.
   World-map font is bank 0C `0xAA29` (not bank 0B). `0xBECF` is SAT pattern
   ids, not sprite planes.
 - `make music` / `make sfx` (`tools/psgplay.py`) write `music/` and `sfx/`
@@ -148,6 +152,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
 
 ## Next
 
-1. Name remaining `NN_psg` / `NN_sfx` stems from call sites. Tighten the
-   SCC player against in-game timing where a preview is obviously wrong.
+1. Name remaining `NN_psg` / `NN_sfx` stems from call sites.
+2. Glyph_ptr tile-id stamps and `draw_cols` / `STAMP` composites still have
+   no catalogue sheets.
 

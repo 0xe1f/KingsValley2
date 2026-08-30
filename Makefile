@@ -2,7 +2,7 @@
 #
 #   make            assemble KingsValley2.asm -> KingsValley2.rom
 #   make verify     SHA-1 check against KingsValley2.sha1
-#   make gfx        PNG contact sheets (palettes / copy_tiles / minimaps)
+#   make gfx        PNG contact sheets (palettes / dests / sprites / fonts)
 #   make music      BGM WAVs (packed-PSG + SCC)
 #   make sfx        SFX WAVs
 #   make banks      extract leftover 8 KiB bins / drop migrated ones

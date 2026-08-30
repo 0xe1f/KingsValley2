@@ -327,6 +327,8 @@ Packed-PSG channel streams, not code. Source
 
 Tables + dest planes + title tiles, not code. `MODULE banks_789`. Dest size is `count × 8 × (1+((flags&7)>>1))` (8 / 16 / 24 bytes
 per tile). Even/odd `flags&7` pick unflipped / X-flipped expander.
+`make gfx` expands those planes through the same pal-index remap as
+`blit_list` (`gfx/tilesets/dest_*.png`).
 
 - Bank 07: `idx6` / `pal_list` / `blit_recs` / `e241_tbl` / pal-index bytes
   (`pal_idx_60ad`) / `blit_ptr` / `blit_w1`..`blit_w6` are source.
@@ -458,14 +460,16 @@ keep numeric immediates.
   [`cols0E.asm`](../banks/data/cols0E.asm)): `rle_86d4`..`rle_97a1`;
   `pat_copy` (`l5508h`) / `pat_flip` (`l553dh`); `end_txt` `"music stage"` /
   `"puzzle stage"`; `col_ptr` 48 words, 27-row columns (`col_21` crosses
-  into bank 0F).
+  into bank 0F). `make gfx` decompresses those RLE streams to 16×16 1bpp
+  planes (`gfx/sprites/held_*.png`).
 - Bank 0F source: `draw_cols` tail
   ([`cols0F.asm`](../banks/data/cols0F.asm) 0xA000–0xA2C8);
   tile-id grids + `STAMP` streams
   ([`ui_maps.asm`](../banks/data/ui_maps.asm) 0xA2C8–0xA792);
   Konami RLE ([`rle0F.asm`](../banks/data/rle0F.asm) 0xA9F6–0xB116);
   `idx2` / `pal_list` / `blit_recs` / dest planes
-  ([`dest0F.asm`](../banks/data/dest0F.asm) `pat_b12b` 64×24 / `pat_b72b` 18×24);
+  ([`dest0F.asm`](../banks/data/dest0F.asm) `pat_b12b` 64×24 / `pat_b72b` 18×24,
+  Japanese title glyphs, `gfx/tilesets/dest_title_jp.png`);
   stamp + `pal_hud` / `pal_w_even` /
   `pal_w_odd` (overlap sentinels like `e241_tbl`) + RLE `ba9a` + `pat_bb05`
   + `pic_bc05` + `hud_world_tbl`

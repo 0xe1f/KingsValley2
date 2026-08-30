@@ -16,7 +16,8 @@
 """Build PNG graphics sheets in gfx/ from identified ROM tables.
 
   gfx/palettes/<stem>.png   palette_list streams (8x8 swatches)
-  gfx/tilesets/<stem>.png   copy_tiles 8x8 1bpp sources
+  gfx/tilesets/<stem>.png   dest-plane 8x8, copy_tiles 1bpp, SCREEN 5 stamps
+  gfx/sprites/<stem>.png    16×16 1bpp planes (held-tool RLE / pat_copy)
   gfx/fonts/<stem>.png      HUD glyphs / world-map font (copy_tiles)
   gfx/metatiles/<stem>.png  editor minimaps (32×24 1bpp)
 
@@ -30,13 +31,16 @@ import os, sys
 _TOOLS = os.path.dirname(os.path.abspath(__file__))
 _WB = os.path.join(_TOOLS, "workbench")
 sys.path.insert(0, os.path.join(_WB, "msx"))
+sys.path.insert(0, os.path.join(_WB, "konami"))
 import pngwrite
+from rledec import decompress
 
 ROOT = os.path.dirname(_TOOLS)
 ROM_PATH = os.path.join(ROOT, "KingsValley2.rom")
 GFX = os.path.join(ROOT, "gfx")
 PALETTE_DIR = os.path.join(GFX, "palettes")
 TILESET_DIR = os.path.join(GFX, "tilesets")
+SPRITE_DIR = os.path.join(GFX, "sprites")
 FONT_DIR = os.path.join(GFX, "fonts")
 METATILE_DIR = os.path.join(GFX, "metatiles")
 
@@ -45,6 +49,9 @@ GAP = 2
 BG = (0x20, 0x28, 0x30)
 OFF = (0x30, 0x3A, 0x44)
 LABEL_RGB = (200, 200, 205)
+
+WIN_789 = (7, 8, 9)
+WIN_EF = (13, 14, 15)
 
 # 3x5, same as Vampire Killer roomperm FONT3x5 (hex ids only).
 FONT3x5 = {
@@ -91,9 +98,23 @@ def cpu_file(bank, cpu):
     return bank * 0x2000 + (cpu - win)
 
 
+def cpu_file_win(cpu, banks):
+    """banks = (bank@6000, bank@8000, bank@A000)."""
+    if cpu < 0x8000:
+        return cpu_file(banks[0], cpu)
+    if cpu < 0xA000:
+        return cpu_file(banks[1], cpu)
+    return cpu_file(banks[2], cpu)
+
+
 def load_palette_list(data, file_off):
-    """palette_list: (index, rb, g)+ terminated by 0xFF. Missing slots stay 0."""
+    """palette_list: (index, rb, g)+ terminated by 0xFF.
+
+    Missing slots stay (0,0,0) with mask False so overlay can skip them.
+    Explicit black is mask True (pal_a7ce index 0F is black, not BIOS white).
+    """
     pal = [(0, 0, 0)] * 16
+    mask = [False] * 16
     i = file_off
     recs = []
     while i < len(data) and data[i] != 0xFF:
@@ -103,15 +124,19 @@ def load_palette_list(data, file_off):
         rb, g = data[i + 1], data[i + 2]
         rgb = (msx2_channel(rb >> 4), msx2_channel(g), msx2_channel(rb))
         pal[idx] = rgb
+        mask[idx] = True
         recs.append((idx, rgb))
         i += 3
-    return pal, recs
+    return pal, recs, mask
 
 
-def overlay_pal(base, overlay):
+def overlay_pal(base, overlay, mask=None):
     out = list(base)
     for i, rgb in enumerate(overlay):
-        if rgb != (0, 0, 0) or i == 0:
+        if mask is not None:
+            if mask[i]:
+                out[i] = rgb
+        elif rgb != (0, 0, 0) or i == 0:
             out[i] = rgb
     return out
 
@@ -119,6 +144,11 @@ def overlay_pal(base, overlay):
 def default_pal():
     return [(msx2_channel(r), msx2_channel(g), msx2_channel(b))
             for r, g, b in MSX2_DEFAULT_RGB]
+
+
+def apply_pal(rom, base, bank, cpu):
+    pal, _, mask = load_palette_list(rom, cpu_file(bank, cpu))
+    return overlay_pal(base, pal, mask)
 
 
 def draw_text(buf, W, x, y, text, scale, color):
@@ -137,7 +167,8 @@ def draw_text(buf, W, x, y, text, scale, color):
         x += 4 * scale
 
 
-def render_png(path, cells, palette, cols, labels, size=8, lab_scale=2):
+def render_png(path, cells, palette, cols, labels, size=8, lab_scale=2,
+               zero_off=True):
     if not cells:
         return
     if isinstance(size, tuple):
@@ -164,8 +195,10 @@ def render_png(path, cells, palette, cols, labels, size=8, lab_scale=2):
             for x, pix in enumerate(row):
                 if isinstance(pix, tuple):
                     rgb = pix
+                elif zero_off and pix == 0:
+                    rgb = OFF
                 else:
-                    rgb = OFF if pix == 0 else palette[pix]
+                    rgb = palette[pix]
                 for dy in range(SCALE):
                     for dx in range(SCALE):
                         o = ((ty + y * SCALE + dy) * W + x0 + x * SCALE + dx) * 3
@@ -188,18 +221,33 @@ def tile_1bpp(data8, colour):
     return grid
 
 
+def tile_4bpp(data, width, height):
+    """SCREEN 5: high nibble = left pixel. width even."""
+    grid = []
+    i = 0
+    for _y in range(height):
+        row = []
+        for _x in range(0, width, 2):
+            b = data[i]
+            i += 1
+            row.append(b >> 4)
+            row.append(b & 0x0F)
+        grid.append(row)
+    return grid
+
+
 def dump_palette_sheet(rom, path, bank, cpu, play_pal):
     fo = cpu_file(bank, cpu)
-    pal, recs = load_palette_list(rom, fo)
+    pal, recs, mask = load_palette_list(rom, fo)
     if not recs:
-        return pal
+        return play_pal
     cells, labels = [], []
     for idx, rgb in recs:
         cells.append([[rgb] * 8 for _ in range(8)])
         labels.append("%02X" % idx)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     render_png(path, cells, pal, cols=min(16, len(cells)), labels=labels)
-    return overlay_pal(play_pal, pal)
+    return overlay_pal(play_pal, pal, mask)
 
 
 def dump_1bpp_sheet(rom, path, bank, cpu, count, colour, play_pal, cols=16):
@@ -212,7 +260,7 @@ def dump_1bpp_sheet(rom, path, bank, cpu, count, colour, play_pal, cols=16):
         cells.append(tile_1bpp(chunk, colour))
         labels.append("%04X" % (cpu + i * 8))
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    render_png(path, cells, play_pal, cols=cols, labels=labels)
+    render_png(path, cells, play_pal, cols=cols, labels=labels, zero_off=False)
 
 
 def sprite_16(data32, colour):
@@ -230,17 +278,127 @@ def sprite_16(data32, colour):
     return grid
 
 
-def dump_sprites_16(rom, path, bank, cpu, count, colour, play_pal):
-    fo = cpu_file(bank, cpu)
-    cells, labels = [], []
-    for i in range(count):
-        chunk = rom[fo + i * 32:fo + (i + 1) * 32]
-        if len(chunk) < 32:
-            break
+def append_sprites(cells, labels, blob, first_cpu, colour):
+    for i in range(len(blob) // 32):
+        chunk = blob[i * 32:(i + 1) * 32]
         cells.append(sprite_16(chunk, colour))
-        labels.append("%04X" % (cpu + i * 32))
+        labels.append("%04X" % ((first_cpu + i * 32) & 0xFFFF))
+
+
+def dump_sprite_sheet(path, cells, labels, play_pal, cols=8):
+    if not cells:
+        return
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    render_png(path, cells, play_pal, cols=count, labels=labels, size=16)
+    render_png(path, cells, play_pal, cols=min(cols, len(cells)),
+               labels=labels, size=16)
+
+
+def dump_rle_sprites(rom, path, bank, cpu, dest, play_pal, colour=0x80):
+    blob, _, _ = decompress(rom, cpu_file(bank, cpu), 0)
+    cells, labels = [], []
+    append_sprites(cells, labels, blob, dest, colour)
+    dump_sprite_sheet(path, cells, labels, play_pal)
+
+
+# held_ptr VIC_RLE dests (VIC_COPY X-flips are generated, not dumped).
+HELD_RLE = (
+    ("held_0", (  # unarmed
+        (14, 0x86D4, 0xE000),
+        (14, 0x875D, 0xE180),
+        (14, 0x8FD9, 0xE300),
+        (14, 0x905D, 0xE480),
+    )),
+    ("held_1", (  # knife
+        (14, 0x87EE, 0xE000),
+        (14, 0x8876, 0xE180),
+        (14, 0x9510, 0xE240),
+        (14, 0x90D4, 0xE300),
+        (14, 0x91AA, 0xE480),
+        (14, 0x9227, 0xE540),
+    )),
+    ("held_2", (  # boomerang
+        (14, 0x8911, 0xE000),
+        (14, 0x89A0, 0xE180),
+        (14, 0x9510, 0xE240),
+        (14, 0x90D4, 0xE300),
+        (14, 0x91AA, 0xE480),
+        (14, 0x9227, 0xE540),
+    )),
+    ("held_3", (  # shovel
+        (14, 0x8A3F, 0xE000),
+        (14, 0x8AFA, 0xE180),
+        (14, 0x90D4, 0xE300),
+        (14, 0x9158, 0xE480),
+        (14, 0x9254, 0xE500),
+    )),
+    ("held_4", (  # pick
+        (14, 0x8D08, 0xE000),
+        (14, 0x8DC1, 0xE180),
+        (14, 0x9304, 0xE300),
+        (14, 0x9388, 0xE480),
+    )),
+    ("held_5", (  # hammer
+        (14, 0x8BC6, 0xE000),
+        (14, 0x8C4F, 0xE180),
+        (14, 0x90D4, 0xE300),
+        (14, 0x9158, 0xE480),
+        (14, 0x92AD, 0xE500),
+    )),
+    ("held_6", (  # drill
+        (14, 0x8E86, 0xE000),
+        (14, 0x8F0E, 0xE180),
+        (14, 0x9432, 0xE300),
+        (14, 0x9158, 0xE480),
+        (14, 0x94B7, 0xE500),
+    )),
+)
+
+# l5508h payloads in lists0E.asm (n × 32 bytes → F800).
+PAT_COPY = (
+    (14, 0x98F7, 4),
+    (14, 0x9977, 6),
+    (14, 0x9A37, 6),
+    (14, 0x9AF7, 4),
+    (14, 0x9B77, 2),
+    (14, 0x9BB7, 4),
+    (14, 0x9C37, 4),
+    (14, 0x9CB7, 4),
+)
+
+# RLE not already in HELD_RLE (UI / editor / other Vic state).
+RLE_OTHER = (
+    (14, 0x953D, 0xE000, "rle_953d"),
+    (14, 0x97A1, 0xF880, "rle_97a1"),
+    (15, 0xA9F6, 0xFE80, "rle_a9f6"),
+    (15, 0xA9FB, 0xFE80, "rle_a9fb"),
+    (15, 0xAA00, 0xE080, "rle_aa00"),
+    (15, 0xAB59, 0xF800, "rle_ab59"),
+    (15, 0xABB9, 0xF800, "rle_abb9"),
+    (15, 0xAE08, 0xFA00, "rle_ae08"),
+    (15, 0xAF21, 0xF820, "rle_af21"),
+    (15, 0xBA9A, 0xF800, "rle_ba9a"),
+    (13, 0xBBFC, 0xF880, "rle_bbfc"),
+    (13, 0xBF29, 0xF800, "rle_bf29"),
+)
+
+
+def dump_held_sheet(rom, stem, recs, play_pal, colour=0xD0):
+    cells, labels = [], []
+    for bank, cpu, dest in recs:
+        blob, _, _ = decompress(rom, cpu_file(bank, cpu), 0)
+        append_sprites(cells, labels, blob, dest, colour)
+    dump_sprite_sheet(os.path.join(SPRITE_DIR, stem + ".png"),
+                      cells, labels, play_pal)
+
+
+def dump_pat_copy(rom, play_pal, colour=0x80):
+    cells, labels = [], []
+    for bank, cpu, n in PAT_COPY:
+        fo = cpu_file(bank, cpu)
+        blob = rom[fo:fo + n * 32]
+        append_sprites(cells, labels, blob, cpu, colour)
+    dump_sprite_sheet(os.path.join(SPRITE_DIR, "pat_copy.png"),
+                      cells, labels, play_pal)
 
 
 def dump_1bpp_bitmap(rom, path, bank, cpu, width, height, colour, play_pal):
@@ -262,23 +420,118 @@ def dump_1bpp_bitmap(rom, path, bank, cpu, width, height, colour, play_pal):
         grid.append(row)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     render_png(path, [grid], play_pal, cols=1, labels=["%04X" % cpu],
-               size=(width, height))
+               size=(width, height), zero_off=False)
+
+
+def dump_4bpp_sheet(rom, path, bank, cpu, width, height, play_pal):
+    fo = cpu_file(bank, cpu)
+    nbytes = width * height // 2
+    data = rom[fo:fo + nbytes]
+    if len(data) < nbytes:
+        return
+    grid = tile_4bpp(data, width, height)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    render_png(path, [grid], play_pal, cols=1, labels=["%04X" % cpu],
+               size=(width, height), zero_off=False)
 
 
 def word_le(rom, off):
     return rom[off] | (rom[off + 1] << 8)
 
 
+def pal_idx_len(flags):
+    n = (flags & 6) * 2
+    return n if n else 2
+
+
+def nplanes(flags):
+    return 1 + ((flags & 7) >> 1)
+
+
+def dest_tile_grid(data, planes, pal_idx):
+    """Interleaved dest planes: planes bytes/row, 8 rows. Plane 0 is LSB."""
+    grid = []
+    i = 0
+    nidx = 1 << planes
+    table = list(pal_idx) + [0] * nidx
+    for _row in range(8):
+        row_planes = [data[i + p] for p in range(planes)]
+        i += planes
+        pix = []
+        for x in range(8):
+            v = 0
+            for p, b in enumerate(row_planes):
+                if (b >> (7 - x)) & 1:
+                    v |= 1 << p
+            pix.append(table[v] & 0x0F)
+        grid.append(pix)
+    return grid
+
+
+def parse_blit(rom, list_cpu, banks):
+    recs = []
+    i = cpu_file_win(list_cpu, banks)
+    while i < len(rom) and rom[i] != 0xFF:
+        flags, tile, count = rom[i], rom[i + 1], rom[i + 2]
+        dest = rom[i + 3] | (rom[i + 4] << 8)
+        recs.append((flags, tile, count, dest))
+        i += 5
+    return recs
+
+
+def pal_idx_at(rom, tbl_cpu, flags, banks):
+    fo = cpu_file_win(tbl_cpu, banks)
+    ptr = word_le(rom, fo + (flags >> 3) * 2)
+    n = pal_idx_len(flags)
+    pfo = cpu_file_win(ptr, banks)
+    return list(rom[pfo:pfo + n])
+
+
+def dump_blit_sheet(rom, path, list_cpu, tbl_cpu, banks, play_pal, cols=16):
+    """Expand blit_list dest planes; skip X-flip recs that reuse a dest."""
+    cells, labels = [], []
+    seen = set()
+    for flags, _tile, count, dest in parse_blit(rom, list_cpu, banks):
+        if dest in seen:
+            continue
+        seen.add(dest)
+        planes = nplanes(flags)
+        bpt = 8 * planes
+        pidx = pal_idx_at(rom, tbl_cpu, flags, banks)
+        fo = cpu_file_win(dest, banks)
+        for t in range(count):
+            chunk = rom[fo + t * bpt:fo + (t + 1) * bpt]
+            if len(chunk) < bpt:
+                break
+            cells.append(dest_tile_grid(chunk, planes, pidx))
+            labels.append("%04X" % (dest + t * bpt))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    render_png(path, cells, play_pal, cols=cols, labels=labels, zero_off=False)
+
+
+def world_play_pal(rom, base, world):
+    """pal_15 even pyramid + pal_hud on top of base (pal_a7ce)."""
+    tbl = cpu_file(15, 0xB97A)
+    ptr = word_le(rom, tbl + world * 2)
+    pal = apply_pal(rom, base, 15, ptr)
+    return apply_pal(rom, pal, 15, 0xB95D)
+
+
 def main():
     if not os.path.isfile(ROM_PATH):
         sys.exit("missing %s — run make first" % ROM_PATH)
     rom = open(ROM_PATH, "rb").read()
-    play = default_pal()
-    pal_a7ce, _ = load_palette_list(rom, cpu_file(15, 0xA7CE))
-    play = overlay_pal(play, pal_a7ce)
+    play = apply_pal(rom, default_pal(), 15, 0xA7CE)
+    title_pal = apply_pal(rom, default_pal(), 9, 0xBB8B)
+    hud_pal = apply_pal(rom, play, 15, 0xB95D)
+    pwd_pal = apply_pal(rom, default_pal(), 15, 0xA7FF)
+    wmap_pal = apply_pal(rom, default_pal(), 15, 0xA870)
+    a8bb_pal = apply_pal(rom, default_pal(), 15, 0xA8BB)
+    ba78_pal = apply_pal(rom, default_pal(), 15, 0xBA78)
 
     os.makedirs(PALETTE_DIR, exist_ok=True)
     os.makedirs(TILESET_DIR, exist_ok=True)
+    os.makedirs(SPRITE_DIR, exist_ok=True)
     os.makedirs(FONT_DIR, exist_ok=True)
     os.makedirs(METATILE_DIR, exist_ok=True)
 
@@ -293,7 +546,6 @@ def main():
     dump_palette_sheet(rom, os.path.join(PALETTE_DIR, "bb8b_pal.png"),
                        9, 0xBB8B, play)
 
-    # pal_15: tbl_word[E241] at B97A (even pyramid) / B9F8 (odd). [0] sentinel.
     for stem, tbl in (("pal_w_even", 0xB97A), ("pal_w_odd", 0xB9F8)):
         base = cpu_file(15, tbl)
         for w in range(1, 7):
@@ -302,28 +554,62 @@ def main():
                 rom, os.path.join(PALETTE_DIR, "%s_%d.png" % (stem, w)),
                 15, ptr, play)
 
-    # copy_tiles 8x8 1bpp (B, C) with in-game ink C.
     dump_1bpp_sheet(rom, os.path.join(FONT_DIR, "hud_bf36.png"),
-                    13, 0xBF36, 18, 0x8B, play)
+                    13, 0xBF36, 18, 0x8B, hud_pal)
     dump_1bpp_sheet(rom, os.path.join(FONT_DIR, "hud_bfc6.png"),
-                    13, 0xBFC6, 6, 0x07, play)
-    # world-map font is bank 0C @ 0xAA29 (not bank 0B map bytes).
+                    13, 0xBFC6, 6, 0x07, hud_pal)
     dump_1bpp_sheet(rom, os.path.join(FONT_DIR, "wmap_aa29.png"),
-                    12, 0xAA29, 42, 0x0A, play)
+                    12, 0xAA29, 42, 0x0A, wmap_pal)
     dump_1bpp_sheet(rom, os.path.join(FONT_DIR, "wmap_ab79.png"),
-                    12, 0xAB79, 5, 0x0A, play)
+                    12, 0xAB79, 5, 0x0A, wmap_pal)
     dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "title_bbdc.png"),
-                    9, 0xBBDC, 13, 0x01, play)
+                    9, 0xBBDC, 13, 0x01, title_pal)
     dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "title_bc44.png"),
-                    9, 0xBC44, 13, 0x02, play)
+                    9, 0xBC44, 13, 0x02, title_pal)
     dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "title_bcac.png"),
-                    9, 0xBCAC, 26, 0x03, play)
+                    9, 0xBCAC, 26, 0x03, title_pal)
     dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "bank0C_afdd.png"),
                     12, 0xAFDD, 0x35, 0xFB, play)
+    dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "file_pat.png"),
+                    12, 0xB1B6, 4, 0xFB, play)
+    dump_4bpp_sheet(rom, os.path.join(TILESET_DIR, "ef10_spr.png"),
+                    12, 0xB1D6, 16, 16, play)
     dump_1bpp_bitmap(rom, os.path.join(METATILE_DIR, "map_bb3c.png"),
                      13, 0xBB3C, 32, 24, 0x62, play)
     dump_1bpp_bitmap(rom, os.path.join(METATILE_DIR, "map_bb9c.png"),
                      13, 0xBB9C, 32, 24, 0x5E, play)
+
+    blit_ptr = cpu_file(7, 0x6177)
+    for w in range(1, 7):
+        lst = word_le(rom, blit_ptr + w * 2)
+        tbl = word_le(rom, cpu_file(7, 0x6065) + w * 2)
+        dump_blit_sheet(
+            rom, os.path.join(TILESET_DIR, "dest_w%d.png" % w),
+            lst, tbl, WIN_789, world_play_pal(rom, play, w))
+
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_common.png"),
+                    0x602A, 0x6000, WIN_789, world_play_pal(rom, play, 1))
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_wpic.png"),
+                    0x902E, 0x8FFC, WIN_789, wmap_pal)
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_pwd.png"),
+                    0x9043, 0x8FFC, WIN_789, pwd_pal)
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_end2.png"),
+                    0x9063, 0x8FFC, WIN_789, play)
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_end3.png"),
+                    0x9069, 0x8FFC, WIN_789, a8bb_pal)
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_9074.png"),
+                    0x9074, 0x8FFC, WIN_789, play)
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_title.png"),
+                    0xB7DF, 0xB7C7, WIN_789, ba78_pal)
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_title_jp.png"),
+                    0xB120, 0xB116, WIN_EF, play)
+
+    dump_pat_copy(rom, play)
+    for stem, recs in HELD_RLE:
+        dump_held_sheet(rom, stem, recs, play)
+    for bank, cpu, dest, stem in RLE_OTHER:
+        dump_rle_sprites(rom, os.path.join(SPRITE_DIR, stem + ".png"),
+                         bank, cpu, dest, play)
 
 
 if __name__ == "__main__":
