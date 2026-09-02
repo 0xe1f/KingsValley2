@@ -1,6 +1,10 @@
 # King's Valley II (MSX2) — disassembly
 
 [![verify](https://github.com/0xe1f/KingsValley2/actions/workflows/verify.yml/badge.svg)](https://github.com/0xe1f/KingsValley2/actions/workflows/verify.yml)
+[![in source](https://img.shields.io/endpoint?style=flat&url=https://raw.githubusercontent.com/0xe1f/KingsValley2/badges/in-source.json)](https://github.com/0xe1f/KingsValley2/actions/workflows/verify.yml)
+[![named](https://img.shields.io/endpoint?style=flat&url=https://raw.githubusercontent.com/0xe1f/KingsValley2/badges/named.json)](https://github.com/0xe1f/KingsValley2/actions/workflows/verify.yml)
+[![op comments](https://img.shields.io/endpoint?style=flat&url=https://raw.githubusercontent.com/0xe1f/KingsValley2/badges/op-comments.json)](https://github.com/0xe1f/KingsValley2/actions/workflows/verify.yml)
+[![sub comments](https://img.shields.io/endpoint?style=flat&url=https://raw.githubusercontent.com/0xe1f/KingsValley2/badges/sub-comments.json)](https://github.com/0xe1f/KingsValley2/actions/workflows/verify.yml)
 
 > This project is a human-guided, largely AI-executed workflow.
 
@@ -10,6 +14,9 @@ a 128 KiB Konami SCC MegaROM (RC761).
 
 The goal is a readable, commented, buildable source that reproduces the original
 ROM exactly, so the game can be understood and modified.
+
+You can find random interesting facts from the disassembly at
+[@msxti.me](https://bsky.app/profile/msxti.me) on Bluesky.
 
 ## What's here
 
@@ -43,11 +50,13 @@ verify with no leftover `INCBIN` bins.
 You need **sjasmplus**, built from source
 ([z00m128/sjasmplus](https://github.com/z00m128/sjasmplus)) and placed at
 `tools/sjasmplus`. No original ROM and no MSXDAW workbench checkout are
-required to assemble or verify. (`make banks` and bank regen use the
-`tools/workbench` submodule.)
+required to assemble or verify. (`make banks` / `make coverage` / `make gfx` /
+`make music` / `make sfx` and bank regen use the `tools/workbench` submodule.)
 
 ```sh
+make skills     # tools/workbench/bin/install-skills -> .cursor/skills/
 make verify     # assemble, then SHA-1 check against KingsValley2.sha1
+make coverage   # local Shields JSON under generated/badges/
 ```
 
 `make` alone produces `KingsValley2.rom` in the repo root (gitignored).
