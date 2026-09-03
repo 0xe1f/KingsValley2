@@ -1,6 +1,6 @@
 ; editor minimaps (draw_minimap): 32×24 1bpp, 96 bytes, bit = stamp.
 ; bb38_tbl[0] MSX1 C=0x62, [1] MSX2 C=0x5E. Then Konami RLE @ 0xBBFC
-; (sub_4e54h → VRAM F880) and 16-byte pad before print_legend.
+; (rle_vram → VRAM F880) and 16-byte pad before print_legend.
 
 map_bb3c:                           ; 0xBB3C MSX1 minimap
 	defb %11111111, %11111111, %11111111, %11111111
@@ -52,7 +52,7 @@ map_bb9c:                           ; 0xBB9C MSX2 minimap
 	defb %11000000, %00000000, %00000000, %00000011
 	defb %11000000, %00000000, %00000000, %00000011
 	defb %11000000, %00000000, %00000000, %00000011
-rle_bbfc:                           ; 0xBBFC Konami RLE → F880
+rle_bbfc:                           ; 0xBBFC Konami RLE → F880 (minimap SAT)
 	defb 081h, 008h, 004h, 01ch, 003h, 01fh, 003h, 03fh
 	defb 002h, 01fh, 002h, 00fh, 081h, 007h, 005h, 000h
 	defb 082h, 080h, 0e0h, 005h, 0f0h, 002h, 0e0h, 002h

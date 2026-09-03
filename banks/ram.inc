@@ -19,14 +19,15 @@ mapper_bank_A000:        equ 0xF0F3
 ; Vic. 0xE280 is d_9ecd (no dec a): 0 walk, 1 jump, 2 climb (ladder;
 ; secret_hit arms bit 5), 3 fall-in, 4 die, 5 E500-hit, 6/7 coffin pull,
 ; 8-13 tools, 14 hold. Not an equ — z80dasm would rewrite immediates.
-; 0xE282 X, 0xE284 Y, 0xE285 vic_hmm frame, 0xE287 held E300 type.
+; 0xE282 Y (SAT Y = E282-9), 0xE284 X, 0xE285 vic_hmm frame, 0xE287 held E300 type.
+; 0xE24C pause (vic_pause_rle pushups); 0xE298 vic_die / vic_hit SAT (vic_die_rle).
 ; 0xE200 game mode (mode_tick / d_46ea): 0 boot, 1 hold, 2 attract, 3 title,
 ; 4 stage card, 5 play, 6 life, 7 game over, 8 room (E248), 9–13 clear /
 ; world / continue / ending. 0xE201 = substate. 0xE800 software SAT
 ; (sat_wipe fills Y=0xE0).
 ; 0xE207 rising edges of 0xE208 (held keys); bit 4 = fire. keys_apply.
 ; Attract: 0xE209 step, 0xE20A duration, 0xE219 slot 1..6 -> demo_lvls.
-; 0xE243 current screen. 0xE248 screen-exit dir 1 L / 2 R / 3 U / 4 D
+; 0xE243 current screen. 0xE248 screen-exit dir 1 up / 2 down / 3 left / 4 right
 ; (probe_edge / room_exit). 0xE250 unpacked-map base for map_tile.
 ; 0xE257 is a mode-local script index (title/file e257_jp 0-based
 ; pwd_wipe..pwd_done; stage-clear / world / ending are 1-based).
@@ -37,7 +38,8 @@ mapper_bank_A000:        equ 0xF0F3
 ; 0xE268 E300 (max 64), 0xE269 gems (max 16), 0xE26A exit, 0xE26B Vic.
 ; 0xF0F8 load device 0 tape / 1 disk / 2 sram (io_dev); 0xF0F9 present bits.
 ; 0xE788 screen ids from ab5a_flags.
-; 0xED80/90/A0/B0 door links (4 dirs).
+; 0xED80 up / ED90 down / EDA0 left / EDB0 right (room_link / pause map).
+; 0xEDC0 pause-map overlay (pause_overlay: 0 wait / 1 draw / 2 restore / 3 idle).
 ; 0xEE50 occupied E300 slot ids (e300_list).
 ; 0xEDCB/EDCC ceremony XY (cer_sat / world_pos); 0xEDD8 walk pose.
 ; Play: 0xE900 unpacked map (unpack_map). Ending sparks reuse 0xE900–E902

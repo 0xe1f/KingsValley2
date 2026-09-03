@@ -17,7 +17,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
 - Game Master option table at 0x4010 is data (`gm_opt`).
 - Stream consumers in bank 00: `palette_list`, `print_stream`, `blit_list`,
   `copy_tiles`, `draw_tilemap` (local names). HUD strings at 0x5EF2–0x5F8D
-  (`print_txt`) use `TEXT` / `CHAR` (`banks/text.inc`).
+  (`print_txt`) use `TEXT` / `TEXT4` (`banks/text.inc`).
 - Pointer / list tables folded as `defw`/`defb` in banks 07–0A and 0D–0F.
   `unpack_map` streams are source (`maps0A.asm` / `maps0B.asm` / `maps0C.asm`).
   Packed-PSG is source (`psg_hdr.asm` /
@@ -25,7 +25,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   Bank 07–9 dest planes / title `copy_tiles` are source (`dest07.asm` /
   `dest08.asm` / `dest08b.asm` / `dest09.asm` / `dest09b.asm` / `title_tiles.asm`).
   Bank 0E held-tool lists /
-  RLE / `l5508h` lists / `draw_cols` are source (`held.asm`, `rle0E.asm`,
+  RLE / `copy_pat` lists / `draw_cols` are source (`held.asm`, `rle0E.asm`,
   `lists0E.asm`, `cols0E.asm`); glyph payloads are source (`glyphs0E.asm`).
   Bank 0F tilemaps / stamps / RLE / `pal_15` /
   `hud_world` / `draw_cols` tail / `sat_fx` pals / dest planes are source
@@ -40,7 +40,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `pat_b72b` are Japanese title glyphs ([`dest0F.asm`](../banks/data/dest0F.asm),
   `title_jp` / `title_jp_gfx`).
 - `print_stream` string islands in bank 0C: password / per-world / ending
-  credits at 0xAC01–0xAF37 are `TEXT` (`str_pwd_best`, `world_txt`,
+  credits at 0xAC01–0xAF37 are `TEXT` / `TEXT4` (`str_pwd_best`, `world_txt`,
   `ad76_tbl`); `end_stamp_tbl` / disk errors / `str_start_sel` /
   `str_clear_card` / `str_secret_cmd` follow. Later UI islands (`lb8afh`,
   `lbe67h`/`lbe6eh`, `lbf0eh`, `lbf94h`; "esc key"/"skip"/"find"/"load error"/"save error"). Bank 0D
@@ -80,10 +80,10 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `start_rockroll` / `tick_rockroll`); type 4 is `tick_trap`.
 - Map tools named: `load_map_tools` (0x97BB), `use_tool` (0xA045),
   `tick_map_tools` (0xA6BD). E600 type 1 tick is `tick_coffin` (0xBA85),
-  not `d_a6f2` (knife states on E300). Draw tables at 0x64CF / 0x64D9
-  folded (`defw`).
-- Packed bank 0D lists folded into [`banks/data/`](../banks/data/) (`GEM` /
-  `ACTOR` / `TOOL` / `LINK` / `DELAYED` in `objects.inc`): gems, actors,
+  not `d_a6f2` (knife states on E300). Draw tables `actor_redraw` /
+  `actor_draw` at 0x64CF / 0x64D9 folded (`defw`).
+- Packed bank 0D lists folded into [`banks/data/`](../banks/data/) (record
+  layout in [`objects.inc`](../banks/objects.inc)): gems, actors,
   tools, screens, links, delayed pickups, Vic spawn / exit door.
   Last records overlap the following pointer table. Map bitmaps/RLE/HUD
   glyphs/`sat_pat` are source (`minimap.asm`, `hud_tiles.asm`).
@@ -91,9 +91,9 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `copy_tiles` font (0xAA29) are source (`overlays.asm`, `wmap.asm`).
 - Bank 0E/0F UI lists folded: `held_ptr` / `vic_hmm`; RLE `rle_86d4`..`rle_97a1` /
   `rle_a9f6`..; `pat_copy` / `pat_flip`; `end_txt`; `col_ptr` (`col_21` crosses
-  A000); `STAMP` / `draw_tilemap` grids; `pal_w_even` / `pal_w_odd` /
+  A000); stamp / `draw_tilemap` grids; `pal_w_even` / `pal_w_odd` /
   `hud_world_tbl`.
-- `unpack_map` streams `map_01`..`map_60` (`MAP_RUN` / `MAP_END`) live in
+- `unpack_map` streams `map_01`..`map_60` (`(tile<<6)|count`, 0 end) live in
   [`maps0A.asm`](../banks/data/maps0A.asm) / `maps0B.asm` / `maps0C.asm`.
   `map_33` and `map_59` cross the 8000 / A000 windows.
 - Bank 0C attract decoded: `demo_lvls` pyramids 2/18/26/40/48/53 (one per
@@ -104,8 +104,8 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
 - `poll_keys` un-glued from WRTVDP sprite regs at 0x5413. E300 ticks
   `tick_map_knife`..`tick_map_drill`; E500 `tick_thrown_*`. Pickup is
   `pickup_tool`. Modes 9–13 named (stage-clear / world / continue / ending).
-- `sfx_01`..`sfx_41` / `sfx_80`..`sfx_84` thunks (`SFX` / `SFXR` in
-  [`banks/sfx.inc`](../banks/sfx.inc)) sit at 0x41E0–0x4324. Boot fall-in
+- `sfx_01`..`sfx_41` / `sfx_80`..`sfx_84` thunks (`ld a` / `jp` or `jr`
+  `sound_far`) sit at 0x41E0–0x4324. Boot fall-in
   `jp`s `sfx_3c`. `map_tile` / `probe_step` named. Editor E600 place is
   `put_trap` / `editor_spawn` (`d_7e6c`).
 - `d_46ea` handlers labeled (`mode_boot`..`mode_endtxt`). `mode_goto` /
@@ -130,7 +130,10 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   is the bank 0E/0F SAT burst (`pwd_idle` / `world_sat` / `end_tick`).
   Bank 00 UI blit wrappers `blit_902e`..`blit_9074`, `pic_a358`, `tiles_wmap`,
   `spr_vram` @ 0x583B, `vic_reload` @ 0x5859, `pat_15` / `col_15` /
-  `draw_cols`. Ending `d_735f` is fully named (`end_boot`..`end_done`,
+  `draw_cols`. Konami RLE is `rle_vram` (0x4E54); STAMP is `stamp` (0x576D);
+  Vic SAT is `vic_pat` / `vic_die_rle` / `vic_pause_rle`; thrown knife
+  `knife_rle`; Flouman `copy_pat` / `flip_pat`; pointer SAT `copy_pointer`.
+  Ending `d_735f` is fully named (`end_boot`..`end_done`,
   nine `end_page` cycles). `print_12` / `end_print_i` far-print bank 0C
   streams (`str_end_boot`..`ad76_tbl` credits). `print_world` @ 0x71A5
   prints `world_txt`. File menu is `str_start_sel`. Editor HUD is `edit_legend`; `draw_minimap` @ 0x886A stamps
@@ -143,16 +146,60 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
 - `make gfx` (`tools/gfxdump.py`) writes `gfx/palettes/`, `gfx/tilesets/`,
   `gfx/sprites/`, `gfx/fonts/`, `gfx/metatiles/` from `palette_list` /
   dest-plane `BLIT` lists (`dest_w1`..`dest_w6`, common / UI) / `copy_tiles`
-  / held-tool Konami RLE / `pat_copy` / minimaps. Overlay applies explicit
+  / Vic Konami RLE / Flouman / minimaps, plus `gfx/` composites
+  (`draw_cols` / `STAMP` / `draw_tilemap`) and `glyph_ptr` stamps.
+  Overlay applies explicit
   black (pal_a7ce 0F); 1bpp inks are palette indices, not canvas-off.
   World-map font is bank 0C `0xAA29` (not bank 0B). `0xBECF` is SAT pattern
   ids, not sprite planes.
 - `make music` / `make sfx` (`tools/psgplay.py`) write `music/` and `sfx/`
   WAVs from packed-PSG ids 1–0x41 via workbench `konami/sccplay.py`.
+  Catalogue stems follow call sites (`13_jump`, `32_cursor`, `0D_world`);
+  thunk-only / sound-select ids are `NN_unused`.
+- Pause map overlay named: `pause_overlay` (0x6059, `edc0_jp` on EDC0),
+  `hud_load`, `map_doors` / `map_gems` / `map_screens` / `map_vic` /
+  `map_exit`. Door glyphs at 0x61D9 were fake instructions. `pause_anim`
+  (0x9801) is the push-up SAT. Bank 0 wrappers `ldirvm` / `ldirmv` /
+  `filvrm` / `tile_pset` / `wmap_font` / `map_base` / `screen_slot`.
+  `room_link` is ED80 up / ED90 down / EDA0 left / EDB0 right.
+- Vic walk helpers named: `vic_keys_lr` / `vic_face` / `probe_floor` /
+  `probe_ladder` / `vic_walk_move` / `vic_off_floor` / `vic_enter_fall`.
+  Walk pose bytes at 0x9F45 were fake instructions. SAT/map_tile show
+  E282 = Y, E284 = X. Actor draw `draw_coffin` / `draw_pyoncy` /
+  `draw_rockroll` / `draw_trap` / `draw_stone`. Bank 0 `scr_boot` /
+  `stamp_level` / `stamp_glyph`.
+- Vic jump/climb: `vic_gravity` / `vic_jump_x` / `probe_air_y` /
+  `probe_solid` / `vic_climb_move` / `vic_climb_stay` / `vic_climb_exit`.
+  `probe_step` uses `step_origin` / `step_next` (C = 0 up / 1 down /
+  2 left / 3 right). Map tools: `tick_map_tool` / `tool_phase` /
+  `tool_next`; knife states `tool_scr` / `knife_go` / `knife_fly` /
+  `knife_wait` / `knife_sfx`.
+- ~114 play/boot helpers renamed (1388 auto labels left). Bank 0:
+  `rdslt_8000` / `slot_id` / `set_level` / `load_stage` / `stamp_map` /
+  `to_bcd` / `print_bcd` / SCREEN 5 `expand_*`. Editor: `edit_xy` /
+  `edit_screen` / `edit_place` / `actor_at`. E300: `e300_ix` /
+  `tools_scan` / `tool_stamp`. Stones: `stone_save` / `stones_redraw`.
+  Map tools: `tool_lock` / `knife_probe` / `tool_sat` / `spawn_fill`.
+  Actors: `actor_row` / `rock_under` / `trap_punch`.
+
+- `banks_123` has no leftover `sub_*` (1215 auto labels left, 743 in
+  this window). Last cluster: gems/E500 SAT (`gem_draw` / `tick_thrown` /
+  `e500_sat_put`), password (`pwd_cheat` / `pwd_decode`), disk/BDOS
+  (`disk_find` / `dos_enter`), world tour (`world_step` / `world_path`),
+  editor (`edit_cursor` / `io_menu`), thrown-tool probes (`thrown_xy` /
+  `thrown_step` / `thrown_snap`).
+- Fake-instruction tables folded to `defb` (`boom_dx` / `boom_dt` /
+  `fall_dt` / `shovel_id` / `hammer_l` / `hammer_r` / `thrown_delta` /
+  `shovel_fr` / `pick_pat`, plus password/file/save blobs). Map/thrown
+  `DISPATCH_A` handlers named and `defw` wired (knife already was;
+  boom/shovel/pick/hammer/drill, spawn, editor stamps/`place_*`,
+  `io_menu`, stone idle/push/fall, pickup AABB). `ix14_db` no longer
+  swallows `call thrown_edge`. 1195 auto labels left (723 in
+  `banks_123`).
 
 ## Next
 
-1. Name remaining `NN_psg` / `NN_sfx` stems from call sites.
-2. Glyph_ptr tile-id stamps and `draw_cols` / `STAMP` composites still have
-   no catalogue sheets.
+1. Opcode / subroutine comment coverage (`make coverage`). Remaining
+   `lXXXXh` in `banks_123`, then `banks_0` locals and `banks_456` /
+   `banks_abc` autos.
 

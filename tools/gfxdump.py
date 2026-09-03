@@ -17,9 +17,10 @@
 
   gfx/palettes/<stem>.png   palette_list streams (8x8 swatches)
   gfx/tilesets/<stem>.png   dest-plane 8x8, copy_tiles 1bpp, SCREEN 5 stamps
-  gfx/sprites/<stem>.png    16×16 1bpp planes (held-tool RLE / pat_copy)
+  gfx/sprites/<stem>.png    16×16 1bpp planes (Vic / Flouman / knife / pointer)
   gfx/fonts/<stem>.png      HUD glyphs / world-map font (copy_tiles)
-  gfx/metatiles/<stem>.png  editor minimaps (32×24 1bpp)
+  gfx/metatiles/<stem>.png  editor minimaps / glyph_ptr tile-id stamps
+  gfx/<stem>.png            draw_cols / STAMP / draw_tilemap composites
 
 Cell header is 4 uppercase hex digits (CPU of that atom), except palette
 swatches which use the 2-digit index. In-game MSX2 palette. No PIL.
@@ -208,14 +209,14 @@ def render_png(path, cells, palette, cols, labels, size=8, lab_scale=2,
 
 
 def tile_1bpp(data8, colour):
-    """copy_tiles: 8 bytes, MSB left; on = C high nibble, off = low."""
-    hi, lo = colour >> 4, colour & 0x0F
+    """copy_tiles: 8 bytes, MSB left; on = C low nibble, off = high."""
+    on, off = colour & 0x0F, colour >> 4
     grid = []
     for byte in data8:
         row = []
         b = byte
         for _ in range(8):
-            row.append(hi if (b & 0x80) else lo)
+            row.append(on if (b & 0x80) else off)
             b = (b << 1) & 0xFF
         grid.append(row)
     return grid
@@ -300,15 +301,15 @@ def dump_rle_sprites(rom, path, bank, cpu, dest, play_pal, colour=0x80):
     dump_sprite_sheet(path, cells, labels, play_pal)
 
 
-# held_ptr VIC_RLE dests (VIC_COPY X-flips are generated, not dumped).
+# held_ptr Vic SAT (VIC_COPY X-flips are generated, not dumped).
 HELD_RLE = (
-    ("held_0", (  # unarmed
+    ("vic_unarmed", (
         (14, 0x86D4, 0xE000),
         (14, 0x875D, 0xE180),
         (14, 0x8FD9, 0xE300),
         (14, 0x905D, 0xE480),
     )),
-    ("held_1", (  # knife
+    ("vic_knife", (
         (14, 0x87EE, 0xE000),
         (14, 0x8876, 0xE180),
         (14, 0x9510, 0xE240),
@@ -316,7 +317,7 @@ HELD_RLE = (
         (14, 0x91AA, 0xE480),
         (14, 0x9227, 0xE540),
     )),
-    ("held_2", (  # boomerang
+    ("vic_boomerang", (
         (14, 0x8911, 0xE000),
         (14, 0x89A0, 0xE180),
         (14, 0x9510, 0xE240),
@@ -324,27 +325,27 @@ HELD_RLE = (
         (14, 0x91AA, 0xE480),
         (14, 0x9227, 0xE540),
     )),
-    ("held_3", (  # shovel
+    ("vic_shovel", (
         (14, 0x8A3F, 0xE000),
         (14, 0x8AFA, 0xE180),
         (14, 0x90D4, 0xE300),
         (14, 0x9158, 0xE480),
         (14, 0x9254, 0xE500),
     )),
-    ("held_4", (  # pick
+    ("vic_pick", (
         (14, 0x8D08, 0xE000),
         (14, 0x8DC1, 0xE180),
         (14, 0x9304, 0xE300),
         (14, 0x9388, 0xE480),
     )),
-    ("held_5", (  # hammer
+    ("vic_hammer", (
         (14, 0x8BC6, 0xE000),
         (14, 0x8C4F, 0xE180),
         (14, 0x90D4, 0xE300),
         (14, 0x9158, 0xE480),
         (14, 0x92AD, 0xE500),
     )),
-    ("held_6", (  # drill
+    ("vic_drill", (
         (14, 0x8E86, 0xE000),
         (14, 0x8F0E, 0xE180),
         (14, 0x9432, 0xE300),
@@ -353,7 +354,7 @@ HELD_RLE = (
     )),
 )
 
-# l5508h payloads in lists0E.asm (n × 32 bytes → F800).
+# copy_pat payloads in lists0E.asm (n × 32 bytes → F800). Flouman / Slouman.
 PAT_COPY = (
     (14, 0x98F7, 4),
     (14, 0x9977, 6),
@@ -367,16 +368,16 @@ PAT_COPY = (
 
 # RLE not already in HELD_RLE (UI / editor / other Vic state).
 RLE_OTHER = (
-    (14, 0x953D, 0xE000, "rle_953d"),
-    (14, 0x97A1, 0xF880, "rle_97a1"),
+    (14, 0x953D, 0xE000, "vic_die"),
+    (14, 0x97A1, 0xF880, "knife"),  # + boomerang spin
     (15, 0xA9F6, 0xFE80, "rle_a9f6"),
     (15, 0xA9FB, 0xFE80, "rle_a9fb"),
-    (15, 0xAA00, 0xE080, "rle_aa00"),
+    (15, 0xAA00, 0xE080, "vic_pushup"),
     (15, 0xAB59, 0xF800, "rle_ab59"),
     (15, 0xABB9, 0xF800, "rle_abb9"),
     (15, 0xAE08, 0xFA00, "rle_ae08"),
     (15, 0xAF21, 0xF820, "rle_af21"),
-    (15, 0xBA9A, 0xF800, "rle_ba9a"),
+    (15, 0xBA9A, 0xF800, "pointer"),
     (13, 0xBBFC, 0xF880, "rle_bbfc"),
     (13, 0xBF29, 0xF800, "rle_bf29"),
 )
@@ -397,7 +398,7 @@ def dump_pat_copy(rom, play_pal, colour=0x80):
         fo = cpu_file(bank, cpu)
         blob = rom[fo:fo + n * 32]
         append_sprites(cells, labels, blob, cpu, colour)
-    dump_sprite_sheet(os.path.join(SPRITE_DIR, "pat_copy.png"),
+    dump_sprite_sheet(os.path.join(SPRITE_DIR, "flouman.png"),
                       cells, labels, play_pal)
 
 
@@ -517,6 +518,158 @@ def world_play_pal(rom, base, world):
     return apply_pal(rom, pal, 15, 0xB95D)
 
 
+def xflip_grid(grid):
+    return [list(reversed(row)) for row in grid]
+
+
+def blit_atlas(rom, list_cpu, tbl_cpu, banks):
+    """VRAM tile id → 8×8 dest-plane grid, including X-flip recs."""
+    atlas = {}
+    for flags, tile, count, dest in parse_blit(rom, list_cpu, banks):
+        planes = nplanes(flags)
+        bpt = 8 * planes
+        pidx = pal_idx_at(rom, tbl_cpu, flags, banks)
+        fo = cpu_file_win(dest, banks)
+        flip = flags & 1
+        for t in range(count):
+            chunk = rom[fo + t * bpt:fo + (t + 1) * bpt]
+            if len(chunk) < bpt:
+                break
+            grid = dest_tile_grid(chunk, planes, pidx)
+            if flip:
+                grid = xflip_grid(grid)
+            atlas[tile + t] = grid
+    return atlas
+
+
+def merge_atlas(*atlases):
+    out = {}
+    for a in atlases:
+        out.update(a)
+    return out
+
+
+def empty_tile():
+    return [[OFF] * 8 for _ in range(8)]
+
+
+def lookup_tile(atlas, tid):
+    return atlas.get(tid, empty_tile())
+
+
+def compose_grid(atlas, ids, width):
+    height = (len(ids) + width - 1) // width
+    pix = []
+    for ty in range(height):
+        tiles = []
+        for tx in range(width):
+            i = ty * width + tx
+            tid = ids[i] if i < len(ids) else 0
+            tiles.append(lookup_tile(atlas, tid))
+        for y in range(8):
+            row = []
+            for t in tiles:
+                row.extend(t[y])
+            pix.append(row)
+    return pix
+
+
+def parse_stamp(rom, cpu, banks):
+    """STAMP rows: (x_tiles, [ids]). FE,dx starts the next row at x+(signed dx)/8."""
+    i = cpu_file_win(cpu, banks)
+    rows = []
+    row = []
+    x0 = 0
+    while True:
+        b = rom[i]
+        i += 1
+        if b == 0xFF:
+            if row:
+                rows.append((x0, row))
+            break
+        if b == 0xFE:
+            if row:
+                rows.append((x0, row))
+            dx = rom[i]
+            i += 1
+            if dx >= 128:
+                dx -= 256
+            x0 += dx // 8
+            row = []
+            continue
+        row.append(b)
+    return rows
+
+
+def compose_stamp(atlas, rows):
+    if not rows:
+        return None
+    min_x = min(x for x, _ids in rows)
+    max_x = max(x + len(ids) for x, ids in rows)
+    width = max(1, max_x - min_x)
+    pix = []
+    for x, ids in rows:
+        full = [None] * (x - min_x) + ids
+        full += [None] * (width - len(full))
+        tiles = [lookup_tile(atlas, t) if t is not None else empty_tile()
+                 for t in full]
+        for y in range(8):
+            row = []
+            for t in tiles:
+                row.extend(t[y])
+            pix.append(row)
+    return pix
+
+
+def dump_composite(path, grid, pal, cpu):
+    if not grid:
+        return
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    render_png(path, [grid], pal, cols=1, labels=["%04X" % cpu],
+               size=(len(grid[0]), len(grid)), zero_off=False)
+
+
+def col_ids(rom, start_idx):
+    """32 × 27 tile ids for draw_cols A=start_idx (row-major)."""
+    cols = []
+    base = cpu_file(14, 0x9D58)
+    for n in range(32):
+        cpu = word_le(rom, base + (start_idx + n) * 2)
+        fo = cpu_file_win(cpu, WIN_EF)
+        cols.append(list(rom[fo:fo + 27]))
+    ids = []
+    for y in range(27):
+        for x in range(32):
+            ids.append(cols[x][y])
+    return ids
+
+
+def pad_8(grid):
+    out = []
+    h = len(grid)
+    w = len(grid[0]) if grid else 0
+    for y in range(8):
+        row = []
+        for x in range(8):
+            if y < h and x < w:
+                row.append(grid[y][x])
+            else:
+                row.append(OFF)
+        out.append(row)
+    return out
+
+
+def atlas_1bpp(rom, recs):
+    """recs: (bank, cpu, count, first_id, colour)."""
+    atlas = {}
+    for bank, cpu, count, first, colour in recs:
+        fo = cpu_file(bank, cpu)
+        for i in range(count):
+            atlas[first + i] = tile_1bpp(rom[fo + i * 8:fo + (i + 1) * 8],
+                                         colour)
+    return atlas
+
+
 def main():
     if not os.path.isfile(ROM_PATH):
         sys.exit("missing %s — run make first" % ROM_PATH)
@@ -610,6 +763,106 @@ def main():
     for bank, cpu, dest, stem in RLE_OTHER:
         dump_rle_sprites(rom, os.path.join(SPRITE_DIR, stem + ".png"),
                          bank, cpu, dest, play)
+
+    atlas_9074 = blit_atlas(rom, 0x9074, 0x8FFC, WIN_789)
+    atlas_jp = merge_atlas(atlas_9074, blit_atlas(rom, 0xB120, 0xB116, WIN_EF))
+    atlas_pwd = blit_atlas(rom, 0x9043, 0x8FFC, WIN_789)
+    atlas_wpic = blit_atlas(rom, 0x902E, 0x8FFC, WIN_789)
+    atlas_end2 = blit_atlas(rom, 0x9063, 0x8FFC, WIN_789)
+    atlas_end3 = blit_atlas(rom, 0x9069, 0x8FFC, WIN_789)
+    blit_ptr = cpu_file(7, 0x6177)
+    w1 = word_le(rom, blit_ptr + 2)
+    t1 = word_le(rom, cpu_file(7, 0x6065) + 2)
+    atlas_w1 = merge_atlas(
+        blit_atlas(rom, w1, t1, WIN_789),
+        blit_atlas(rom, 0x602A, 0x6000, WIN_789))
+
+    dump_composite(os.path.join(GFX, "cols_title.png"),
+                   compose_grid(atlas_jp, col_ids(rom, 0), 32), play, 0x9DB8)
+    dump_composite(os.path.join(GFX, "cols_pwd.png"),
+                   compose_grid(atlas_pwd, col_ids(rom, 4), 32), pwd_pal, 0x9E24)
+    dump_composite(os.path.join(GFX, "cols_end.png"),
+                   compose_grid(atlas_pwd, col_ids(rom, 15), 32), play, 0x9F4D)
+
+    for cpu, atlas, pal, stem in (
+            (0xA3E8, atlas_wpic, wmap_pal, "stamp_a3e8"),
+            (0xA4C7, atlas_wpic, wmap_pal, "stamp_a4c7"),
+            (0xA642, atlas_wpic, wmap_pal, "stamp_a642"),
+            (0xA6B1, atlas_wpic, wmap_pal, "stamp_a6b1"),
+            (0xA6E0, atlas_end3, a8bb_pal, "stamp_a6e0"),
+            (0xB8DB, atlas_jp, play, "stamp_logo_jp"),
+    ):
+        dump_composite(os.path.join(GFX, stem + ".png"),
+                       compose_stamp(atlas, parse_stamp(rom, cpu, WIN_EF)),
+                       pal, cpu)
+
+    title_1bpp = atlas_1bpp(rom, (
+        (9, 0xBBDC, 13, 1, 0x01),
+        (9, 0xBC44, 13, 14, 0x02),
+        (9, 0xBCAC, 26, 27, 0x03),
+    ))
+    dump_composite(os.path.join(GFX, "stamp_logo_konami.png"),
+                   compose_stamp(title_1bpp,
+                                 parse_stamp(rom, 0xBB9B, WIN_789)),
+                   title_pal, 0xBB9B)
+
+    dump_composite(os.path.join(GFX, "pic_a2c8.png"),
+                   compose_grid(atlas_end2, list(rom[cpu_file(15, 0xA2C8):
+                                                     cpu_file(15, 0xA2C8) + 144]),
+                                12), play, 0xA2C8)
+    dump_composite(os.path.join(GFX, "pic_a358.png"),
+                   compose_grid(atlas_pwd, list(rom[cpu_file(15, 0xA358):
+                                                    cpu_file(15, 0xA358) + 144]),
+                                12), pwd_pal, 0xA358)
+    dump_composite(os.path.join(GFX, "pic_a702.png"),
+                   compose_grid(atlas_end3, list(rom[cpu_file(15, 0xA702):
+                                                     cpu_file(15, 0xA702) + 144]),
+                                12), a8bb_pal, 0xA702)
+    dump_composite(os.path.join(GFX, "wpic0.png"),
+                   compose_grid(atlas_wpic, list(rom[cpu_file(15, 0xA5A6):
+                                                     cpu_file(15, 0xA5A6) + 24]),
+                                12), wmap_pal, 0xA5A6)
+    dump_composite(os.path.join(GFX, "wpic1.png"),
+                   compose_grid(atlas_wpic, list(rom[cpu_file(15, 0xA5BE):
+                                                     cpu_file(15, 0xA5BE) + 48]),
+                                12), wmap_pal, 0xA5BE)
+    dump_composite(os.path.join(GFX, "wpic2.png"),
+                   compose_grid(atlas_wpic, list(rom[cpu_file(15, 0xA5EE):
+                                                     cpu_file(15, 0xA5EE) + 84]),
+                                14), wmap_pal, 0xA5EE)
+
+    ptrs = [word_le(rom, cpu_file(14, 0x8000) + i * 2) for i in range(114)]
+    uniq = []
+    seen = set()
+    for p in ptrs:
+        if p not in seen:
+            seen.add(p)
+            uniq.append(p)
+    uniq.sort()
+    cells, labels = [], []
+    for i, p in enumerate(uniq):
+        end = uniq[i + 1] if i + 1 < len(uniq) else p + 1
+        fo = cpu_file_win(p, WIN_EF)
+        blob = list(rom[fo:fo + (end - p)])
+        if 0xFF in blob:
+            continue
+        n = len(blob)
+        if n == 64:
+            w = 8
+        elif n == 16:
+            w = 4
+        elif n == 8:
+            w = 4
+        elif n == 6:
+            w = 3
+        else:
+            continue
+        cells.append(pad_8(compose_grid(atlas_w1, blob, w)))
+        labels.append("%04X" % p)
+    if cells:
+        render_png(os.path.join(METATILE_DIR, "glyphs0E.png"),
+                   cells, world_play_pal(rom, play, 1),
+                   cols=min(8, len(cells)), labels=labels, zero_off=False)
 
 
 if __name__ == "__main__":

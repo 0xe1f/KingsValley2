@@ -16,7 +16,7 @@ psg_03:                            ; 0x6FC6  id 3  sfx_03
 	defb 0ffh, 0a0h
 	defw ch_785f, ch_7882, ch_78b1, ch_78df, ch_790d, ch_7951, ch_7999, ch_79bb
 
-psg_04:                            ; 0x6FD8  id 4  sfx_04
+psg_04:                            ; 0x6FD8  id 4  sfx_04  unused
 	defb 0cfh, 0a0h
 	defw ch_79da, ch_79da, ch_79da, ch_79da, ch_79da, ch_79da
 
@@ -52,7 +52,7 @@ psg_0c:                            ; 0x7048  id 12  sfx_0c
 	defb 0ffh, 0a0h
 	defw ch_9492, ch_94a7, ch_94d2, ch_94fd, ch_9527, ch_955b, ch_95a3, ch_95ef
 
-psg_0d:                            ; 0x705A  id 13  sfx_0d
+psg_0d:                            ; 0x705A  id 13  sfx_0d  world-map BGM
 	defb 0cfh, 0a0h
 	defw ch_9623, ch_9682, ch_9729, ch_97a4, ch_983e, ch_9884
 
@@ -232,7 +232,7 @@ psg_39:                            ; 0x71CE  id 57  sfx_39
 	defb 030h, 010h
 	defw ch_b60c, ch_b661
 
-psg_3a:                            ; 0x71D4  id 58  sfx_3a
+psg_3a:                            ; 0x71D4  id 58  sfx_3a  end_flash
 	defb 0ffh, 0a0h
 	defw ch_b6b4, ch_b6fd, ch_b746, ch_b7d1, ch_b86c, ch_b907, ch_b992, ch_ba19
 

@@ -2,239 +2,239 @@
 ; spawn_tool after timer; C>=5 rejected so stock ids are 1-4.
 
 pickups_b5c3:          ; pyramid 1
-	DELAYED 1, 1, 0020h, 0020h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 020h, 020h ; knife
+	defb 000h               ; end
 pickups_b5c8:          ; pyramid 2
-	DELAYED 1, 1, 0090h, 0068h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 090h, 068h ; knife
+	defb 000h               ; end
 pickups_b5cd:          ; pyramid 3
-	DELAYED 2, 1, 00A0h, 0078h  ; boomerang
-	DELAYED_END
+	defb 002h, 001h, 0a0h, 078h ; boomerang
+	defb 000h               ; end
 pickups_b5d2:          ; pyramid 4
-	DELAYED 1, 2, 0028h, 00A0h  ; knife
-	DELAYED_END
+	defb 001h, 002h, 028h, 0a0h ; knife
+	defb 000h               ; end
 pickups_b5d7:          ; pyramid 5
-	DELAYED 3, 2, 00A8h, 0050h  ; shovel
-	DELAYED_END
+	defb 003h, 002h, 0a8h, 050h ; shovel
+	defb 000h               ; end
 pickups_b5dc:          ; pyramid 6
-	DELAYED 1, 2, 0070h, 0078h  ; knife
-	DELAYED 4, 1, 0010h, 0020h  ; pick
-	DELAYED_END
+	defb 001h, 002h, 070h, 078h ; knife
+	defb 004h, 001h, 010h, 020h ; pick
+	defb 000h               ; end
 pickups_b5e5:          ; pyramid 7
-	DELAYED 3, 2, 00A8h, 00D8h  ; shovel
-	DELAYED_END
+	defb 003h, 002h, 0a8h, 0d8h ; shovel
+	defb 000h               ; end
 pickups_b5ea:          ; pyramid 8
-	DELAYED 2, 2, 0010h, 0040h  ; boomerang
-	DELAYED 4, 3, 0050h, 0098h  ; pick
-	DELAYED_END
+	defb 002h, 002h, 010h, 040h ; boomerang
+	defb 004h, 003h, 050h, 098h ; pick
+	defb 000h               ; end
 pickups_b5f3:          ; pyramid 9
-	DELAYED 4, 1, 0018h, 0090h  ; pick
-	DELAYED 1, 1, 0018h, 0010h  ; knife
-	DELAYED_END
+	defb 004h, 001h, 018h, 090h ; pick
+	defb 001h, 001h, 018h, 010h ; knife
+	defb 000h               ; end
 pickups_b5fc:          ; pyramid 10
-	DELAYED 3, 1, 0018h, 0030h  ; shovel
-	DELAYED 4, 1, 0058h, 0068h  ; pick
-	DELAYED 4, 2, 0038h, 00C8h  ; pick
-	DELAYED_END
+	defb 003h, 001h, 018h, 030h ; shovel
+	defb 004h, 001h, 058h, 068h ; pick
+	defb 004h, 002h, 038h, 0c8h ; pick
+	defb 000h               ; end
 pickups_b609:          ; pyramid 11
-	DELAYED 3, 1, 0010h, 0040h  ; shovel
-	DELAYED_END
+	defb 003h, 001h, 010h, 040h ; shovel
+	defb 000h               ; end
 pickups_b60e:          ; pyramid 12
-	DELAYED 1, 1, 0070h, 0040h  ; knife
-	DELAYED 1, 1, 0030h, 00D0h  ; knife
-	DELAYED 1, 2, 0070h, 0048h  ; knife
-	DELAYED 1, 2, 0030h, 00A0h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 070h, 040h ; knife
+	defb 001h, 001h, 030h, 0d0h ; knife
+	defb 001h, 002h, 070h, 048h ; knife
+	defb 001h, 002h, 030h, 0a0h ; knife
+	defb 000h               ; end
 pickups_b61f:          ; pyramid 13
-	DELAYED 4, 1, 0020h, 0010h  ; pick
-	DELAYED 4, 2, 0020h, 0080h  ; pick
-	DELAYED 4, 3, 0078h, 0080h  ; pick
-	DELAYED_END
+	defb 004h, 001h, 020h, 010h ; pick
+	defb 004h, 002h, 020h, 080h ; pick
+	defb 004h, 003h, 078h, 080h ; pick
+	defb 000h               ; end
 pickups_b62c:          ; pyramid 14
-	DELAYED 4, 1, 0020h, 0020h  ; pick
-	DELAYED 4, 1, 0040h, 0080h  ; pick
-	DELAYED 4, 1, 0020h, 00E0h  ; pick
-	DELAYED 4, 2, 00A8h, 0078h  ; pick
-	DELAYED 4, 3, 0020h, 0040h  ; pick
-	DELAYED 4, 3, 0020h, 00C0h  ; pick
-	DELAYED_END
+	defb 004h, 001h, 020h, 020h ; pick
+	defb 004h, 001h, 040h, 080h ; pick
+	defb 004h, 001h, 020h, 0e0h ; pick
+	defb 004h, 002h, 0a8h, 078h ; pick
+	defb 004h, 003h, 020h, 040h ; pick
+	defb 004h, 003h, 020h, 0c0h ; pick
+	defb 000h               ; end
 pickups_b645:          ; pyramid 15
-	DELAYED 1, 1, 0018h, 0038h  ; knife
-	DELAYED 1, 3, 0018h, 00B8h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 018h, 038h ; knife
+	defb 001h, 003h, 018h, 0b8h ; knife
+	defb 000h               ; end
 pickups_b64e:          ; pyramid 16
-	DELAYED 4, 2, 0020h, 0008h  ; pick
-	DELAYED 1, 2, 0070h, 0020h  ; knife
-	DELAYED 3, 2, 0070h, 00D0h  ; shovel
-	DELAYED_END
+	defb 004h, 002h, 020h, 008h ; pick
+	defb 001h, 002h, 070h, 020h ; knife
+	defb 003h, 002h, 070h, 0d0h ; shovel
+	defb 000h               ; end
 pickups_b65b:          ; pyramid 17
-	DELAYED 2, 2, 00A8h, 0030h  ; boomerang
-	DELAYED 4, 3, 0018h, 0060h  ; pick
-	DELAYED_END
+	defb 002h, 002h, 0a8h, 030h ; boomerang
+	defb 004h, 003h, 018h, 060h ; pick
+	defb 000h               ; end
 pickups_b664:          ; pyramid 18
-	DELAYED 4, 1, 0008h, 0008h  ; pick
-	DELAYED_END
+	defb 004h, 001h, 008h, 008h ; pick
+	defb 000h               ; end
 pickups_b669:          ; pyramid 19
-	DELAYED 3, 1, 0040h, 0078h  ; shovel
-	DELAYED_END
+	defb 003h, 001h, 040h, 078h ; shovel
+	defb 000h               ; end
 pickups_b66e:          ; pyramid 20
-	DELAYED 1, 1, 0020h, 0060h  ; knife
-	DELAYED 4, 1, 0090h, 0008h  ; pick
-	DELAYED 2, 2, 00A8h, 0078h  ; boomerang
-	DELAYED_END
+	defb 001h, 001h, 020h, 060h ; knife
+	defb 004h, 001h, 090h, 008h ; pick
+	defb 002h, 002h, 0a8h, 078h ; boomerang
+	defb 000h               ; end
 pickups_b67b:          ; pyramid 21
-	DELAYED 4, 1, 0010h, 0028h  ; pick
-	DELAYED 4, 1, 0068h, 0098h  ; pick
-	DELAYED_END
+	defb 004h, 001h, 010h, 028h ; pick
+	defb 004h, 001h, 068h, 098h ; pick
+	defb 000h               ; end
 pickups_b684:          ; pyramid 22
-	DELAYED 4, 1, 0030h, 00A0h  ; pick
-	DELAYED 2, 3, 0010h, 00A0h  ; boomerang
-	DELAYED_END
+	defb 004h, 001h, 030h, 0a0h ; pick
+	defb 002h, 003h, 010h, 0a0h ; boomerang
+	defb 000h               ; end
 pickups_b68d:          ; pyramid 23
-	DELAYED 2, 4, 00A8h, 0068h  ; boomerang
-	DELAYED_END
+	defb 002h, 004h, 0a8h, 068h ; boomerang
+	defb 000h               ; end
 pickups_b692:          ; pyramid 24
-	DELAYED 4, 3, 0010h, 00D0h  ; pick
-	DELAYED 3, 4, 0048h, 0078h  ; shovel
-	DELAYED_END
+	defb 004h, 003h, 010h, 0d0h ; pick
+	defb 003h, 004h, 048h, 078h ; shovel
+	defb 000h               ; end
 pickups_b69b:          ; pyramid 25
-	DELAYED 4, 1, 0008h, 0090h  ; pick
-	DELAYED 3, 1, 0028h, 0028h  ; shovel
-	DELAYED_END
+	defb 004h, 001h, 008h, 090h ; pick
+	defb 003h, 001h, 028h, 028h ; shovel
+	defb 000h               ; end
 pickups_b6a4:          ; pyramid 26
-	DELAYED_END
+	defb 000h               ; end
 pickups_b6a5:          ; pyramid 27
-	DELAYED 4, 2, 0050h, 00E8h  ; pick
-	DELAYED 2, 3, 00A8h, 0078h  ; boomerang
-	DELAYED_END
+	defb 004h, 002h, 050h, 0e8h ; pick
+	defb 002h, 003h, 0a8h, 078h ; boomerang
+	defb 000h               ; end
 pickups_b6ae:          ; pyramid 28
-	DELAYED 3, 2, 0020h, 00C0h  ; shovel
-	DELAYED 4, 3, 0018h, 0068h  ; pick
-	DELAYED 4, 3, 0060h, 0030h  ; pick
-	DELAYED_END
+	defb 003h, 002h, 020h, 0c0h ; shovel
+	defb 004h, 003h, 018h, 068h ; pick
+	defb 004h, 003h, 060h, 030h ; pick
+	defb 000h               ; end
 pickups_b6bb:          ; pyramid 29
-	DELAYED 1, 1, 0038h, 00A0h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 038h, 0a0h ; knife
+	defb 000h               ; end
 pickups_b6c0:          ; pyramid 30
-	DELAYED 3, 2, 0008h, 00B8h  ; shovel
-	DELAYED 4, 2, 0008h, 0030h  ; pick
-	DELAYED_END
+	defb 003h, 002h, 008h, 0b8h ; shovel
+	defb 004h, 002h, 008h, 030h ; pick
+	defb 000h               ; end
 pickups_b6c9:          ; pyramid 31
-	DELAYED 3, 1, 0018h, 0018h  ; shovel
-	DELAYED 4, 1, 0088h, 0030h  ; pick
-	DELAYED 4, 1, 0018h, 0090h  ; pick
-	DELAYED_END
+	defb 003h, 001h, 018h, 018h ; shovel
+	defb 004h, 001h, 088h, 030h ; pick
+	defb 004h, 001h, 018h, 090h ; pick
+	defb 000h               ; end
 pickups_b6d6:          ; pyramid 32
-	DELAYED 2, 2, 0010h, 00D0h  ; boomerang
-	DELAYED_END
+	defb 002h, 002h, 010h, 0d0h ; boomerang
+	defb 000h               ; end
 pickups_b6db:          ; pyramid 33
-	DELAYED 4, 2, 00A8h, 00D0h  ; pick
-	DELAYED 3, 3, 0028h, 0020h  ; shovel
-	DELAYED_END
+	defb 004h, 002h, 0a8h, 0d0h ; pick
+	defb 003h, 003h, 028h, 020h ; shovel
+	defb 000h               ; end
 pickups_b6e4:          ; pyramid 34
-	DELAYED 1, 1, 00A0h, 00E0h  ; knife
-	DELAYED 4, 2, 0010h, 0040h  ; pick
-	DELAYED 4, 2, 0010h, 00B0h  ; pick
-	DELAYED 1, 4, 00A8h, 00C0h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 0a0h, 0e0h ; knife
+	defb 004h, 002h, 010h, 040h ; pick
+	defb 004h, 002h, 010h, 0b0h ; pick
+	defb 001h, 004h, 0a8h, 0c0h ; knife
+	defb 000h               ; end
 pickups_b6f5:          ; pyramid 35
-	DELAYED 1, 1, 0020h, 0048h  ; knife
-	DELAYED 3, 4, 00A8h, 00C0h  ; shovel
-	DELAYED_END
+	defb 001h, 001h, 020h, 048h ; knife
+	defb 003h, 004h, 0a8h, 0c0h ; shovel
+	defb 000h               ; end
 pickups_b6fe:          ; pyramid 36
-	DELAYED 4, 2, 0010h, 00B0h  ; pick
-	DELAYED 1, 3, 0040h, 0050h  ; knife
-	DELAYED_END
+	defb 004h, 002h, 010h, 0b0h ; pick
+	defb 001h, 003h, 040h, 050h ; knife
+	defb 000h               ; end
 pickups_b707:          ; pyramid 37
-	DELAYED 1, 2, 00A0h, 0078h  ; knife
-	DELAYED 3, 4, 00A0h, 0070h  ; shovel
-	DELAYED_END
+	defb 001h, 002h, 0a0h, 078h ; knife
+	defb 003h, 004h, 0a0h, 070h ; shovel
+	defb 000h               ; end
 pickups_b710:          ; pyramid 38
-	DELAYED 4, 2, 00A0h, 0030h  ; pick
-	DELAYED 4, 4, 0020h, 0010h  ; pick
-	DELAYED_END
+	defb 004h, 002h, 0a0h, 030h ; pick
+	defb 004h, 004h, 020h, 010h ; pick
+	defb 000h               ; end
 pickups_b719:          ; pyramid 39
-	DELAYED 3, 1, 0078h, 0078h  ; shovel
-	DELAYED_END
+	defb 003h, 001h, 078h, 078h ; shovel
+	defb 000h               ; end
 pickups_b71e:          ; pyramid 40
-	DELAYED 3, 1, 00A8h, 0070h  ; shovel
-	DELAYED_END
+	defb 003h, 001h, 0a8h, 070h ; shovel
+	defb 000h               ; end
 pickups_b723:          ; pyramid 41
-	DELAYED_END
+	defb 000h               ; end
 pickups_b724:          ; pyramid 42
-	DELAYED 3, 2, 0028h, 00B0h  ; shovel
-	DELAYED_END
+	defb 003h, 002h, 028h, 0b0h ; shovel
+	defb 000h               ; end
 pickups_b729:          ; pyramid 43
-	DELAYED 4, 1, 0018h, 0078h  ; pick
-	DELAYED 4, 2, 0050h, 00C8h  ; pick
-	DELAYED_END
+	defb 004h, 001h, 018h, 078h ; pick
+	defb 004h, 002h, 050h, 0c8h ; pick
+	defb 000h               ; end
 pickups_b732:          ; pyramid 44
-	DELAYED_END
+	defb 000h               ; end
 pickups_b733:          ; pyramid 45
-	DELAYED 1, 2, 0020h, 0020h  ; knife
-	DELAYED 4, 3, 0020h, 0078h  ; pick
-	DELAYED_END
+	defb 001h, 002h, 020h, 020h ; knife
+	defb 004h, 003h, 020h, 078h ; pick
+	defb 000h               ; end
 pickups_b73c:          ; pyramid 46
-	DELAYED 4, 1, 0010h, 0078h  ; pick
-	DELAYED 4, 4, 00A0h, 0030h  ; pick
-	DELAYED_END
+	defb 004h, 001h, 010h, 078h ; pick
+	defb 004h, 004h, 0a0h, 030h ; pick
+	defb 000h               ; end
 pickups_b745:          ; pyramid 47
-	DELAYED 1, 3, 0050h, 00B8h  ; knife
-	DELAYED_END
+	defb 001h, 003h, 050h, 0b8h ; knife
+	defb 000h               ; end
 pickups_b74a:          ; pyramid 48
-	DELAYED 1, 1, 00A0h, 0070h  ; knife
-	DELAYED 4, 3, 00A0h, 0078h  ; pick
-	DELAYED 4, 3, 0018h, 0040h  ; pick
-	DELAYED_END
+	defb 001h, 001h, 0a0h, 070h ; knife
+	defb 004h, 003h, 0a0h, 078h ; pick
+	defb 004h, 003h, 018h, 040h ; pick
+	defb 000h               ; end
 pickups_b757:          ; pyramid 49
-	DELAYED 1, 1, 00A8h, 0008h  ; knife
-	DELAYED 4, 1, 0018h, 0098h  ; pick
-	DELAYED_END
+	defb 001h, 001h, 0a8h, 008h ; knife
+	defb 004h, 001h, 018h, 098h ; pick
+	defb 000h               ; end
 pickups_b760:          ; pyramid 50
-	DELAYED 3, 2, 00A8h, 00A0h  ; shovel
-	DELAYED_END
+	defb 003h, 002h, 0a8h, 0a0h ; shovel
+	defb 000h               ; end
 pickups_b765:          ; pyramid 51
-	DELAYED 1, 1, 00A8h, 0010h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 0a8h, 010h ; knife
+	defb 000h               ; end
 pickups_b76a:          ; pyramid 52
-	DELAYED 2, 1, 00A8h, 0018h  ; boomerang
-	DELAYED 3, 2, 00A8h, 00D8h  ; shovel
-	DELAYED_END
+	defb 002h, 001h, 0a8h, 018h ; boomerang
+	defb 003h, 002h, 0a8h, 0d8h ; shovel
+	defb 000h               ; end
 pickups_b773:          ; pyramid 53
-	DELAYED 4, 2, 0018h, 0060h  ; pick
-	DELAYED 4, 3, 0018h, 0060h  ; pick
-	DELAYED_END
+	defb 004h, 002h, 018h, 060h ; pick
+	defb 004h, 003h, 018h, 060h ; pick
+	defb 000h               ; end
 pickups_b77c:          ; pyramid 54
-	DELAYED 1, 1, 00A8h, 00E8h  ; knife
-	DELAYED 1, 2, 00A8h, 0008h  ; knife
-	DELAYED_END
+	defb 001h, 001h, 0a8h, 0e8h ; knife
+	defb 001h, 002h, 0a8h, 008h ; knife
+	defb 000h               ; end
 pickups_b785:          ; pyramid 55
-	DELAYED 1, 2, 00A8h, 0048h  ; knife
-	DELAYED_END
+	defb 001h, 002h, 0a8h, 048h ; knife
+	defb 000h               ; end
 pickups_b78a:          ; pyramid 56
-	DELAYED 1, 1, 0088h, 0040h  ; knife
-	DELAYED 3, 1, 0010h, 0010h  ; shovel
-	DELAYED 3, 1, 0010h, 00E0h  ; shovel
-	DELAYED_END
+	defb 001h, 001h, 088h, 040h ; knife
+	defb 003h, 001h, 010h, 010h ; shovel
+	defb 003h, 001h, 010h, 0e0h ; shovel
+	defb 000h               ; end
 pickups_b797:          ; pyramid 57
-	DELAYED 4, 1, 0030h, 00D0h  ; pick
-	DELAYED 4, 2, 0030h, 0018h  ; pick
-	DELAYED 1, 2, 00A8h, 00E0h  ; knife
-	DELAYED_END
+	defb 004h, 001h, 030h, 0d0h ; pick
+	defb 004h, 002h, 030h, 018h ; pick
+	defb 001h, 002h, 0a8h, 0e0h ; knife
+	defb 000h               ; end
 pickups_b7a4:          ; pyramid 58
-	DELAYED 3, 1, 0058h, 0008h  ; shovel
-	DELAYED 3, 1, 00A8h, 0008h  ; shovel
-	DELAYED 4, 2, 0048h, 0018h  ; pick
-	DELAYED 4, 2, 0018h, 0090h  ; pick
-	DELAYED_END
+	defb 003h, 001h, 058h, 008h ; shovel
+	defb 003h, 001h, 0a8h, 008h ; shovel
+	defb 004h, 002h, 048h, 018h ; pick
+	defb 004h, 002h, 018h, 090h ; pick
+	defb 000h               ; end
 pickups_b7b5:          ; pyramid 59
-	DELAYED 4, 3, 0088h, 00D0h  ; pick
-	DELAYED 2, 4, 00A8h, 00C0h  ; boomerang
-	DELAYED_END
+	defb 004h, 003h, 088h, 0d0h ; pick
+	defb 002h, 004h, 0a8h, 0c0h ; boomerang
+	defb 000h               ; end
 pickups_b7be:          ; pyramid 60
-	DELAYED 1, 3, 0008h, 0078h  ; knife
-	DELAYED 3, 4, 00A0h, 0050h  ; shovel
-	DELAYED 2, 5, 0078h, 0020h  ; boomerang
+	defb 001h, 003h, 008h, 078h ; knife
+	defb 003h, 004h, 0a0h, 050h ; shovel
+	defb 002h, 005h, 078h, 020h ; boomerang
 	defb 1, 6, 0078h           ; DELAYED 1, 6, 0078h, 0050h ; Y + end overlap b7cd_tbl[0]
 
 b7cd_tbl:                         ; per-pyramid delayed pickups (e242); [0] overlap

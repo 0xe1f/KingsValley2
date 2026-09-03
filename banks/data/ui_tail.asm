@@ -1,130 +1,130 @@
 ; bank 0F tail: stamp, pal_15, RLE, F800 copy, tilemap, hud_world.
 
-stamp_b8db:                            ; 0xB8DB  Japanese title (title_jp_gfx at 1050h)
-	STAMP 001h
-	STAMP_NEXT 000h
-	STAMP 02eh
-	STAMP 030h
-	STAMP 02fh
-	STAMP 031h
-	STAMP 032h
-	STAMP 033h
-	STAMP 034h
-	STAMP 035h
-	STAMP 036h
-	STAMP 000h
-	STAMP 007h
-	STAMP 008h
-	STAMP 009h
-	STAMP 00ah
-	STAMP 00bh
-	STAMP 00ch
-	STAMP 00dh
-	STAMP 00eh
-	STAMP 00fh
-	STAMP 010h
-	STAMP 002h
-	STAMP_NEXT 000h
-	STAMP 037h
-	STAMP 038h
-	STAMP 039h
-	STAMP 03ah
-	STAMP 03bh
-	STAMP 03ch
-	STAMP 03dh
-	STAMP 03eh
-	STAMP 03fh
-	STAMP 040h
-	STAMP 011h
-	STAMP 012h
-	STAMP 013h
-	STAMP 014h
-	STAMP 015h
-	STAMP 016h
-	STAMP 005h
-	STAMP 017h
-	STAMP 018h
-	STAMP 019h
-	STAMP_NEXT 000h
-	STAMP 000h
-	STAMP 041h
-	STAMP 042h
-	STAMP 043h
-	STAMP 044h
-	STAMP 045h
-	STAMP 046h
-	STAMP 047h
-	STAMP 048h
-	STAMP 049h
-	STAMP 01ah
-	STAMP 01bh
-	STAMP 01ch
-	STAMP 01dh
-	STAMP 01eh
-	STAMP 01fh
-	STAMP 006h
-	STAMP 020h
-	STAMP 021h
-	STAMP 022h
-	STAMP_NEXT 000h
-	STAMP 04ah
-	STAMP 04bh
-	STAMP 04ch
-	STAMP 04dh
-	STAMP 04eh
-	STAMP 04fh
-	STAMP 050h
-	STAMP 051h
-	STAMP 003h
-	STAMP 000h
-	STAMP 023h
-	STAMP 024h
-	STAMP 025h
-	STAMP 026h
-	STAMP 027h
-	STAMP 028h
-	STAMP 029h
-	STAMP 02ah
-	STAMP 02bh
-	STAMP 02ch
-	STAMP_NEXT 000h
-	STAMP 052h
-	STAMP 004h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 02dh
-	STAMP_NEXT 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 000h
-	STAMP 0dah
-	STAMP 0ebh
-	STAMP 0efh
-	STAMP 0eeh
-	STAMP 0e1h
-	STAMP 0edh
-	STAMP 0e9h
-	STAMP 000h
-	STAMP 0d1h
-	STAMP 0d9h
-	STAMP 0d8h
-	STAMP 0d8h
-	STAMP_END
+stamp_b8db:                            ; 0xB8DB  Japanese logo (stamp_logo_jp / title_jp_gfx at 1050h)
+	defb 001h
+	defb 0feh, 000h         ; next row
+	defb 02eh
+	defb 030h
+	defb 02fh
+	defb 031h
+	defb 032h
+	defb 033h
+	defb 034h
+	defb 035h
+	defb 036h
+	defb 000h
+	defb 007h
+	defb 008h
+	defb 009h
+	defb 00ah
+	defb 00bh
+	defb 00ch
+	defb 00dh
+	defb 00eh
+	defb 00fh
+	defb 010h
+	defb 002h
+	defb 0feh, 000h         ; next row
+	defb 037h
+	defb 038h
+	defb 039h
+	defb 03ah
+	defb 03bh
+	defb 03ch
+	defb 03dh
+	defb 03eh
+	defb 03fh
+	defb 040h
+	defb 011h
+	defb 012h
+	defb 013h
+	defb 014h
+	defb 015h
+	defb 016h
+	defb 005h
+	defb 017h
+	defb 018h
+	defb 019h
+	defb 0feh, 000h         ; next row
+	defb 000h
+	defb 041h
+	defb 042h
+	defb 043h
+	defb 044h
+	defb 045h
+	defb 046h
+	defb 047h
+	defb 048h
+	defb 049h
+	defb 01ah
+	defb 01bh
+	defb 01ch
+	defb 01dh
+	defb 01eh
+	defb 01fh
+	defb 006h
+	defb 020h
+	defb 021h
+	defb 022h
+	defb 0feh, 000h         ; next row
+	defb 04ah
+	defb 04bh
+	defb 04ch
+	defb 04dh
+	defb 04eh
+	defb 04fh
+	defb 050h
+	defb 051h
+	defb 003h
+	defb 000h
+	defb 023h
+	defb 024h
+	defb 025h
+	defb 026h
+	defb 027h
+	defb 028h
+	defb 029h
+	defb 02ah
+	defb 02bh
+	defb 02ch
+	defb 0feh, 000h         ; next row
+	defb 052h
+	defb 004h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 02dh
+	defb 0feh, 000h         ; next row
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 000h
+	defb 0dah
+	defb 0ebh
+	defb 0efh
+	defb 0eeh
+	defb 0e1h
+	defb 0edh
+	defb 0e9h
+	defb 000h
+	defb 0d1h
+	defb 0d9h
+	defb 0d8h
+	defb 0d8h
+	defb 0ffh               ; end
 
 pal_hud:                            ; 0xB95D  palette_list
 	; last rec E + 0xFF terminator overlap pal_w_even[0] (0xFF00)
@@ -204,7 +204,7 @@ pal_ba78:                           ; 0xBA78  palette_list (l57bbh)
 	defb 00dh, 052h, 004h, 00eh, 074h, 006h, 00fh, 000h
 	defb 000h, 0ffh
 
-rle_ba9a:                            ; 0xBA9A  sub_4e54h → F800
+rle_ba9a:                            ; 0xBA9A  finger pointer → F800 (pointer.png)
 	defb 083h, 000h, 01ch, 03eh, 006h, 036h, 003h, 037h
 	defb 084h, 036h, 070h, 070h, 0e4h, 009h, 000h, 08ah
 	defb 080h, 0f0h, 0f8h, 0fch, 05eh, 00eh, 087h, 000h
@@ -220,7 +220,7 @@ rle_ba9a:                            ; 0xBA9A  sub_4e54h → F800
 	defb 0f2h, 0f6h, 0e4h, 0ech, 0c8h, 0d8h, 003h, 0d0h
 	defb 081h, 0f0h, 000h
 
-pat_bb05:                           ; 0xBB05  256 bytes → F800 (sub_4e05h)
+pat_bb05:                           ; 0xBB05  256 bytes → F800 (ldirmv)
 	defb 000h, 040h, 03fh, 019h, 001h, 001h, 001h, 01fh
 	defb 00dh, 001h, 001h, 001h, 01fh, 0fch, 070h, 000h
 	defb 000h, 000h, 0feh, 00ch, 080h, 080h, 080h, 0f8h

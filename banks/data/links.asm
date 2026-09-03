@@ -3,132 +3,132 @@
 ; Empty lists point at links_empty (high byte of adcf_tbl[0] = 0xFF).
 
 links_ad3a:
-	LINK 0, 0
-	LINK_END
+	defb 000h, 000h         ; 0 -> 0
+	defb 0ffh               ; end
 links_ad3d:
-	LINK 0, 1
-	LINK_END
+	defb 000h, 001h         ; 0 -> 1
+	defb 0ffh               ; end
 links_ad40:
-	LINK 1, 0
-	LINK_END
+	defb 001h, 000h         ; 1 -> 0
+	defb 0ffh               ; end
 links_ad43:
-	LINK 0, 8
-	LINK_END
+	defb 000h, 008h         ; 0 -> 8
+	defb 0ffh               ; end
 links_ad46:
-	LINK 8, 0
-	LINK_END
+	defb 008h, 000h         ; 8 -> 0
+	defb 0ffh               ; end
 links_ad49:
-	LINK 0, 2
-	LINK_END
+	defb 000h, 002h         ; 0 -> 2
+	defb 0ffh               ; end
 links_ad4c:
-	LINK 2, 0
-	LINK_END
+	defb 002h, 000h         ; 2 -> 0
+	defb 0ffh               ; end
 links_ad4f:
-	LINK 0, 16
-	LINK_END
+	defb 000h, 010h         ; 0 -> 16
+	defb 0ffh               ; end
 links_ad52:
-	LINK 16, 0
-	LINK_END
+	defb 010h, 000h         ; 16 -> 0
+	defb 0ffh               ; end
 links_ad55:
-	LINK 0, 0
-	LINK 1, 1
-	LINK_END
+	defb 000h, 000h         ; 0 -> 0
+	defb 001h, 001h         ; 1 -> 1
+	defb 0ffh               ; end
 links_ad5a:
-	LINK 8, 9
-	LINK_END
+	defb 008h, 009h         ; 8 -> 9
+	defb 0ffh               ; end
 links_ad5d:
-	LINK 9, 8
-	LINK_END
+	defb 009h, 008h         ; 9 -> 8
+	defb 0ffh               ; end
 links_ad60:
-	LINK 1, 9
-	LINK_END
+	defb 001h, 009h         ; 1 -> 9
+	defb 0ffh               ; end
 links_ad63:
-	LINK 9, 1
-	LINK_END
+	defb 009h, 001h         ; 9 -> 1
+	defb 0ffh               ; end
 links_ad66:
-	LINK 0, 1
-	LINK 9, 9
-	LINK_END
+	defb 000h, 001h         ; 0 -> 1
+	defb 009h, 009h         ; 9 -> 9
+	defb 0ffh               ; end
 links_ad6b:
-	LINK 1, 0
-	LINK 9, 9
-	LINK_END
+	defb 001h, 000h         ; 1 -> 0
+	defb 009h, 009h         ; 9 -> 9
+	defb 0ffh               ; end
 links_ad70:
-	LINK 0, 0
-	LINK 16, 16
-	LINK_END
+	defb 000h, 000h         ; 0 -> 0
+	defb 010h, 010h         ; 16 -> 16
+	defb 0ffh               ; end
 links_ad75:
-	LINK 0, 0
-	LINK 1, 1
-	LINK_END
+	defb 000h, 000h         ; 0 -> 0
+	defb 001h, 001h         ; 1 -> 1
+	defb 0ffh               ; end
 links_ad7a:
-	LINK 0, 8
-	LINK 1, 9
-	LINK_END
+	defb 000h, 008h         ; 0 -> 8
+	defb 001h, 009h         ; 1 -> 9
+	defb 0ffh               ; end
 links_ad7f:
-	LINK 8, 0
-	LINK 9, 1
-	LINK_END
+	defb 008h, 000h         ; 8 -> 0
+	defb 009h, 001h         ; 9 -> 1
+	defb 0ffh               ; end
 links_ad84:
-	LINK 1, 9
-	LINK_END
+	defb 001h, 009h         ; 1 -> 9
+	defb 0ffh               ; end
 links_ad87:
-	LINK 9, 1
-	LINK_END
+	defb 009h, 001h         ; 9 -> 1
+	defb 0ffh               ; end
 links_ad8a:
-	LINK 0, 0
-	LINK 3, 3
-	LINK_END
+	defb 000h, 000h         ; 0 -> 0
+	defb 003h, 003h         ; 3 -> 3
+	defb 0ffh               ; end
 links_ad8f:
-	LINK 0, 8
-	LINK 1, 9
-	LINK_END
+	defb 000h, 008h         ; 0 -> 8
+	defb 001h, 009h         ; 1 -> 9
+	defb 0ffh               ; end
 links_ad94:
-	LINK 8, 0
-	LINK 9, 1
-	LINK_END
+	defb 008h, 000h         ; 8 -> 0
+	defb 009h, 001h         ; 9 -> 1
+	defb 0ffh               ; end
 links_ad99:
-	LINK 0, 8
-	LINK 1, 9
-	LINK 2, 10
-	LINK_END
+	defb 000h, 008h         ; 0 -> 8
+	defb 001h, 009h         ; 1 -> 9
+	defb 002h, 00ah         ; 2 -> 10
+	defb 0ffh               ; end
 links_ada0:
-	LINK 8, 0
-	LINK 9, 1
-	LINK 10, 2
-	LINK_END
+	defb 008h, 000h         ; 8 -> 0
+	defb 009h, 001h         ; 9 -> 1
+	defb 00ah, 002h         ; 10 -> 2
+	defb 0ffh               ; end
 links_ada7:
-	LINK 0, 2
-	LINK 8, 10
-	LINK_END
+	defb 000h, 002h         ; 0 -> 2
+	defb 008h, 00ah         ; 8 -> 10
+	defb 0ffh               ; end
 links_adac:
-	LINK 2, 0
-	LINK 10, 8
-	LINK_END
+	defb 002h, 000h         ; 2 -> 0
+	defb 00ah, 008h         ; 10 -> 8
+	defb 0ffh               ; end
 links_adb1:
-	LINK 2, 10
-	LINK_END
+	defb 002h, 00ah         ; 2 -> 10
+	defb 0ffh               ; end
 links_adb4:
-	LINK 10, 2
-	LINK_END
+	defb 00ah, 002h         ; 10 -> 2
+	defb 0ffh               ; end
 links_adb7:
-	LINK 0, 8
-	LINK 9, 9
-	LINK_END
+	defb 000h, 008h         ; 0 -> 8
+	defb 009h, 009h         ; 9 -> 9
+	defb 0ffh               ; end
 links_adbc:
-	LINK 8, 0
-	LINK 9, 9
-	LINK_END
+	defb 008h, 000h         ; 8 -> 0
+	defb 009h, 009h         ; 9 -> 9
+	defb 0ffh               ; end
 links_adc1:
-	LINK 0, 1
-	LINK 8, 9
-	LINK_END
+	defb 000h, 001h         ; 0 -> 1
+	defb 008h, 009h         ; 8 -> 9
+	defb 0ffh               ; end
 links_adc6:
-	LINK 1, 0
-	LINK 9, 8
-	LINK_END
+	defb 001h, 000h         ; 1 -> 0
+	defb 009h, 008h         ; 9 -> 8
+	defb 0ffh               ; end
 links_adcb:                       ; pyramid lists sharing ADCB
-	LINK 0, 0
+	defb 000h, 000h         ; 0 -> 0
 	defb 002h, 002h               ; LINK 2, 2 ; end overlaps adcf_tbl[0]
 
 adcf_tbl:                         ; 0xADCF  up    -> 0xED80  (screen-8); 60 words, e242

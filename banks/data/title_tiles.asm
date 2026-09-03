@@ -1,4 +1,4 @@
-; title copy_tiles 1bpp (title_load after stamp_bb9b).
+; title copy_tiles 1bpp (title_load after stamp_logo_konami).
 
 title_bbdc:                            ; 0xBBDC  copy_tiles B=0Dh C=01h
 ; BBDC

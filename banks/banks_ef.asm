@@ -65,9 +65,11 @@ idx2:                               ; 0xB116  blit_list DE; [0] == pal_list
 pal_list:
 	defb 007h, 008h, 00ah, 00bh, 00ch, 00fh, 000h, 000h
 blit_recs:                          ; 0xB120  Japanese title dests (title_jp_gfx)
-	BLIT 004h, 001h, 040h, pat_b12b
-	BLIT 004h, 041h, 012h, pat_b72b
-	BLIT_END
+	defb 004h, 001h, 040h
+	defw pat_b12b
+	defb 004h, 041h, 012h
+	defw pat_b72b
+	defb 0ffh               ; end
 	INCLUDE "banks/data/dest0F.asm"
 	INCLUDE "banks/data/ui_tail.asm"
 	ds 565, 0ffh

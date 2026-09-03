@@ -25,29 +25,29 @@ bb38_tbl:
 	defw map_bb3c, map_bb9c
 	INCLUDE "banks/data/minimap.asm"
 print_legend:                     ; print_stream 0xBC54  editor legend
-	TEXT_AT 028h, 010h
+	defb 028h, 010h         ; D,E
 	TEXT "floor1"
-	TEXT_NEXT 028h, 020h
+	defb 0feh, 028h, 020h   ; next D,E
 	TEXT "floor2"
-	TEXT_NEXT 028h, 030h
+	defb 0feh, 028h, 030h   ; next D,E
 	TEXT "ladder"
-	TEXT_NEXT 028h, 040h
+	defb 0feh, 028h, 040h   ; next D,E
 	TEXT "player"
-	TEXT_NEXT 028h, 050h
+	defb 0feh, 028h, 050h   ; next D,E
 	TEXT "enemy"
-	TEXT_NEXT 028h, 060h
+	defb 0feh, 028h, 060h   ; next D,E
 	TEXT "trap"
-	TEXT_NEXT 028h, 070h
+	defb 0feh, 028h, 070h   ; next D,E
 	TEXT "tool weapon"
-	TEXT_NEXT 028h, 080h
+	defb 0feh, 028h, 080h   ; next D,E
 	TEXT "soul stone"
-	TEXT_NEXT 028h, 090h
+	defb 0feh, 028h, 090h   ; next D,E
 	TEXT "exit door"
-	TEXT_NEXT 028h, 0a0h
+	defb 0feh, 028h, 0a0h   ; next D,E
 	TEXT "save"
-	TEXT_NEXT 028h, 0b0h
+	defb 0feh, 028h, 0b0h   ; next D,E
 	TEXT "end"
-	TEXT_END
+	defb 0ffh               ; end
 bcbb_tbl:
 	; print_stream ptrs: enemies, doors/terrain, tools. Caller reads max
 	; cursor at (hl), inc hl, print_stream. A 4th word from bcbb_tbl is
@@ -56,126 +56,126 @@ bcbb_tbl:
 print_names:                      ; 0xBCC1-0xBECF
 names_enemies:                    ; max=3; Slouman, Flouman, Pyoncy, Rock Roll
 	defb 3
-	TEXT_AT 0a0h, 010h
+	defb 0a0h, 010h         ; D,E
 	TEXT "slouman"
-	TEXT_NEXT 0a0h, 020h
+	defb 0feh, 0a0h, 020h   ; next D,E
 	TEXT "flouman"
-	TEXT_NEXT 0a0h, 030h
+	defb 0feh, 0a0h, 030h   ; next D,E
 	TEXT "pyoncy"
-	TEXT_NEXT 0a0h, 040h
+	defb 0feh, 0a0h, 040h   ; next D,E
 	TEXT "rock roll"
-	TEXT_END
+	defb 0ffh               ; end
 names_terrain:                    ; max=7; door1/2 lr/rl, wall, floor, stone, ladder
 	defb 7
-	TEXT_AT 0a0h, 010h
+	defb 0a0h, 010h         ; D,E
 	TEXT "door1 lr"
-	TEXT_NEXT 0a0h, 020h
+	defb 0feh, 0a0h, 020h   ; next D,E
 	TEXT "door1 rl"
-	TEXT_NEXT 0a0h, 030h
+	defb 0feh, 0a0h, 030h   ; next D,E
 	TEXT "door2 lr"
-	TEXT_NEXT 0a0h, 040h
+	defb 0feh, 0a0h, 040h   ; next D,E
 	TEXT "door2 rl"
-	TEXT_NEXT 0a0h, 050h
+	defb 0feh, 0a0h, 050h   ; next D,E
 	TEXT "wall"
-	TEXT_NEXT 0a0h, 060h
+	defb 0feh, 0a0h, 060h   ; next D,E
 	TEXT "floor"
-	TEXT_NEXT 0a0h, 070h
+	defb 0feh, 0a0h, 070h   ; next D,E
 	TEXT "stone"
-	TEXT_NEXT 0a0h, 080h
+	defb 0feh, 0a0h, 080h   ; next D,E
 	TEXT "ladder"
-	TEXT_END
+	defb 0ffh               ; end
 names_tools:                      ; max=5; knife, boomerang, shovel (HUD scoop), pick, hammer, drill
 	defb 5
-	TEXT_AT 0a0h, 010h
+	defb 0a0h, 010h         ; D,E
 	TEXT "knife"
-	TEXT_NEXT 0a0h, 020h
+	defb 0feh, 0a0h, 020h   ; next D,E
 	TEXT "boomerang"
-	TEXT_NEXT 0a0h, 030h
+	defb 0feh, 0a0h, 030h   ; next D,E
 	TEXT "scoop"                   ; manual: shovel
-	TEXT_NEXT 0a0h, 040h
+	defb 0feh, 0a0h, 040h   ; next D,E
 	TEXT "pick"
-	TEXT_NEXT 0a0h, 050h
+	defb 0feh, 0a0h, 050h   ; next D,E
 	TEXT "hammer"
-	TEXT_NEXT 0a0h, 060h
+	defb 0feh, 0a0h, 060h   ; next D,E
 	TEXT "drill"
-	TEXT_END
+	defb 0ffh               ; end
 str_load_data:                    ; 0xBD6D  io_ask
-	TEXT_AT 050h, 048h
+	defb 050h, 048h         ; D,E
 	TEXT "load data }"
-	TEXT_NEXT 080h, 058h
+	defb 0feh, 080h, 058h   ; next D,E
 	TEXT "yes"
-	TEXT_NEXT 080h, 068h
+	defb 0feh, 080h, 068h   ; next D,E
 	TEXT "no"
-	TEXT_END
+	defb 0ffh               ; end
 str_file_hdr:                     ; 0xBD86  "| file name |"
-	TEXT_AT 048h, 010h
+	defb 048h, 010h         ; D,E
 	TEXT "| file name |"
-	TEXT_NEXT 048h, 0a8h
+	defb 0feh, 048h, 0a8h   ; next D,E
 	TEXT "next ||  m key"
-	TEXT_NEXT 048h, 0b8h
+	defb 0feh, 048h, 0b8h   ; next D,E
 	TEXT "load || ret key"
-	TEXT_END
+	defb 0ffh               ; end
 str_load_mode:                    ; 0xBDB9  io_mode
-	TEXT_AT 048h, 040h
+	defb 048h, 040h         ; D,E
 	TEXT "| load mode |"
-	TEXT_NEXT 060h, 050h
+	defb 0feh, 060h, 050h   ; next D,E
 	TEXT "tape load"
-	TEXT_END
+	defb 0ffh               ; end
 str_disk_load:                    ; 0xBDD5  glyphs only; DE preloaded
 	TEXT "disk load"
-	TEXT_END
+	defb 0ffh               ; end
 str_sram_load:                    ; 0xBDDF
 	TEXT "sram load"
-	TEXT_END
+	defb 0ffh               ; end
 str_input_name:                   ; 0xBDE9
-	TEXT_AT 040h, 040h
+	defb 040h, 040h         ; D,E
 	TEXT "input file name"
-	TEXT_NEXT 060h, 060h
+	defb 0feh, 060h, 060h   ; next D,E
 	TEXT "{{{{{{{{"
-	TEXT_END
+	defb 0ffh               ; end
 str_loading:                      ; 0xBE06
-	TEXT_AT 058h, 048h
+	defb 058h, 048h         ; D,E
 	TEXT "now loading"
-	TEXT_END
-	TEXT_AT 048h, 040h
+	defb 0ffh               ; end
+	defb 048h, 040h         ; D,E
 	TEXT "| save mode |"
-	TEXT_NEXT 060h, 050h
+	defb 0feh, 060h, 050h   ; next D,E
 	TEXT "tape save"
-	TEXT_END
+	defb 0ffh               ; end
 	TEXT "disk save"
-	TEXT_END
+	defb 0ffh               ; end
 	TEXT "sram save"
-	TEXT_END
-	TEXT_AT 070h, 050h
+	defb 0ffh               ; end
+	defb 070h, 050h         ; D,E
 	TEXT "file1"
-	TEXT_END
-	TEXT_AT 070h, 060h
+	defb 0ffh               ; end
+	defb 070h, 060h         ; D,E
 	TEXT "file2"
-	TEXT_END
-	TEXT_AT 070h, 070h
+	defb 0ffh               ; end
+	defb 070h, 070h         ; D,E
 	TEXT "file3"
-	TEXT_END
-	TEXT_AT 050h, 040h
+	defb 0ffh               ; end
+	defb 050h, 040h         ; D,E
 	TEXT "file select"
-	TEXT_END
-	TEXT_AT 060h, 080h
+	defb 0ffh               ; end
+	defb 060h, 080h         ; D,E
 	TEXT "save error"
-	TEXT_END
-	TEXT_AT 060h, 050h
+	defb 0ffh               ; end
+	defb 060h, 050h         ; D,E
 	TEXT "edit end"
-	TEXT_NEXT 050h, 060h
+	defb 0feh, 050h, 060h   ; next D,E
 	TEXT "ok }  y or n"
-	TEXT_END
-	TEXT_AT 040h, 060h
+	defb 0ffh               ; end
+	defb 040h, 060h         ; D,E
 	TEXT "input password"
-	TEXT_NEXT 060h, 078h
+	defb 0feh, 060h, 078h   ; next D,E
 	TEXT "{{{{{{{{"
-	TEXT_END
-	TEXT_AT 040h, 088h
+	defb 0ffh               ; end
+	defb 040h, 088h         ; D,E
 	TEXT "wrong password"
-	TEXT_END
-	TEXT_AT 040h, 088h
+	defb 0ffh               ; end
+	defb 040h, 088h         ; D,E
 	TEXT "right password"
-	TEXT_END
+	defb 0ffh               ; end
 	INCLUDE "banks/data/hud_tiles.asm"
 	ds 10, 0ffh

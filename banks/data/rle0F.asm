@@ -1,4 +1,4 @@
-; bank 0F Konami RLE (sub_4e54h) 0xA9F6–0xB116.
+; bank 0F Konami RLE (rle_vram) 0xA9F6–0xB116.
 
 rle_a9f6:                            ; 0xA9F6  copy_ab59 → FE80
 	defb 081h, 080h, 01fh, 000h, 000h
@@ -6,7 +6,7 @@ rle_a9f6:                            ; 0xA9F6  copy_ab59 → FE80
 rle_a9fb:                            ; 0xA9FB  copy_af21 / copy_pwd → FE80
 	defb 002h, 0c0h, 01eh, 000h, 000h
 
-rle_aa00:                            ; 0xAA00  l5937h → E080
+rle_aa00:                            ; 0xAA00  pause pushups → E080 (vic_pushup.png)
 	defb 007h, 000h, 089h, 001h, 007h, 00fh, 01fh, 01fh
 	defb 03fh, 07ah, 072h, 032h, 007h, 000h, 089h, 080h
 	defb 0e0h, 0f0h, 0f8h, 0f8h, 0fch, 05eh, 04eh, 04ch

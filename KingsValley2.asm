@@ -12,7 +12,6 @@
     INCLUDE "banks/ram.inc"
     INCLUDE "banks/text.inc"
     INCLUDE "banks/objects.inc"
-    INCLUDE "banks/sfx.inc"
 
 ; --- bank 0 ---  resident @ 4000
     PHASE 0x4000

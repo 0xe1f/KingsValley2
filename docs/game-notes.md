@@ -62,6 +62,7 @@ pyramid.
 | `0xE287` | byte | `pickup_tool` | Currently held E300 type (0 = none). |
 
 Vic `(0xE280)` is `d_9ecd` (no `dec a`), ticked by `vic_tick` @ 0x9EC4.
+`(0xE282)` is Y (SAT Y = E282−9), `(0xE284)` is X. `map_tile` takes Y in L, X in H.
 
 | E280 | Label | Meaning |
 |---|---|---|
@@ -162,7 +163,7 @@ ROM addresses for them until a consumer is traced.
   live in the next bank of the triplet
   (0x7E6F → 0x8018) or in bank 00 (`sfx_01`..`sfx_84` stubs before `sound_far`).
 - Stream consumers (bank 00): `palette_set` / `palette_list` (0x4EF2 / 0x4F1C),
-  `print_stream` / `print_stream_blank` (0x51D0 / 0x51D4; `TEXT`/`CHAR` in
+  `print_stream` / `print_stream_blank` (0x51D0 / 0x51D4; `TEXT`/`TEXT4` in
   [`banks/text.inc`](../banks/text.inc): space→00h, `'0'`..`'?'`→ch+A0h, else
   ch|80h; `0xFE` next pos, `0xFF` end), `print_at` (0x51DA, DE already set), `blit_list` (0x54A0; 5-byte records, tiles at 0x8000).
   VDP engine: `vdp_ce_wait` / `vdp_status`, `vdp_hmmv` (CMD 70h),
@@ -179,10 +180,10 @@ ROM addresses for them until a consumer is traced.
   `read_keyrow` (SNSMAT 6/7). Boot VDP sprite regs at 0x5413 (R#1/5/6/11)
   were glued onto that poll; 0x541B is a `ret` (`poll_skip`) so mode 0
   substate 0 does not read the stick.
-- Sound ids `sfx_01`..`sfx_41` and `sfx_80`..`sfx_84` (`SFX`/`SFXR` in
-  [`banks/sfx.inc`](../banks/sfx.inc)) are 5-byte `jp` then 4-byte `jr`
-  thunks onto `sound_far` (0x4326). `sfx_82`/`sfx_83` also write `(0xE21A)`.
-  Boot `vic_fall` `jp`s `sfx_3c`.
+- Sound ids `sfx_01`..`sfx_41` and `sfx_80`..`sfx_84` are `ld a,id` then
+  `jp` (ids 1–0x27) or `jr` (0x28–0x41 / 0x80–0x83) onto `sound_far`
+  (0x4326). `sfx_82`/`sfx_83` also write `(0xE21A)`. Boot `vic_fall`
+  `jp`s `sfx_3c`.
 - Game mode `(0xE200)` is `mode_tick` → `d_46ea` (14 states). Handlers:
   `mode_boot` (nested `d_470a`), `mode_hold`, `mode_attract`, `mode_title`
   (`d_47c2`: `title_jingle`..`title_go`; **edit** on the flash → continue
@@ -199,8 +200,9 @@ ROM addresses for them until a consumer is traced.
   Play frames: `sat_flip` / `play_tick` / `sat_blit`. `play_tick` is Vic,
   tools, gems, actors, exit, secrets, then `tick_ef10` (bank 0C).
   `sat_wipe` (0x5D41) fills the software SAT at `0xE800` with Y=0xE0.
-  Room change: `probe_edge` writes `E248` (1 L / 2 R / 3 U / 4 D);
-  `mode_room` runs `room_exit` (wrap Vic, `room_link` via ED80..EDB0) then
+  Room change: `probe_edge` writes `E248` (1 up / 2 down / 3 left / 4 right);
+  `mode_room` runs `room_exit` (wrap Vic, `room_link` via ED80 up / ED90
+  down / EDA0 left / EDB0 right) then
   `room_draw` (includes `draw_ef10`). World load (`set_world`) runs
   `load_vic`, then `load_delayed` / `load_gems_far` / `load_exit` /
   `load_screens` / `load_links` / `screen_idx`, then `load_pyramid`
@@ -227,7 +229,7 @@ Write A / A+1 / A+2 to `7000` / `9000` / `B000` and mirror at
 | `page_bank_c` / `_d` / `_f` | 0C / 0D / 0F | (keep) | (keep) | 0C / 0D / 0F |
 | `page_banks_ef` | 0E | (keep) | 0E | 0F |
 
-Temporary far calls (H.TIMI, sound stub `l4326h`, `sub_53b6h`) page 04/05/06,
+Temporary far calls (H.TIMI, sound stub `l4326h`, `scr_boot`) page 04/05/06,
 `call 6000h` / `6003h` / `6006h`, then restore from `0xF0F1–F0F3`.
 
 Bank 04 starts with `jp 6009h` / `jp 603dh` / `jp 62f8h` matching those three
@@ -242,7 +244,10 @@ wrong from bank 04 onward.
 One window file [`banks/banks_123.asm`](../banks/banks_123.asm) (`page_banks_123`,
 `PHASE 0x6000` for 24 KiB).
 
-- Bank 01 starts `call print_stream` (twice) / `call sat_wipe` into bank 00.
+- Bank 01 starts with unused `pause_sat` (SAT template); `pause_tick` calls
+  `pause_overlay` @ 0x6059 (`edc0_jp` on EDC0: wait F2 / draw map / restore
+  play / idle). Door arrows on the pause map follow `room_link` (ED80 up /
+  ED90 down / EDA0 left / EDB0 right). `pause_anim` @ 0x9801 is the push-up SAT.
   `ld hl,0E2F3h` at 0x7FFE continues into bank 02; `jr z,l8016h` at 0x7FFC.
   `.blocks`: 32-byte copy at 0x6039, `DISPATCH_A` word tables (including
   `d_735f` @ 0x7362, ending ceremony, 65 words; `d_71e3` stage-clear
@@ -295,7 +300,7 @@ Folded to [`banks/banks_456.asm`](../banks/banks_456.asm) inside `MODULE banks_4
 
 | CPU | Name | Bank 00 caller |
 |---|---|---|
-| 0x6000 | `banks_456_init` → `sound_init` | `sub_53b6h` |
+| 0x6000 | `banks_456_init` → `sound_init` | `scr_boot` |
 | 0x6003 | `sound_entry` → `sound_play` | `sound_far` (0x4326) |
 | 0x6006 | `tick_entry` → `sound_tick` | `htimi_isr` |
 
@@ -310,7 +315,7 @@ Channel ptrs continue into banks 05–06 (`ch_*` labels, same window).
 Ids 0x80–0x84 are special-cased. SCC enable `ld a,3Fh / ld (9000h),a`;
 opcode loads `wave_ptr` (0x7210, 72 words) and copies 32 bytes to
 `9800` + n*0x20. Unique waves `wave_72a0`..`wave_7680`; many index slots
-point at `env_0`. Envelope tables `env_0`..`env_5` (`sub_653dh`); channel
+point at `env_0`. Envelope tables `env_0`..`env_5` (`gem_tiles`); channel
 streams `ch_785e`..`ch_7fd7` then banks 05–06. This is the 18-byte packed
 header / 8-slot SCC driver (`konami/sccplay.py`), not Vampire Killer’s
 6-byte music-rec player. `make music` / `make sfx` wrap it (`tools/psgplay.py`).
@@ -360,7 +365,7 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
 
 - Bank 0A: `map_ptr` / `obj_ptr` / `obj2_ptr` are source `defw`;
   `unpack_map` streams `map_01`..`map_33` are [`maps0A.asm`](../banks/data/maps0A.asm)
-  (`MAP_RUN`). Three parallel 60-word tables indexed by `(0xE242)-1`.
+  (`unpack_map`). Three parallel 60-word tables indexed by `(0xE242)-1`.
   `map_ptr` @ 0x6000 (`[0] == map_01`); entries 34.. continue into bank 0B
   (`map_34` @ 0x80B0) and bank 0C (`map_60` @ 0xA121). `obj_ptr` @ 0x6078 is a packed **map-bit
   overlay** (`load_obj`). `obj2_ptr` @ 0x60F0 is secret-entrance records
@@ -370,7 +375,7 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
   cells/byte; pyramid size is 1/2/3/4/6 screens × 0xC0 bytes (768 tiles/screen).
 - Bank 0B: `map_33` tail + `map_34`..`map_59` ([`maps0B.asm`](../banks/data/maps0B.asm)). Not code.
 - Bank 0C: `map_59` tail + `map_60` through 0xA363 ([`maps0C.asm`](../banks/data/maps0C.asm)); `load_obj` / `load_obj2`
-  overlays 0xA363–0xAA29 (`OVERLAY` in [`objects.inc`](../banks/objects.inc),
+  overlays 0xA363–0xAA29 (layout in [`objects.inc`](../banks/objects.inc),
   [`banks/data/overlays.asm`](../banks/data/overlays.asm)); world-map
   `copy_tiles` font 0xAA29–0xAC01 ([`banks/data/wmap.asm`](../banks/data/wmap.asm)).
   `tiles_afdd` 1bpp (53 tiles, B=35h C=FBh), `file_pat` 1bpp (file_blit), and
@@ -406,7 +411,7 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
   ptr 0x9020 inside bank 0B map stream `0x8EA8`, not a TEXT island). Ending
   `str_end_boot`..`str_end_congrats`, credits `ad76_tbl`
   (I.Akada / K.Nagae / K.Uehara / … / presented by Konami). Ending font is
-  stored letters +4. After that: `end_stamp_tbl` @ 0xAF37 (9 × X,Y,pat),
+  Ending font is TEXT4 (displayed ASCII, stored ch-4). After that: `end_stamp_tbl` @ 0xAF37 (9 × X,Y,pat),
   `disk_err_tbl` @ 0xAF52 (`str_disk_io`..`str_datatype`; header `str_disk_err`),
   `str_start_sel` @ 0xB185 (normal / password / stage load), `str_clear_card`
   @ 0xB256, `str_secret_cmd` @ 0xB284. Later islands: 0xB8AF ("esc key"/"push space key"), 0xBE67
@@ -418,8 +423,7 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
 
 Tables / text streams / tiles, not code. A000-only via `page_bank_d`.
 `MODULE banks_d`. Packed lists live in [`banks/data/`](../banks/data/)
-(`GEM` / `ACTOR` / `TOOL` / `LINK` / `DELAYED` in
-[`banks/objects.inc`](../banks/objects.inc)): gems, actors, tools,
+(layout in [`banks/objects.inc`](../banks/objects.inc)): gems, actors, tools,
 screen bits (`ab5a_flags`, 60 × 8 → `0xE788`), door links (`adcf`/`ae47`/
 `aebf`/`af37` → ED80 up / ED90 down / EDA0 left / EDB0 right), delayed
 pickups (`b7cd_tbl` → `0xE2C0`), Vic spawn (`0xB844` + level×3), exit door
@@ -437,7 +441,7 @@ Several 60/61-word tables indexed by `(0xE242)` (`0xA75D`, `0xAAE0`,
   (`str_load_data` / `str_load_mode` / `str_input_name` / `str_loading`).
 `copy_tiles` 18+6 glyphs @ 0xBF36 / 0xBFC6; `sat_pat` @ 0xBECF is an E500
 pattern-id table (ix+11), not pixel planes. `bb38_tbl` is two 32×24 1bpp
-minimaps (MSX1 vs MSX2). Konami RLE (`sub_4e54h`) @ 0xBBFC / 0xBF29.
+minimaps (MSX1 vs MSX2). Konami RLE (`rle_vram`) @ 0xBBFC / 0xBF29.
 
 ## Banks 0E–0F (@ 0x8000 / 0xA000)
 
@@ -449,19 +453,22 @@ keep numeric immediates.
 
 - Bank 0E: `glyph_ptr` is source `defw` (114 words, `[0] == glyphs`); payloads
   are [`glyphs0E.asm`](../banks/data/glyphs0E.asm) (`gly_80e4`..; last
-  `gly_858a` is one `0xFF`). `sub_4638h` indexes 0x800C (6 worlds × 8 tile-id
-  lists); `sub_4606h` indexes 0x806A (per-level 2-byte records, 1-based).
-  `vic_reload` / `sub_58dbh` lists
+  `gly_858a` is one `0xFF`). `stamp_glyph` indexes 0x800C (6 worlds × 8 tile-id
+  lists); `stamp_level` indexes 0x806A (per-level 3-byte records, 1-based).
+  `vic_reload` / `vic_pat` lists
   ([`held.asm`](../banks/data/held.asm)): `held_ptr` 7 words (`(0xE287)` =
   0 none, 1–6 tool) → `VIC_RLE` / `VIC_COPY` streams; `vic_hmm` / `vic_hmm2`
   14 `vdp_hmmm` dests (`(0xE285)*2`). Packed RLE 0x86D4–0x98C9 is source
   ([`rle0E.asm`](../banks/data/rle0E.asm)) plus copy lists / `draw_cols`
   ([`lists0E.asm`](../banks/data/lists0E.asm),
   [`cols0E.asm`](../banks/data/cols0E.asm)): `rle_86d4`..`rle_97a1`;
-  `pat_copy` (`l5508h`) / `pat_flip` (`l553dh`); `end_txt` `"music stage"` /
+  `pat_copy` (`copy_pat`, Flouman/Slouman) / `pat_flip` (`flip_pat`); `end_txt` `"music stage"` /
   `"puzzle stage"`; `col_ptr` 48 words, 27-row columns (`col_21` crosses
   into bank 0F). `make gfx` decompresses those RLE streams to 16×16 1bpp
-  planes (`gfx/sprites/held_*.png`).
+  planes (`gfx/sprites/vic_*.png`, `vic_die.png`, `vic_pushup.png`,
+  `flouman.png`, `knife.png`, `pointer.png`) and composites `draw_cols` /
+  `STAMP` / `glyph_ptr` (`gfx/cols_*.png`, `gfx/stamp_*.png`,
+  `gfx/metatiles/glyphs0E.png`).
 - Bank 0F source: `draw_cols` tail
   ([`cols0F.asm`](../banks/data/cols0F.asm) 0xA000–0xA2C8);
   tile-id grids + `STAMP` streams
@@ -471,7 +478,7 @@ keep numeric immediates.
   ([`dest0F.asm`](../banks/data/dest0F.asm) `pat_b12b` 64×24 / `pat_b72b` 18×24,
   Japanese title glyphs, `gfx/tilesets/dest_title_jp.png`);
   stamp + `pal_hud` / `pal_w_even` /
-  `pal_w_odd` (overlap sentinels like `e241_tbl`) + RLE `ba9a` + `pat_bb05`
+  `pal_w_odd` (overlap sentinels like `e241_tbl`) + RLE `ba9a` (finger pointer) + `pat_bb05`
   + `pic_bc05` + `hud_world_tbl`
   ([`ui_tail.asm`](../banks/data/ui_tail.asm) 0xB8DB–0xBDCB);
   `palette_list` streams `pal_a7ce` / `pal_a7ff` / `pal_a870` / `pal_a8bb`.

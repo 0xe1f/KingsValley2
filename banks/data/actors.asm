@@ -1,301 +1,301 @@
 ; packed actors -> 0xE600 (bank 0D). Last record byte3 + ACTOR_END overlap aae0_tbl[0].
 
 actors_a7d7:          ; pyramid 1
-	ACTOR_END
+	defb 000h               ; end
 actors_a7d8:          ; pyramid 2
-	ACTOR 1, 1, 048h, 0a0h, 3, 1  ; coffin
-	ACTOR 1, 1, 068h, 050h, 3, 0  ; coffin
-	ACTOR_END
+	defb 011h, 048h, 0a0h, 019h ; coffin
+	defb 011h, 068h, 050h, 018h ; coffin
+	defb 000h               ; end
 actors_a7e1:          ; pyramid 3
-	ACTOR 2, 2, 068h, 0a0h, 3, 1  ; pyoncy
-	ACTOR 3, 2, 010h, 0a0h, 4, 0  ; rockroll
-	ACTOR_END
+	defb 022h, 068h, 0a0h, 019h ; pyoncy
+	defb 032h, 010h, 0a0h, 020h ; rockroll
+	defb 000h               ; end
 actors_a7ea:          ; pyramid 4
-	ACTOR 1, 2, 058h, 078h, 3, 0  ; coffin
-	ACTOR 3, 2, 088h, 030h, 5, 0  ; rockroll
-	ACTOR_END
+	defb 012h, 058h, 078h, 018h ; coffin
+	defb 032h, 088h, 030h, 028h ; rockroll
+	defb 000h               ; end
 actors_a7f3:          ; pyramid 5
-	ACTOR_END
+	defb 000h               ; end
 actors_a7f4:          ; pyramid 6
-	ACTOR 5, 1, 070h, 078h, 2, 0  ; stone
-	ACTOR_END
+	defb 051h, 070h, 078h, 010h ; stone
+	defb 000h               ; end
 actors_a7f9:          ; pyramid 7
-	ACTOR 4, 1, 068h, 070h, 1, 0  ; trap
-	ACTOR 4, 2, 018h, 070h, 1, 0  ; trap
-	ACTOR 4, 2, 090h, 070h, 1, 0  ; trap
-	ACTOR_END
+	defb 041h, 068h, 070h, 008h ; trap
+	defb 042h, 018h, 070h, 008h ; trap
+	defb 042h, 090h, 070h, 008h ; trap
+	defb 000h               ; end
 actors_a806:          ; pyramid 8,9
-	ACTOR_END
+	defb 000h               ; end
 actors_a807:          ; pyramid 10
-	ACTOR 4, 1, 028h, 008h, 1, 0  ; trap
-	ACTOR 4, 1, 028h, 048h, 1, 0  ; trap
-	ACTOR 4, 1, 028h, 088h, 1, 0  ; trap
-	ACTOR 4, 1, 028h, 0c8h, 1, 0  ; trap
-	ACTOR 4, 1, 048h, 048h, 1, 0  ; trap
-	ACTOR 4, 1, 068h, 088h, 1, 0  ; trap
-	ACTOR 4, 1, 088h, 0c8h, 1, 0  ; trap
-	ACTOR 4, 2, 028h, 058h, 1, 0  ; trap
-	ACTOR 4, 2, 028h, 098h, 1, 0  ; trap
-	ACTOR 4, 2, 048h, 098h, 1, 0  ; trap
-	ACTOR 4, 2, 068h, 058h, 1, 0  ; trap
-	ACTOR_END
+	defb 041h, 028h, 008h, 008h ; trap
+	defb 041h, 028h, 048h, 008h ; trap
+	defb 041h, 028h, 088h, 008h ; trap
+	defb 041h, 028h, 0c8h, 008h ; trap
+	defb 041h, 048h, 048h, 008h ; trap
+	defb 041h, 068h, 088h, 008h ; trap
+	defb 041h, 088h, 0c8h, 008h ; trap
+	defb 042h, 028h, 058h, 008h ; trap
+	defb 042h, 028h, 098h, 008h ; trap
+	defb 042h, 048h, 098h, 008h ; trap
+	defb 042h, 068h, 058h, 008h ; trap
+	defb 000h               ; end
 actors_a834:          ; pyramid 11
-	ACTOR_END
+	defb 000h               ; end
 actors_a835:          ; pyramid 12
-	ACTOR 4, 1, 080h, 050h, 1, 0  ; trap
-	ACTOR 5, 2, 090h, 070h, 2, 0  ; stone
-	ACTOR_END
+	defb 041h, 080h, 050h, 008h ; trap
+	defb 052h, 090h, 070h, 010h ; stone
+	defb 000h               ; end
 actors_a83e:          ; pyramid 13
-	ACTOR 3, 2, 080h, 030h, 4, 0  ; rockroll
-	ACTOR_END
+	defb 032h, 080h, 030h, 020h ; rockroll
+	defb 000h               ; end
 actors_a843:          ; pyramid 14
-	ACTOR 2, 2, 070h, 030h, 3, 1  ; pyoncy
-	ACTOR 2, 2, 070h, 0c0h, 3, 0  ; pyoncy
-	ACTOR_END
+	defb 022h, 070h, 030h, 019h ; pyoncy
+	defb 022h, 070h, 0c0h, 018h ; pyoncy
+	defb 000h               ; end
 actors_a84c:          ; pyramid 15
-	ACTOR_END
+	defb 000h               ; end
 actors_a84d:          ; pyramid 16
-	ACTOR 5, 1, 098h, 050h, 2, 0  ; stone
-	ACTOR 4, 1, 028h, 030h, 1, 0  ; trap
-	ACTOR_END
+	defb 051h, 098h, 050h, 010h ; stone
+	defb 041h, 028h, 030h, 008h ; trap
+	defb 000h               ; end
 actors_a856:          ; pyramid 17
-	ACTOR 1, 1, 078h, 078h, 3, 0  ; coffin
-	ACTOR 3, 1, 070h, 0a0h, 4, 0  ; rockroll
-	ACTOR 1, 1, 078h, 0d8h, 3, 0  ; coffin
-	ACTOR 1, 2, 078h, 028h, 3, 1  ; coffin
-	ACTOR 1, 2, 078h, 060h, 3, 1  ; coffin
-	ACTOR 1, 2, 078h, 080h, 3, 1  ; coffin
-	ACTOR 1, 2, 078h, 0b8h, 3, 1  ; coffin
-	ACTOR 1, 2, 078h, 0d8h, 3, 1  ; coffin
-	ACTOR 3, 3, 068h, 020h, 5, 0  ; rockroll
-	ACTOR_END
+	defb 011h, 078h, 078h, 018h ; coffin
+	defb 031h, 070h, 0a0h, 020h ; rockroll
+	defb 011h, 078h, 0d8h, 018h ; coffin
+	defb 012h, 078h, 028h, 019h ; coffin
+	defb 012h, 078h, 060h, 019h ; coffin
+	defb 012h, 078h, 080h, 019h ; coffin
+	defb 012h, 078h, 0b8h, 019h ; coffin
+	defb 012h, 078h, 0d8h, 019h ; coffin
+	defb 033h, 068h, 020h, 028h ; rockroll
+	defb 000h               ; end
 actors_a87b:          ; pyramid 18
-	ACTOR 5, 3, 030h, 020h, 2, 0  ; stone
-	ACTOR 1, 3, 0a0h, 080h, 3, 1  ; coffin
-	ACTOR_END
+	defb 053h, 030h, 020h, 010h ; stone
+	defb 013h, 0a0h, 080h, 019h ; coffin
+	defb 000h               ; end
 actors_a884:          ; pyramid 19
-	ACTOR_END
+	defb 000h               ; end
 actors_a885:          ; pyramid 20
-	ACTOR 5, 1, 050h, 030h, 2, 0  ; stone
-	ACTOR_END
+	defb 051h, 050h, 030h, 010h ; stone
+	defb 000h               ; end
 actors_a88a:          ; pyramid 21
-	ACTOR_END
+	defb 000h               ; end
 actors_a88b:          ; pyramid 22
-	ACTOR 5, 1, 098h, 070h, 2, 0  ; stone
-	ACTOR 2, 2, 070h, 068h, 3, 0  ; pyoncy
-	ACTOR 2, 2, 090h, 0c8h, 3, 0  ; pyoncy
-	ACTOR 1, 3, 0a0h, 020h, 3, 0  ; coffin
-	ACTOR 1, 3, 0a0h, 040h, 3, 0  ; coffin
-	ACTOR 1, 3, 0a0h, 090h, 3, 1  ; coffin
-	ACTOR_END
+	defb 051h, 098h, 070h, 010h ; stone
+	defb 022h, 070h, 068h, 018h ; pyoncy
+	defb 022h, 090h, 0c8h, 018h ; pyoncy
+	defb 013h, 0a0h, 020h, 018h ; coffin
+	defb 013h, 0a0h, 040h, 018h ; coffin
+	defb 013h, 0a0h, 090h, 019h ; coffin
+	defb 000h               ; end
 actors_a8a4:          ; pyramid 23
-	ACTOR_END
+	defb 000h               ; end
 actors_a8a5:          ; pyramid 24
-	ACTOR 3, 1, 028h, 0b8h, 7, 0  ; rockroll
-	ACTOR 3, 1, 068h, 0b8h, 7, 0  ; rockroll
-	ACTOR 3, 2, 028h, 0c8h, 15, 0  ; rockroll
-	ACTOR_END
+	defb 031h, 028h, 0b8h, 038h ; rockroll
+	defb 031h, 068h, 0b8h, 038h ; rockroll
+	defb 032h, 028h, 0c8h, 078h ; rockroll
+	defb 000h               ; end
 actors_a8b2:          ; pyramid 25
-	ACTOR 5, 1, 038h, 0a8h, 2, 0  ; stone
-	ACTOR 5, 1, 0a8h, 0a8h, 2, 0  ; stone
-	ACTOR_END
+	defb 051h, 038h, 0a8h, 010h ; stone
+	defb 051h, 0a8h, 0a8h, 010h ; stone
+	defb 000h               ; end
 actors_a8bb:          ; pyramid 26
-	ACTOR_END
+	defb 000h               ; end
 actors_a8bc:          ; pyramid 27
-	ACTOR 4, 1, 098h, 090h, 1, 0  ; trap
-	ACTOR 1, 1, 0a0h, 078h, 3, 0  ; coffin
-	ACTOR 1, 2, 0a0h, 0a0h, 3, 1  ; coffin
-	ACTOR 3, 3, 028h, 038h, 7, 0  ; rockroll
-	ACTOR 4, 3, 040h, 0c0h, 1, 0  ; trap
-	ACTOR 3, 3, 078h, 060h, 4, 0  ; rockroll
-	ACTOR_END
+	defb 041h, 098h, 090h, 008h ; trap
+	defb 011h, 0a0h, 078h, 018h ; coffin
+	defb 012h, 0a0h, 0a0h, 019h ; coffin
+	defb 033h, 028h, 038h, 038h ; rockroll
+	defb 043h, 040h, 0c0h, 008h ; trap
+	defb 033h, 078h, 060h, 020h ; rockroll
+	defb 000h               ; end
 actors_a8d5:          ; pyramid 28
-	ACTOR 1, 1, 090h, 0b0h, 4, 1  ; coffin
-	ACTOR 1, 1, 090h, 0d0h, 4, 1  ; coffin
-	ACTOR 1, 2, 090h, 038h, 4, 0  ; coffin
-	ACTOR_END
+	defb 011h, 090h, 0b0h, 021h ; coffin
+	defb 011h, 090h, 0d0h, 021h ; coffin
+	defb 012h, 090h, 038h, 020h ; coffin
+	defb 000h               ; end
 actors_a8e2:          ; pyramid 29
-	ACTOR 4, 1, 048h, 018h, 1, 0  ; trap
-	ACTOR 4, 1, 060h, 008h, 1, 0  ; trap
-	ACTOR 5, 1, 018h, 060h, 2, 0  ; stone
-	ACTOR_END
+	defb 041h, 048h, 018h, 008h ; trap
+	defb 041h, 060h, 008h, 008h ; trap
+	defb 051h, 018h, 060h, 010h ; stone
+	defb 000h               ; end
 actors_a8ef:          ; pyramid 30
-	ACTOR 3, 1, 0a0h, 038h, 3, 0  ; rockroll
-	ACTOR 1, 1, 020h, 0b8h, 3, 0  ; coffin
-	ACTOR 1, 1, 040h, 0b8h, 3, 0  ; coffin
-	ACTOR 1, 1, 060h, 0b8h, 3, 1  ; coffin
-	ACTOR 1, 1, 080h, 0b8h, 3, 1  ; coffin
-	ACTOR 1, 1, 040h, 038h, 3, 1  ; coffin
-	ACTOR 1, 1, 060h, 038h, 3, 1  ; coffin
-	ACTOR 1, 1, 060h, 078h, 3, 1  ; coffin
-	ACTOR 1, 1, 080h, 078h, 3, 1  ; coffin
-	ACTOR 1, 2, 020h, 038h, 3, 0  ; coffin
-	ACTOR 1, 2, 080h, 038h, 3, 1  ; coffin
-	ACTOR 1, 2, 080h, 070h, 3, 1  ; coffin
-	ACTOR 1, 2, 020h, 0b0h, 3, 1  ; coffin
-	ACTOR 1, 2, 040h, 0b0h, 3, 0  ; coffin
-	ACTOR 1, 2, 060h, 0b0h, 3, 0  ; coffin
-	ACTOR 1, 2, 080h, 0b0h, 3, 0  ; coffin
-	ACTOR_END
+	defb 031h, 0a0h, 038h, 018h ; rockroll
+	defb 011h, 020h, 0b8h, 018h ; coffin
+	defb 011h, 040h, 0b8h, 018h ; coffin
+	defb 011h, 060h, 0b8h, 019h ; coffin
+	defb 011h, 080h, 0b8h, 019h ; coffin
+	defb 011h, 040h, 038h, 019h ; coffin
+	defb 011h, 060h, 038h, 019h ; coffin
+	defb 011h, 060h, 078h, 019h ; coffin
+	defb 011h, 080h, 078h, 019h ; coffin
+	defb 012h, 020h, 038h, 018h ; coffin
+	defb 012h, 080h, 038h, 019h ; coffin
+	defb 012h, 080h, 070h, 019h ; coffin
+	defb 012h, 020h, 0b0h, 019h ; coffin
+	defb 012h, 040h, 0b0h, 018h ; coffin
+	defb 012h, 060h, 0b0h, 018h ; coffin
+	defb 012h, 080h, 0b0h, 018h ; coffin
+	defb 000h               ; end
 actors_a930:          ; pyramid 31
-	ACTOR 3, 1, 000h, 0c8h, 5, 0  ; rockroll
-	ACTOR 3, 1, 000h, 0d0h, 5, 0  ; rockroll
-	ACTOR_END
+	defb 031h, 000h, 0c8h, 028h ; rockroll
+	defb 031h, 000h, 0d0h, 028h ; rockroll
+	defb 000h               ; end
 actors_a939:          ; pyramid 32
-	ACTOR_END
+	defb 000h               ; end
 actors_a93a:          ; pyramid 33
-	ACTOR 3, 2, 008h, 070h, 6, 0  ; rockroll
-	ACTOR 5, 1, 028h, 0c0h, 2, 0  ; stone
-	ACTOR_END
+	defb 032h, 008h, 070h, 030h ; rockroll
+	defb 051h, 028h, 0c0h, 010h ; stone
+	defb 000h               ; end
 actors_a943:          ; pyramid 34
-	ACTOR 3, 1, 030h, 0c0h, 12, 0  ; rockroll
-	ACTOR 3, 3, 008h, 050h, 3, 0  ; rockroll
-	ACTOR_END
+	defb 031h, 030h, 0c0h, 060h ; rockroll
+	defb 033h, 008h, 050h, 018h ; rockroll
+	defb 000h               ; end
 actors_a94c:          ; pyramid 35
-	ACTOR 4, 2, 030h, 030h, 1, 0  ; trap
-	ACTOR 4, 2, 030h, 070h, 1, 0  ; trap
-	ACTOR 4, 2, 030h, 0b0h, 1, 0  ; trap
-	ACTOR 1, 3, 098h, 0d8h, 4, 1  ; coffin
-	ACTOR 4, 3, 058h, 050h, 1, 0  ; trap
-	ACTOR 4, 3, 058h, 090h, 1, 0  ; trap
-	ACTOR 4, 4, 088h, 070h, 1, 0  ; trap
-	ACTOR 4, 4, 028h, 070h, 1, 0  ; trap
-	ACTOR_END
+	defb 042h, 030h, 030h, 008h ; trap
+	defb 042h, 030h, 070h, 008h ; trap
+	defb 042h, 030h, 0b0h, 008h ; trap
+	defb 013h, 098h, 0d8h, 021h ; coffin
+	defb 043h, 058h, 050h, 008h ; trap
+	defb 043h, 058h, 090h, 008h ; trap
+	defb 044h, 088h, 070h, 008h ; trap
+	defb 044h, 028h, 070h, 008h ; trap
+	defb 000h               ; end
 actors_a96d:          ; pyramid 36
-	ACTOR 5, 2, 040h, 080h, 2, 0  ; stone
-	ACTOR_END
+	defb 052h, 040h, 080h, 010h ; stone
+	defb 000h               ; end
 actors_a972:          ; pyramid 37
-	ACTOR_END
+	defb 000h               ; end
 actors_a973:          ; pyramid 38
-	ACTOR 2, 1, 038h, 098h, 4, 0  ; pyoncy
-	ACTOR 2, 1, 038h, 0d0h, 4, 0  ; pyoncy
-	ACTOR 3, 3, 040h, 080h, 4, 0  ; rockroll
-	ACTOR_END
+	defb 021h, 038h, 098h, 020h ; pyoncy
+	defb 021h, 038h, 0d0h, 020h ; pyoncy
+	defb 033h, 040h, 080h, 020h ; rockroll
+	defb 000h               ; end
 actors_a980:          ; pyramid 39
-	ACTOR 4, 1, 088h, 058h, 1, 0  ; trap
-	ACTOR 4, 1, 058h, 028h, 1, 0  ; trap
-	ACTOR_END
+	defb 041h, 088h, 058h, 008h ; trap
+	defb 041h, 058h, 028h, 008h ; trap
+	defb 000h               ; end
 actors_a989:          ; pyramid 40
-	ACTOR_END
+	defb 000h               ; end
 actors_a98a:          ; pyramid 41
-	ACTOR_END
+	defb 000h               ; end
 actors_a98b:          ; pyramid 42
-	ACTOR 3, 1, 008h, 080h, 3, 0  ; rockroll
-	ACTOR 5, 1, 018h, 0d0h, 2, 0  ; stone
-	ACTOR 4, 1, 068h, 030h, 1, 0  ; trap
-	ACTOR_END
+	defb 031h, 008h, 080h, 018h ; rockroll
+	defb 051h, 018h, 0d0h, 010h ; stone
+	defb 041h, 068h, 030h, 008h ; trap
+	defb 000h               ; end
 actors_a998:          ; pyramid 43
-	ACTOR 5, 2, 070h, 068h, 2, 0  ; stone
-	ACTOR 1, 3, 0a0h, 048h, 3, 1  ; coffin
-	ACTOR 1, 3, 0a0h, 068h, 3, 0  ; coffin
-	ACTOR 1, 3, 0a0h, 0b8h, 3, 0  ; coffin
-	ACTOR 1, 4, 0a0h, 020h, 3, 0  ; coffin
-	ACTOR 1, 4, 0a0h, 078h, 3, 1  ; coffin
-	ACTOR 1, 4, 0a0h, 0c8h, 3, 1  ; coffin
-	ACTOR_END
+	defb 052h, 070h, 068h, 010h ; stone
+	defb 013h, 0a0h, 048h, 019h ; coffin
+	defb 013h, 0a0h, 068h, 018h ; coffin
+	defb 013h, 0a0h, 0b8h, 018h ; coffin
+	defb 014h, 0a0h, 020h, 018h ; coffin
+	defb 014h, 0a0h, 078h, 019h ; coffin
+	defb 014h, 0a0h, 0c8h, 019h ; coffin
+	defb 000h               ; end
 actors_a9b5:          ; pyramid 44
-	ACTOR_END
+	defb 000h               ; end
 actors_a9b6:          ; pyramid 45
-	ACTOR_END
+	defb 000h               ; end
 actors_a9b7:          ; pyramid 46
-	ACTOR_END
+	defb 000h               ; end
 actors_a9b8:          ; pyramid 47
-	ACTOR 1, 1, 050h, 058h, 3, 1  ; coffin
-	ACTOR 1, 1, 050h, 098h, 3, 0  ; coffin
-	ACTOR 1, 1, 098h, 048h, 3, 1  ; coffin
-	ACTOR 1, 1, 098h, 0a8h, 3, 1  ; coffin
-	ACTOR_END
+	defb 011h, 050h, 058h, 019h ; coffin
+	defb 011h, 050h, 098h, 018h ; coffin
+	defb 011h, 098h, 048h, 019h ; coffin
+	defb 011h, 098h, 0a8h, 019h ; coffin
+	defb 000h               ; end
 actors_a9c9:          ; pyramid 48
-	ACTOR 4, 1, 038h, 0b0h, 1, 0  ; trap
-	ACTOR 4, 3, 088h, 048h, 1, 0  ; trap
-	ACTOR 3, 3, 010h, 0b8h, 3, 0  ; rockroll
-	ACTOR_END
+	defb 041h, 038h, 0b0h, 008h ; trap
+	defb 043h, 088h, 048h, 008h ; trap
+	defb 033h, 010h, 0b8h, 018h ; rockroll
+	defb 000h               ; end
 actors_a9d6:          ; pyramid 49
-	ACTOR_END
+	defb 000h               ; end
 actors_a9d7:          ; pyramid 50
-	ACTOR 3, 2, 088h, 010h, 6, 0  ; rockroll
-	ACTOR 1, 2, 048h, 040h, 3, 0  ; coffin
-	ACTOR 1, 2, 048h, 060h, 3, 0  ; coffin
-	ACTOR 1, 3, 098h, 058h, 3, 1  ; coffin
-	ACTOR 1, 3, 098h, 0a8h, 3, 1  ; coffin
-	ACTOR 1, 4, 098h, 070h, 3, 1  ; coffin
-	ACTOR_END
+	defb 032h, 088h, 010h, 030h ; rockroll
+	defb 012h, 048h, 040h, 018h ; coffin
+	defb 012h, 048h, 060h, 018h ; coffin
+	defb 013h, 098h, 058h, 019h ; coffin
+	defb 013h, 098h, 0a8h, 019h ; coffin
+	defb 014h, 098h, 070h, 019h ; coffin
+	defb 000h               ; end
 actors_a9f0:          ; pyramid 51
-	ACTOR 1, 1, 098h, 028h, 4, 1  ; coffin
-	ACTOR 1, 1, 098h, 0c8h, 4, 1  ; coffin
-	ACTOR 3, 1, 018h, 090h, 4, 0  ; rockroll
-	ACTOR_END
+	defb 011h, 098h, 028h, 021h ; coffin
+	defb 011h, 098h, 0c8h, 021h ; coffin
+	defb 031h, 018h, 090h, 020h ; rockroll
+	defb 000h               ; end
 actors_a9fd:          ; pyramid 52
-	ACTOR 1, 1, 050h, 0b0h, 2, 0  ; coffin
-	ACTOR 1, 1, 070h, 0b0h, 2, 1  ; coffin
-	ACTOR 1, 1, 0a0h, 050h, 3, 1  ; coffin
-	ACTOR 1, 1, 0a0h, 0a0h, 3, 1  ; coffin
-	ACTOR 1, 2, 050h, 060h, 2, 0  ; coffin
-	ACTOR 1, 2, 070h, 060h, 2, 1  ; coffin
-	ACTOR_END
+	defb 011h, 050h, 0b0h, 010h ; coffin
+	defb 011h, 070h, 0b0h, 011h ; coffin
+	defb 011h, 0a0h, 050h, 019h ; coffin
+	defb 011h, 0a0h, 0a0h, 019h ; coffin
+	defb 012h, 050h, 060h, 010h ; coffin
+	defb 012h, 070h, 060h, 011h ; coffin
+	defb 000h               ; end
 actors_aa16:          ; pyramid 53
-	ACTOR 1, 1, 030h, 080h, 2, 1  ; coffin
-	ACTOR 1, 1, 048h, 080h, 2, 1  ; coffin
-	ACTOR 1, 2, 060h, 040h, 2, 0  ; coffin
-	ACTOR 1, 3, 030h, 030h, 3, 0  ; coffin
-	ACTOR 4, 3, 028h, 080h, 1, 0  ; trap
-	ACTOR_END
+	defb 011h, 030h, 080h, 011h ; coffin
+	defb 011h, 048h, 080h, 011h ; coffin
+	defb 012h, 060h, 040h, 010h ; coffin
+	defb 013h, 030h, 030h, 018h ; coffin
+	defb 043h, 028h, 080h, 008h ; trap
+	defb 000h               ; end
 actors_aa2b:          ; pyramid 54
-	ACTOR 4, 1, 020h, 048h, 1, 0  ; trap
-	ACTOR 5, 1, 090h, 048h, 2, 0  ; stone
-	ACTOR_END
+	defb 041h, 020h, 048h, 008h ; trap
+	defb 051h, 090h, 048h, 010h ; stone
+	defb 000h               ; end
 actors_aa34:          ; pyramid 55
-	ACTOR 1, 1, 038h, 030h, 4, 0  ; coffin
-	ACTOR 1, 1, 038h, 080h, 4, 1  ; coffin
-	ACTOR 1, 1, 068h, 058h, 4, 0  ; coffin
-	ACTOR 1, 1, 068h, 080h, 4, 1  ; coffin
-	ACTOR 1, 2, 038h, 058h, 4, 1  ; coffin
-	ACTOR 1, 2, 068h, 058h, 4, 0  ; coffin
-	ACTOR 5, 1, 018h, 038h, 2, 0  ; stone
-	ACTOR 5, 1, 0a8h, 058h, 2, 0  ; stone
-	ACTOR 3, 2, 068h, 0a0h, 4, 0  ; rockroll
-	ACTOR_END
+	defb 011h, 038h, 030h, 020h ; coffin
+	defb 011h, 038h, 080h, 021h ; coffin
+	defb 011h, 068h, 058h, 020h ; coffin
+	defb 011h, 068h, 080h, 021h ; coffin
+	defb 012h, 038h, 058h, 021h ; coffin
+	defb 012h, 068h, 058h, 020h ; coffin
+	defb 051h, 018h, 038h, 010h ; stone
+	defb 051h, 0a8h, 058h, 010h ; stone
+	defb 032h, 068h, 0a0h, 020h ; rockroll
+	defb 000h               ; end
 actors_aa59:          ; pyramid 56
-	ACTOR 5, 1, 010h, 040h, 2, 0  ; stone
-	ACTOR 5, 1, 010h, 0b0h, 2, 0  ; stone
-	ACTOR 5, 1, 028h, 040h, 2, 0  ; stone
-	ACTOR 5, 1, 028h, 0b0h, 2, 0  ; stone
-	ACTOR 1, 1, 0a0h, 020h, 2, 1  ; coffin
-	ACTOR 1, 1, 0a0h, 0d0h, 2, 0  ; coffin
-	ACTOR 3, 1, 040h, 060h, 2, 0  ; rockroll
-	ACTOR 3, 1, 058h, 060h, 2, 0  ; rockroll
-	ACTOR 3, 1, 070h, 060h, 2, 0  ; rockroll
-	ACTOR 3, 1, 058h, 098h, 2, 0  ; rockroll
-	ACTOR 3, 1, 070h, 098h, 2, 0  ; rockroll
-	ACTOR 3, 1, 088h, 098h, 2, 0  ; rockroll
-	ACTOR_END
+	defb 051h, 010h, 040h, 010h ; stone
+	defb 051h, 010h, 0b0h, 010h ; stone
+	defb 051h, 028h, 040h, 010h ; stone
+	defb 051h, 028h, 0b0h, 010h ; stone
+	defb 011h, 0a0h, 020h, 011h ; coffin
+	defb 011h, 0a0h, 0d0h, 010h ; coffin
+	defb 031h, 040h, 060h, 010h ; rockroll
+	defb 031h, 058h, 060h, 010h ; rockroll
+	defb 031h, 070h, 060h, 010h ; rockroll
+	defb 031h, 058h, 098h, 010h ; rockroll
+	defb 031h, 070h, 098h, 010h ; rockroll
+	defb 031h, 088h, 098h, 010h ; rockroll
+	defb 000h               ; end
 actors_aa8a:          ; pyramid 57
-	ACTOR 5, 1, 010h, 078h, 2, 0  ; stone
-	ACTOR 5, 2, 010h, 078h, 2, 0  ; stone
-	ACTOR_END
+	defb 051h, 010h, 078h, 010h ; stone
+	defb 052h, 010h, 078h, 010h ; stone
+	defb 000h               ; end
 actors_aa93:          ; pyramid 58
-	ACTOR 5, 1, 018h, 058h, 2, 0  ; stone
-	ACTOR 3, 1, 008h, 0c0h, 4, 0  ; rockroll
-	ACTOR 3, 1, 008h, 0c8h, 4, 0  ; rockroll
-	ACTOR 1, 1, 038h, 0b8h, 4, 0  ; coffin
-	ACTOR_END
+	defb 051h, 018h, 058h, 010h ; stone
+	defb 031h, 008h, 0c0h, 020h ; rockroll
+	defb 031h, 008h, 0c8h, 020h ; rockroll
+	defb 011h, 038h, 0b8h, 020h ; coffin
+	defb 000h               ; end
 actors_aaa4:          ; pyramid 59
-	ACTOR 1, 2, 018h, 078h, 3, 0  ; coffin
-	ACTOR 1, 2, 098h, 078h, 4, 0  ; coffin
-	ACTOR_END
+	defb 012h, 018h, 078h, 018h ; coffin
+	defb 012h, 098h, 078h, 020h ; coffin
+	defb 000h               ; end
 actors_aaad:          ; pyramid 60
-	ACTOR 4, 1, 040h, 080h, 1, 0  ; trap
-	ACTOR 1, 1, 088h, 0c0h, 3, 0  ; coffin
-	ACTOR 2, 2, 098h, 090h, 3, 0  ; pyoncy
-	ACTOR 2, 2, 098h, 0d0h, 3, 0  ; pyoncy
-	ACTOR 4, 4, 058h, 080h, 1, 0  ; trap
-	ACTOR 1, 4, 040h, 0c0h, 3, 0  ; coffin
-	ACTOR 4, 6, 058h, 070h, 1, 0  ; trap
-	ACTOR 3, 6, 028h, 020h, 12, 0  ; rockroll
-	ACTOR 3, 6, 028h, 028h, 12, 0  ; rockroll
-	ACTOR 3, 6, 028h, 030h, 12, 0  ; rockroll
-	ACTOR 3, 6, 028h, 038h, 12, 0  ; rockroll
-	ACTOR 3, 6, 028h, 040h, 12, 0  ; rockroll
+	defb 041h, 040h, 080h, 008h ; trap
+	defb 011h, 088h, 0c0h, 018h ; coffin
+	defb 022h, 098h, 090h, 018h ; pyoncy
+	defb 022h, 098h, 0d0h, 018h ; pyoncy
+	defb 044h, 058h, 080h, 008h ; trap
+	defb 014h, 040h, 0c0h, 018h ; coffin
+	defb 046h, 058h, 070h, 008h ; trap
+	defb 036h, 028h, 020h, 060h ; rockroll
+	defb 036h, 028h, 028h, 060h ; rockroll
+	defb 036h, 028h, 030h, 060h ; rockroll
+	defb 036h, 028h, 038h, 060h ; rockroll
+	defb 036h, 028h, 040h, 060h ; rockroll
 	defb 036h, 028h, 048h     ; ACTOR 3, 6, 028h, 048h, 12, 0 ; byte3 + end overlap aae0_tbl[0]
 
 aae0_tbl:                         ; per-pyramid actors -> 0xE600 (load_actors)

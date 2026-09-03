@@ -1,6 +1,6 @@
-; bank 0E glyph_ptr payloads (sub_4606h / sub_4638h after page_banks_ef).
-; 0x800C: 6 worlds × 8 tile-id lists (draw 8×8 via sub_5767h).
-; 0x806A: per-level 2-byte records, 0xFF end (level in A, 1-based).
+; bank 0E glyph_ptr payloads (stamp_level / stamp_glyph after page_banks_ef).
+; 0x800C: 6 worlds × 8 tile-id lists (draw 8×8 via tile_pset).
+; 0x806A: per-level 3-byte records, 0xFF end (level in A, 1-based).
 ; Unique ptrs; several glyph_ptr slots share a list.
 
 glyphs:                               ; 0x80E4  glyph_ptr[0]

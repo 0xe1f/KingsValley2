@@ -6,7 +6,7 @@
 ;  bank e @ 0x8000
 ; ===========================================================================
 ; glyph_ptr[0] == 0x80E4. held_ptr @ 0x858B. RLE 0x86D4–0x98C9.
-; l5508h @ 0x98C9; draw_cols col_ptr @ 0x9D58 (col_21 continues in bank 15).
+; copy_pat @ 0x98C9; draw_cols col_ptr @ 0x9D58 (col_21 continues in bank 15).
 glyph_ptr: start 0x8000 end 0x80E4 type worddata
 
 ; ===========================================================================

@@ -9,6 +9,8 @@
 ; ===========================================================================
 
 ; (org set by PHASE 0x6000 in master; 24 KiB through 0xBFFF)
+; SAT template + colour RAM for the pause map. Not called (romscan).
+pause_sat:                        ; 0x6000
 	call print_stream
 	call print_stream
 	call sat_wipe
@@ -34,92 +36,74 @@
 
 ; BLOCK 'e800_copy' (start 0x6039 end 0x6059)
 e800_copy_start:
-	defb 014h
-	defb 048h
-	defb 000h
-	defb 000h
-	defb 014h
-	defb 058h
-	defb 008h
-l6040h:
-	defb 000h
-	defb 014h
-	defb 068h
-	defb 010h
-	defb 000h
-	defb 014h
-	defb 078h
-	defb 018h
-	defb 000h
-	defb 014h
-	defb 048h
-	defb 004h
-	defb 000h
-	defb 014h
-	defb 058h
-	defb 00ch
-	defb 000h
-	defb 014h
-	defb 068h
-	defb 014h
-	defb 000h
-	defb 014h
-	defb 078h
-	defb 01ch
-	defb 000h
+	defb 014h, 048h, 000h, 000h   ; 2x4 SAT: Y, X, pat
+	defb 014h, 058h, 008h, 000h
+	defb 014h, 068h, 010h, 000h
+	defb 014h, 078h, 018h, 000h
+	defb 014h, 048h, 004h, 000h
+	defb 014h, 058h, 00ch, 000h
+	defb 014h, 068h, 014h, 000h
+	defb 014h, 078h, 01ch, 000h
 e800_copy_end:
+; Pause map overlay. pause_tick calls here; EDC0 is 0 wait / 1 draw / 2 restore / 3 idle.
+pause_overlay:                    ; 0x6059
 	ld a,(0edc0h)
 	call DISPATCH_A
 
 ; BLOCK 'edc0_jp' (start 0x605f end 0x6067)
 edc0_jp_start:
-	defw 06067h
-	defw 0609fh
-	defw 060c2h
-	defw 06077h
+	defw pause_map_wait
+	defw pause_map_draw
+	defw pause_map_done
+	defw pause_map_idle
 edc0_jp_end:
+pause_map_wait:                   ; 0x6067  E20C bit 1 -> HUD tiles
 	ld a,(0e20ch)
 	rra
 	rra
-	ret nc
+	ret nc                        ; bit 1 (F2): open map
 	call scr_reset
-	call sub_6078h
-l6073h:
+	call hud_load
+pause_next:                       ; 0x6073
 	ld hl,0edc0h
 	inc (hl)
+pause_map_idle:                   ; 0x6077  EDC0 = 3
 	ret
-sub_6078h:
+; HUD 1bpp + SAT from bank 0D (pause map / play restore).
+hud_load:                         ; 0x6078
 	call page_bank_d
-	ld hl,0bf36h
+	ld hl,0bf36h                  ; hud_bf36
 	ld de,00838h
 	ld bc,0128bh
 	call copy_tiles
-	ld hl,0bfc6h
+	ld hl,0bfc6h                  ; hud_bfc6
 	ld de,09838h
 	ld bc,00607h
 	call copy_tiles
-	ld de,0bf29h
+	ld de,0bf29h                  ; rle_bf29 HUD SAT
 	ld hl,0f800h
-	call 04e54h
+	call rle_vram
 	jp page_banks_123
-	call 062d8h
-	call sub_60e1h
-	call sub_6263h
+pause_map_draw:                   ; 0x609F  doors / gems / screens / Vic / exit
+	call map_screens
+	call map_doors
+	call map_gems
 	call sat_wipe
-	call sub_622fh
-	call sub_61e3h
+	call map_exit
+	call map_vic
 	call spr_vram
 	ld de,0c000h
 	ld hl,0f400h
 	ld bc,00280h
-	call 04dfbh
-	jr l6073h
+	call ldirvm
+	jr pause_next
+pause_map_done:                   ; 0x60C2  E20C bit 1 -> restore play
 	ld a,(0e20ch)
 	rra
 	rra
 	ret nc
 	call scr_reset
-	call 05bebh
+	call wmap_font
 	call room_draw
 	call vic_reload
 	call vic_sat
@@ -127,12 +111,13 @@ sub_6078h:
 	xor a
 	ld (0edc0h),a
 	jp sat_flip
-sub_60e1h:
-	call sub_60edh
-	call sub_6128h
-	call sub_6163h
-	jp l619eh
-sub_60edh:
+; Door-link arrows on the pause map (ED80 up / ED90 down / EDA0 left / EDB0 right).
+map_doors:                        ; 0x60E1
+	call map_doors_up
+	call map_doors_down
+	call map_doors_left
+	jp map_doors_right
+map_doors_up:                     ; 0x60ED  ED80 up
 	ld de,0ed80h
 	ld b,008h
 l60f2h:
@@ -140,12 +125,12 @@ l60f2h:
 	inc a
 	ret z
 	dec a
-	call sub_60feh
+	call map_arrow_up
 	inc de
 	inc de
 	djnz l60f2h
 	ret
-sub_60feh:
+map_arrow_up:                     ; 0x60FE  screen id A -> print_at up glyph
 	push bc
 	push de
 	ld c,a
@@ -171,13 +156,13 @@ l6119h:
 	add a,d
 	djnz l6119h
 	ld d,a
-	ld hl,l61d9h
+	ld hl,map_glyph_up
 	ld c,0ffh
 	call print_at
 	pop de
 	pop bc
 	ret
-sub_6128h:
+map_doors_down:                    ; 0x6128  ED90 down
 	ld de,0ed90h
 	ld b,008h
 l612dh:
@@ -185,12 +170,12 @@ l612dh:
 	inc a
 	ret z
 	dec a
-	call sub_6139h
+	call map_arrow_down
 	inc de
 	inc de
 	djnz l612dh
 	ret
-sub_6139h:
+map_arrow_down:                      ; 0x6139
 	push bc
 	push de
 	ld c,a
@@ -216,13 +201,13 @@ l6154h:
 	add a,d
 	djnz l6154h
 	ld d,a
-	ld hl,061dch
+	ld hl,map_glyph_down
 	ld c,0ffh
 	call print_at
 	pop de
 	pop bc
 	ret
-sub_6163h:
+map_doors_left:                    ; 0x6163  EDA0 left
 	ld de,0eda0h
 	ld b,008h
 l6168h:
@@ -230,12 +215,12 @@ l6168h:
 	inc a
 	ret z
 	dec a
-	call sub_6174h
+	call map_arrow_left
 	inc de
 	inc de
 	djnz l6168h
 	ret
-sub_6174h:
+map_arrow_left:                      ; 0x6174
 	push bc
 	push de
 	ld c,a
@@ -261,13 +246,13 @@ l618fh:
 	add a,d
 	djnz l618fh
 	ld d,a
-	ld hl,l61dfh
+	ld hl,map_glyph_left
 	ld c,0ffh
 	call print_at
 	pop de
 	pop bc
 	ret
-l619eh:
+map_doors_right:                   ; 0x619E  EDB0 right
 	ld de,0edb0h
 	ld b,008h
 l61a3h:
@@ -275,12 +260,12 @@ l61a3h:
 	inc a
 	ret z
 	dec a
-	call sub_61afh
+	call map_arrow_right
 	inc de
 	inc de
 	djnz l61a3h
 	ret
-sub_61afh:
+map_arrow_right:                      ; 0x61AF
 	push bc
 	push de
 	ld c,a
@@ -306,23 +291,23 @@ l61cah:
 	add a,d
 	djnz l61cah
 	ld d,a
-	ld hl,l61e1h
+	ld hl,map_glyph_right
 	ld c,0ffh
 	call print_at
 	pop de
 	pop bc
 	ret
-l61d9h:
-	di
-	call p,0f5ffh
-	or 0ffh
-l61dfh:
-	rst 30h
-	rst 38h
-l61e1h:
-	ret m
-	rst 38h
-sub_61e3h:
+; BLOCK 'map_arrow' (start 0x61D9 end 0x61E3)
+map_glyph_up:                      ; 0x61D9  two-tile up
+	defb 0f3h, 0f4h, 0ffh
+map_glyph_down:                    ; 0x61DC  two-tile down
+	defb 0f5h, 0f6h, 0ffh
+map_glyph_left:                    ; 0x61DF
+	defb 0f7h, 0ffh
+map_glyph_right:                   ; 0x61E1
+	defb 0f8h, 0ffh
+; Vic marker on E243's cell in E788.
+map_vic:                          ; 0x61E3
 	ld a,(0e243h)
 	ld hl,0e788h
 	ld c,007h
@@ -338,7 +323,7 @@ l61edh:
 	ret
 l61f7h:
 	ld hl,0e282h
-	call sub_6301h
+	call map_cell
 	ld a,(hl)
 	ld c,a
 	inc hl
@@ -357,7 +342,7 @@ l61f7h:
 	and 01fh
 	add a,d
 	ld d,a
-	call sub_6315h
+	call map_origin
 	ld hl,0e804h
 	dec e
 	ld (hl),e
@@ -373,7 +358,8 @@ l61f7h:
 	ld (hl),007h
 	ldir
 	ret
-sub_622fh:
+; Exit-door marker (E2F3 screen, E2F1 XY).
+map_exit:                         ; 0x622F
 	ld a,(0e2f3h)
 	ld hl,0e788h
 	ld c,007h
@@ -389,8 +375,8 @@ l6239h:
 	ret
 l6243h:
 	ld hl,0e2f1h
-	call sub_62b5h
-	call sub_6315h
+	call map_xy
+	call map_origin
 	ld hl,0e800h
 	ld (hl),e
 	inc hl
@@ -403,25 +389,26 @@ l6243h:
 	ld (hl),00bh
 	ldir
 	ret
-sub_6263h:
+; Soul stones on the pause map (E700).
+map_gems:                         ; 0x6263
 	ld hl,0e700h
 	ld b,010h
 l6268h:
 	ld a,(hl)
 	or a
-	call nz,sub_6274h
+	call nz,map_gem
 	ld de,00008h
 	add hl,de
 	djnz l6268h
 	ret
-sub_6274h:
+map_gem:                          ; 0x6274
 	push hl
 	push bc
-	call sub_627ch
+	call map_gem_put
 	pop bc
 	pop hl
 	ret
-sub_627ch:
+map_gem_put:                      ; 0x627C  skip if screen not in E788
 	inc hl
 	ld a,(hl)
 	inc hl
@@ -441,8 +428,8 @@ l6289h:
 	ret
 l6294h:
 	ld hl,(0efc0h)
-	call sub_62b5h
-	call sub_6315h
+	call map_xy
+	call map_origin
 	ld a,b
 	rlca
 	rlca
@@ -455,12 +442,12 @@ l6294h:
 	rra
 	and 00ch
 	add a,b
-	ld hl,l62cch
+	ld hl,gem_stamp
 	call ADD_HL_A
 	ld a,(hl)
-	jp 05767h
-sub_62b5h:
-	call sub_6301h
+	jp tile_pset
+map_xy:                           ; 0x62B5  packed X/Y at HL -> DE + map_cell
+	call map_cell
 	ld a,(hl)
 	ld c,a
 	inc hl
@@ -479,42 +466,42 @@ sub_62b5h:
 	add a,d
 	ld d,a
 	ret
-l62cch:
-	jp pe,0ebebh
-	call pe,0eeedh
-	xor 0efh
-	ret p
-	pop af
-	pop af
-	jp p,08821h
-	rst 20h
+; BLOCK 'gem_stamp' (start 0x62CC end 0x62D8)
+; Tile ids by gem frame; [12..15] overlap map_screens.
+gem_stamp:
+	defb 0eah, 0ebh, 0ebh, 0ech
+	defb 0edh, 0eeh, 0eeh, 0efh
+	defb 0f0h, 0f1h, 0f1h, 0f2h
+; Occupied E788 cells (HL already E788 from the overlap).
+map_screens:                      ; 0x62D8
+	ld hl,0e788h
 	ld c,007h
 l62ddh:
 	ld b,008h
 l62dfh:
 	ld a,(hl)
 	or a
-	call nz,sub_62ebh
+	call nz,map_screen
 	inc hl
 	djnz l62dfh
 	dec c
 	jr nz,l62ddh
 	ret
-sub_62ebh:
+map_screen:                       ; 0x62EB
 	push af
 	push bc
 	push hl
-	call sub_62f5h
+	call map_screen_put
 	pop hl
 	pop bc
 	pop af
 	ret
-sub_62f5h:
-	call sub_6301h
-	call sub_6315h
-	ld hl,l631eh
-	jp 051fah
-sub_6301h:
+map_screen_put:                   ; 0x62F5
+	call map_cell
+	call map_origin
+	ld hl,scr_stamp
+	jp stamp_at
+map_cell:                         ; 0x6301  E788 (B col, C row) -> pixel DE
 	ld a,008h
 	sub b
 	add a,a
@@ -533,7 +520,7 @@ sub_6301h:
 	add a,e
 	ld e,a
 	ret
-sub_6315h:
+map_origin:                       ; 0x6315  + (0x20, 0x18) map origin
 	ld a,d
 	add a,020h
 	ld d,a
@@ -541,23 +528,18 @@ sub_6315h:
 	add a,018h
 	ld e,a
 	ret
-l631eh:
-	pop hl
-	jp po,0e3e2h
-	cp 0e4h
-	push hl
-	push hl
-	and 0feh
-	rst 20h
-	ret pe
-	ret pe
-	jp (hl)
-	rst 38h
-load_actors_far:                  ; 0x632D  page 13, load_actors
+; BLOCK 'scr_stamp' (start 0x631E end 0x632D)
+scr_stamp:                        ; 0x631E  4x3 occupied-cell stamp (FE row, FF end)
+	defb 0e1h, 0e2h, 0e2h, 0e3h, 0feh
+	defb 0e4h, 0e5h, 0e5h, 0e6h, 0feh
+	defb 0e7h, 0e8h, 0e8h, 0e9h, 0ffh
+; Page 13, then load_actors.
+load_actors_far:                  ; 0x632D
 	call page_bank_d
 	call load_actors
 	jp page_banks_123
-load_actors:                      ; 0x6336  aae0_tbl[level] -> 0xE600 (16 x 16)
+; Packed aae0_tbl[level] → E600 (16 × 16).
+load_actors:                      ; 0x6336
 	ld a,(0e242h)
 	ld hl,0aae0h
 	call tbl_word
@@ -625,13 +607,13 @@ l63a4h:
 	push bc
 	ld a,(ix+000h)
 	and a
-	call nz,sub_63b5h
+	call nz,stamp_actor
 	ld bc,00010h
 	add ix,bc
 	pop bc
 	djnz l63a4h
 	ret
-sub_63b5h:
+stamp_actor:                      ; 0x63B5  skip Rock Roll; stone via 95f8h if C=0
 	cp 003h
 	ret z
 	cp 005h
@@ -662,11 +644,11 @@ l63dah:
 	ld b,(ix+008h)
 	ld c,d
 	ld d,(ix+004h)
-sub_63edh:
+stamp_rect:                       ; 0x63ED  2-bit rect at HL, size B×C, screen D
 	ld (0efc0h),a
 	ld a,d
 	ld (0efc1h),a
-	call 04d7bh
+	call scr5_addr
 	ld de,03800h
 	or a
 	sbc hl,de
@@ -685,17 +667,17 @@ l6400h:
 	ld hl,(0efc1h)
 	dec l
 	ld h,000h
-	call 05d32h
+	call map_base
 	call ADD_HL_A
 	push bc
 	ld a,0fch
-	call sub_6439h
+	call map_mask
 	and (hl)
 	ld (hl),a
 	ld a,(0efc0h)
 	and a
 	jr z,l642ah
-	call sub_6439h
+	call map_mask
 	or (hl)
 	ld (hl),a
 l642ah:
@@ -709,7 +691,7 @@ l642ah:
 	call ADD_HL_A
 	djnz l63fdh
 	ret
-sub_6439h:
+map_mask:                         ; 0x6439  2-bit mask for X in C; rotates A
 	push af
 	ld a,c
 	and 003h
@@ -728,14 +710,14 @@ actor_hgt:                        ; 0x6445  tile height by ix+0 type (index from
 	defb 001h                     ; 3 Rock Roll
 	defb 004h                     ; 4 trap (1×4 column, tile 0x61)
 	defb 002h                     ; 5 stone (2×2, bifi pushable)
-draw_actors:                      ; 0x644A  on-screen E600 via sub_64bc / l64d9
+draw_actors:                      ; 0x644A  on-screen E600 via draw_actor / actor_draw
 	ld ix,0e600h
 	ld b,010h
 l6450h:
 	push bc
 	ld a,(ix+000h)
 	and a
-	call nz,sub_64bch
+	call nz,draw_actor
 	ld bc,00010h
 	add ix,bc
 	pop bc
@@ -759,19 +741,20 @@ l647ah:
 	pop bc
 	djnz l6467h
 	ret
-tick_actors:                      ; 0x6483  d_64a1 + dirty redraw + start_rockroll
+; Per-frame E600: d_64a1, dirty redraw, start_rockroll.
+tick_actors:                      ; 0x6483
 	ld ix,0e600h
 	ld b,010h
 l6489h:
 	push bc
-	call sub_649bh
-	call sub_64aeh
+	call tick_actor
+	call actor_dirty
 	ld bc,00010h
 	add ix,bc
 	pop bc
 	djnz l6489h
 	jp start_rockroll
-sub_649bh:
+tick_actor:                       ; 0x649B  d_64a1 by ix+0
 	ld a,(ix+000h)
 	and a
 	ret z
@@ -786,15 +769,15 @@ d_64a1_jp_start:
 	defw tick_trap                ; type 4 trap (1x4 column)
 	defw tick_stone               ; type 5 stone (pushable)
 d_64a1_jp_end:
-sub_64aeh:
+actor_dirty:                      ; 0x64AE  ix+7 bit 0 -> redraw table
 	ld a,(ix+007h)
 	rra
 	ret nc
 	res 0,(ix+007h)
-	ld hl,l64cfh
+	ld hl,actor_redraw
 	jr l64c6h
-sub_64bch:
-	ld hl,l64d9h
+draw_actor:                       ; 0x64BC  on-screen draw table
+	ld hl,actor_draw
 	ld a,(0e243h)
 	cp (ix+004h)
 	ret nz
@@ -803,18 +786,18 @@ l64c6h:
 	and a
 	ret z
 	dec a
-	jp 0409ah
-l64cfh:                           ; 0x64CF  dirty redraw (ix+7 bit 0)
-	defw 0bb43h                   ; 1 coffin
-	defw 0bc50h                   ; 2 Pyoncy
-	defw 0bce2h                   ; 3 Rock Roll (falling tiles)
+	jp dispatch_hl
+actor_redraw:                     ; 0x64CF  dirty redraw (ix+7 bit 0)
+	defw draw_coffin              ; 1 coffin
+	defw draw_pyoncy              ; 2 Pyoncy
+	defw draw_rockroll            ; 3 Rock Roll (falling tiles)
 	defw 06460h                   ; 4 trap (ret)
-	defw 09636h                   ; 5 stone
-l64d9h:                           ; 0x64D9  on-screen draw
-	defw 0bb43h                   ; 1 coffin
-	defw 0bc50h                   ; 2 Pyoncy
+	defw draw_stone               ; 5 stone
+actor_draw:                       ; 0x64D9  on-screen draw
+	defw draw_coffin              ; 1 coffin
+	defw draw_pyoncy              ; 2 Pyoncy
 	defw 06460h                   ; 3 (ret)
-	defw 0bdaah                   ; 4 trap tiles
+	defw draw_trap                ; 4 trap tiles
 	defw 06460h                   ; 5 (ret)
 load_gems_far:                    ; 0x64E3  clear E700, page 13, load_gems
 	ld hl,0e700h
@@ -861,18 +844,18 @@ l6524h:
 	push bc
 	ld a,(ix+000h)
 	and a
-	call nz,sub_6536h
+	call nz,gem_draw
 	ld de,00008h
 	add ix,de
 	pop bc
 	inc c
 	djnz l6524h
 	ret
-sub_6536h:
+gem_draw:                       ; 0x6536  soul stone on this screen -> gem_tiles
 	ld a,(0e243h)
 	cp (ix+001h)
 	ret nz
-sub_653dh:
+gem_tiles:                      ; 0x653D  2x2 tiles from 9324 at DE
 	ld hl,09324h
 	ld e,(ix+002h)
 	ld d,(ix+003h)
@@ -886,16 +869,16 @@ l6552h:
 	ld a,(ix+000h)
 	and a
 	jr z,l6563h
-	call sub_65f6h
+	call tick_thrown
 	bit 0,(ix+006h)
-	call nz,sub_656ch
+	call nz,e500_move
 l6563h:
 	ld de,00020h
 	add ix,de
 	pop bc
 	djnz l6552h
 	ret
-sub_656ch:
+e500_move:                      ; 0x656C  apply ix+7/9 velocity; wrap via e500_wrap
 	ld a,(ix+00bh)
 	cp 002h
 	jr c,l6595h
@@ -938,35 +921,35 @@ l65b0h:
 	ret
 l65b7h:
 	ld a,003h
-	call sub_65dfh
+	call e500_wrap
 	ld hl,0f000h
 	jr l6587h
 l65c1h:
 	ld a,004h
-	call sub_65dfh
+	call e500_wrap
 	ld hl,00000h
 	jr l6587h
 l65cbh:
 	ld a,001h
-	call sub_65dfh
+	call e500_wrap
 	ld hl,0b000h
 	jr l65b0h
 l65d5h:
 	ld a,002h
-	call sub_65dfh
+	call e500_wrap
 	ld hl,00000h
 	jr l65b0h
-sub_65dfh:
+e500_wrap:                      ; 0x65DF  room_link A; update ix+16 screen + map ptr
 	ld b,(ix+016h)
 	call 05e38h
 	ld (ix+016h),h
 	ld (ix+010h),l
 	ld a,l
-	call 0ad15h
+	call map_of_a
 	ld (ix+00ch),e
 	ld (ix+00dh),d
 	ret
-sub_65f6h:
+tick_thrown:                    ; 0x65F6  DISPATCH_A on E500 type 1-5
 	ld a,(ix+000h)
 	dec a
 	ret m
@@ -997,7 +980,7 @@ d_65fb_jp_end:
 tick_thrown_hammer:               ; 0x662D  E500; unused in stock maps
 	ld hl,l663dh
 	ld de,l6641h
-	call 0b6e0h
+	call pick_frame
 	jp z,l6706h
 	ld (ix+011h),a
 	ret
@@ -1010,7 +993,7 @@ l6641h:
 	ld d,016h
 	rst 38h
 e500_sat:                         ; 0x6645  E500 sprite cells -> E840 / D300
-	call sub_6664h
+	call e500_sat_put
 	ld a,(0f0f4h)
 	and a
 	ret z
@@ -1031,7 +1014,7 @@ l6658h:
 	dec c
 	jr nz,l6655h
 	ret
-sub_6664h:
+e500_sat_put:                   ; 0x6664  E500 on-screen -> SAT at E840
 	ld ix,0e500h
 	ld de,0e840h
 	ld b,008h
@@ -1056,9 +1039,9 @@ l6673h:
 	ld bc,0beedh
 	add hl,bc
 	ld c,(ix+01eh)
-	call sub_66f3h
+	call e500_sat1
 	ld c,(ix+01fh)
-	call sub_66f3h
+	call e500_sat1
 	call page_banks_123
 l66a2h:
 	ld bc,00020h
@@ -1096,7 +1079,7 @@ l66b9h:
 	ld bc,0becfh                  ; E500 SAT patterns (ix+11)
 	add hl,bc
 	ld c,(ix+01eh)
-	call sub_66f3h
+	call e500_sat1
 	call page_banks_123
 l66e1h:
 	ld bc,00020h
@@ -1112,7 +1095,7 @@ l66eah:
 	inc e
 	inc e
 	jr l66e1h
-sub_66f3h:
+e500_sat1:                      ; 0x66F3  one SAT entry: Y-1, X, pat, C
 	ld a,(ix+003h)
 	dec a
 	ld (de),a
@@ -1232,7 +1215,7 @@ file_menu_w:                      ; 0x6794  L/R on E24B 0..2 (normal / password 
 	ld (0e24ah),a
 	ret
 l67aeh:
-	call sfx_32
+	call sfx_32                   ; cursor
 	dec (hl)
 	ld a,(hl)
 	rla
@@ -1240,7 +1223,7 @@ l67aeh:
 	ld (hl),002h
 	jr l67c5h
 l67bah:
-	call sfx_32
+	call sfx_32                   ; cursor
 	inc (hl)
 	ld a,(hl)
 	cp 003h
@@ -1532,15 +1515,15 @@ l69b7h:
 	ld de,0edd9h
 	ld a,h
 	ld (0ede5h),a
-	call sub_69e0h
+	call pwd_hex
 	ld h,l
 	ld a,h
 	ld (0ede6h),a
-	call sub_69e0h
+	call pwd_hex
 	ld h,c
 	ld a,h
 	ld (0ede7h),a
-	call sub_69e0h
+	call pwd_hex
 	ld hl,0ede5h
 	ld a,(hl)
 	inc hl
@@ -1550,25 +1533,25 @@ l69b7h:
 	inc hl
 	ld (hl),a
 	ld h,a
-	call sub_69e0h
+	call pwd_hex
 	ret
-sub_69e0h:
+pwd_hex:                        ; 0x69E0  H as two glyphs -> (DE)+
 	ld a,h
 	rrca
 	rrca
 	rrca
 	rrca
 	and 00fh
-	call sub_69f5h
+	call pwd_glyph
 	ld (de),a
 	inc de
 	ld a,h
 	and 00fh
-	call sub_69f5h
+	call pwd_glyph
 	ld (de),a
 	inc de
 	ret
-sub_69f5h:
+pwd_glyph:                      ; 0x69F5  nibble A -> glyph (0xE1/0xD1 +)
 	ld b,0e1h
 	cp 019h
 	jr c,l69fdh
@@ -1577,12 +1560,12 @@ l69fdh:
 	add a,b
 	ret
 pwd_txt:                          ; 0x69FF  print_stream "pass word"
-	TEXT_AT 058h, 090h
+	defb 058h, 090h         ; D,E
 	TEXT "pass word"
-	TEXT_END
+	defb 0ffh               ; end
 pwd_enter:                        ; 0x6A0B  password input (print_names 0xBE91)
 	call scr_reset
-	call sub_7aa6h
+	call rle_minimap
 	ld hl,0edd9h
 	ld de,0eddah
 	ld bc,00025h
@@ -1612,7 +1595,7 @@ pwd_enter_w:                      ; 0x6A32  wait E24A from password UI
 	ld (hl),000h
 	ret
 l6a4ah:
-	call sub_6b67h
+	call pwd_cursor
 	ld hl,0edefh
 	ld a,(0e207h)
 	rra
@@ -1621,12 +1604,12 @@ l6a4ah:
 	jp c,l6b7fh
 	rra
 	jp c,l6b86h
-	call sub_6c2eh
-	call sub_6b8eh
+	call keys_snap
+	call pwd_decode
 	ld a,(0ededh)
 	or a
 	jr z,l6a6ch
-	call sub_6c01h
+	call pwd_type
 l6a6ch:
 	ld a,(0edf7h)
 	rla
@@ -1644,7 +1627,7 @@ l6a7eh:
 	ld (hl),a
 	inc hl
 	djnz l6a76h
-	call sub_6b24h
+	call pwd_cheat
 	jp z,l6af8h
 	ld hl,0edd9h
 	ld b,007h
@@ -1746,12 +1729,12 @@ l6b10h:
 	inc hl
 	ld (hl),080h
 	ret
-sub_6b24h:
-	ld de,l6b57h
-	call sub_6b47h
+pwd_cheat:                      ; 0x6B24  FESTIVAL / TRYAGAIN 8-glyph cheats
+	ld de,pwd_fest
+	call pwd_cmp
 	jr z,l6b3dh
-	ld de,l6b5fh
-	call sub_6b47h
+	ld de,pwd_try
+	call pwd_cmp
 	ret nz
 	call 04c01h
 	ld a,001h
@@ -1764,7 +1747,7 @@ l6b3dh:
 	ld (0e255h),a
 	xor a
 	ret
-sub_6b47h:
+pwd_cmp:                        ; 0x6B47  EDD9 vs 8 bytes at DE
 	ld hl,0edd9h
 	ld b,008h
 l6b4ch:
@@ -1777,30 +1760,18 @@ l6b4ch:
 	djnz l6b4ch
 	xor a
 	ret
-l6b57h:
-	ld b,(hl)
-	ld b,l
-	ld d,e
-	ld d,h
-	ld c,c
-	ld d,(hl)
-	ld b,c
-	ld c,h
-l6b5fh:
-	ld d,h
-	ld d,d
-	ld e,c
-	ld b,c
-	ld b,a
-	ld b,c
-	ld c,c
-	ld c,(hl)
-sub_6b67h:
+; BLOCK 'pwd_fest' (start 0x6b57 end 0x6b5f)
+pwd_fest:
+	defb "FESTIVAL"
+; BLOCK 'pwd_try' (start 0x6b5f end 0x6b67)
+pwd_try:
+	defb "TRYAGAIN"
+pwd_cursor:                     ; 0x6B67  SAT at E800 for password slot
 	ld hl,0e800h
 	ld (hl),06fh
 	inc hl
 	ld a,(0edefh)
-	ld de,l6c26h
+	ld de,pwd_x
 	call ADD_DE_A
 	ld a,(de)
 	ld (hl),a
@@ -1820,7 +1791,7 @@ l6b86h:
 	ret nc
 	inc (hl)
 	jp sfx_32
-sub_6b8eh:
+pwd_decode:                     ; 0x6B8E  SNSMAT snapshot -> glyph at EDED
 	ld a,(0edf0h)
 	ld bc,008d0h
 l6b94h:
@@ -1899,9 +1870,9 @@ l6bf4h:
 l6bfdh:
 	ld (0ededh),a
 	ret
-sub_6c01h:
+pwd_type:                       ; 0x6C01  stamp decoded glyph into EDD9
 	ld a,(0edefh)
-	ld hl,l6c26h
+	ld hl,pwd_x
 	call ADD_HL_A
 	ld d,(hl)
 	ld e,070h
@@ -1914,16 +1885,10 @@ sub_6c01h:
 	ld (hl),a
 	ld hl,0edefh
 	jp l6b86h
-l6c26h:
-	ld h,b
-	ld l,b
-	ld (hl),b
-	ld a,b
-	add a,b
-	adc a,b
-	sub b
-	sbc a,b
-sub_6c2eh:
+; BLOCK 'pwd_x' (start 0x6c26 end 0x6c2e)
+pwd_x:
+	defb 060h, 068h, 070h, 078h, 080h, 088h, 090h, 098h
+keys_snap:                      ; 0x6C2E  SNSMAT rows 0-10 -> EDFA..
 	ld hl,0edfah
 	ld b,00bh
 l6c33h:
@@ -1938,8 +1903,8 @@ l6c33h:
 	ld (0f0e4h),a
 	ld a,0c9h
 	ld (0fd9fh),a
-	call sub_6c85h
-	call sub_6ca7h
+	call disk_buf
+	call disk_load
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ret
@@ -1947,28 +1912,20 @@ l6c33h:
 	ld (0f0e4h),a
 	ld a,0c9h
 	ld (0fd9fh),a
-	call sub_6c85h
-	call sub_6d57h
+	call disk_buf
+	call disk_save
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ret
-l6c6dh:
-	ld b,e
-	jp po,00001h
-	ld e,h
-	jp po,00023h
-	add a,d
-	jp po,00003h
-	ret nz
-	jp po,00240h
-	nop
-	and 000h
-	ld (bc),a
-	nop
-	jp (hl)
-	ret nz
-	inc b
-sub_6c85h:
+; BLOCK 'save_map' (start 0x6c6d end 0x6c85)  RAM addr, length (6 chunks)
+save_map:
+	defw 0e243h, 00001h
+	defw 0e25ch, 00023h
+	defw 0e282h, 00003h
+	defw 0e2c0h, 00240h
+	defw 0e600h, 00200h
+	defw 0e900h, 004c0h
+disk_buf:                       ; 0x6C85  password + slot id into EE00 FCB
 	ld hl,0e270h
 	ld de,0ee00h
 	ld (0f0e0h),de
@@ -1988,7 +1945,7 @@ l6c9ah:
 	ld a,(0f0e9h)
 	ld (de),a
 	ret
-sub_6ca7h:
+disk_load:                      ; 0x6CA7  disk-ROM 8000: open/read/close
 	ld de,(0f0e0h)
 	ld a,(0f0f7h)
 	ld h,080h
@@ -2018,7 +1975,7 @@ sub_6ca7h:
 	call 00024h
 	pop af
 	ld b,006h
-	ld hl,l6c6dh
+	ld hl,save_map
 l6cf4h:
 	push bc
 	ld de,0ee0dh
@@ -2063,7 +2020,7 @@ l6cf4h:
 	xor a
 	ld (0e27fh),a
 	ret
-sub_6d57h:
+disk_save:                      ; 0x6D57  disk-ROM 8000: create/write/close
 	ld de,(0f0e0h)
 	ld a,(0f0f7h)
 	ld h,080h
@@ -2093,7 +2050,7 @@ sub_6d57h:
 	call 00024h
 	pop af
 	ld b,006h
-	ld hl,l6c6dh
+	ld hl,save_map
 l6da4h:
 	push bc
 	ld de,0ee0dh
@@ -2260,7 +2217,7 @@ l6edfh:
 	inc b
 l6ef4h:
 	push bc
-	call sub_6f06h
+	call disk_find
 	pop bc
 	ld a,(0f0f7h)
 	inc a
@@ -2270,7 +2227,7 @@ l6f01h:
 	ld a,b
 	ld (0f0f9h),a
 	ret
-sub_6f06h:
+disk_find:                      ; 0x6F06  scan slots for disk ROM (YZ header)
 	ld bc,00400h
 	ld hl,0fcc1h
 l6f0ch:
@@ -2280,10 +2237,10 @@ l6f0ch:
 	bit 7,a
 	jr nz,l6f19h
 	ld a,c
-	call sub_6f39h
+	call disk_yz
 	jr l6f1ch
 l6f19h:
-	call sub_6f29h
+	call disk_exp
 l6f1ch:
 	pop hl
 	pop bc
@@ -2294,19 +2251,19 @@ l6f1ch:
 	ld a,0ffh
 	ld (0f0f7h),a
 	ret
-sub_6f29h:
+disk_exp:                       ; 0x6F29  probe expanded slot 4 subslots
 	and 080h
 	or c
 	ld b,004h
 l6f2eh:
 	push bc
-	call sub_6f39h
+	call disk_yz
 	pop bc
 	ret c
 	add a,004h
 	djnz l6f2eh
 	ret
-sub_6f39h:
+disk_yz:                        ; 0x6F39  RDSLT 4010/4011 == 'Y''Z'
 	ld (0f0f7h),a
 	ld hl,04010h
 	call 0000ch
@@ -2369,10 +2326,10 @@ world_scr:                        ; 0x6F84  map gfx, palette, start XY
 	call WRTVDP
 	call pic_a358_at
 	call copy_af21
-	call sub_71c1h
+	call world_far
 	ld bc,0e201h
 	call WRTVDP
-	call sfx_0d
+	call sfx_0d                   ; world-map BGM
 	ld a,03ch
 world_delay:
 	ld hl,0e204h
@@ -2391,7 +2348,7 @@ world_pos:                        ; 0x6FD5  word[world-1] at HL -> EDCB/EDCC
 	ldi
 	ret
 world_hold:                       ; 0x6FE5
-	call sub_71c1h
+	call world_far
 	ld hl,0e204h
 	dec (hl)
 	ret nz
@@ -2412,40 +2369,40 @@ l7000h:
 	ret nz
 	ld hl,world_xy2
 	call world_pos
-	call sub_7042h
+	call world_hold8
 	jp l71b8h
 l7015h:
-	call sub_701bh
+	call world_step
 	jp l71b8h
-sub_701bh:
+world_step:                     ; 0x701B  tour pose + path + move
 	ld b,007h
-	call sub_7159h
+	call world_pose
 	ld a,(0edceh)
 	cp 007h
 	ld a,(0edd8h)
-	call z,sub_7108h
+	call z,world_blit
 	ld hl,0e204h
 	dec (hl)
 	ret nz
 	ld (hl),008h
-	call sub_717ch
-	call sub_7168h
-	jr z,sub_7042h
-	call sub_7140h
+	call world_path
+	call world_done
+	jr z,world_hold8
+	call world_delta
 	ld hl,0edc8h
 	inc (hl)
 	ret
-sub_7042h:
+world_hold8:                    ; 0x7042  A=8 -> world_delay
 	ld a,008h
 	jp world_delay
 world_pic0:                       ; 0x7047  stamp wpic0
 	ld b,007h
-	call sub_7159h
+	call world_pose
 	ld hl,0e204h
 	dec (hl)
 	jp nz,l71b8h
 	xor a
-	call sub_7108h
+	call world_blit
 	call wpic0
 l705ah:
 	ld a,008h
@@ -2453,12 +2410,12 @@ l705ah:
 	jp l71b8h
 world_pic1:                       ; 0x7062  stamp wpic1
 	ld b,007h
-	call sub_7159h
+	call world_pose
 	ld hl,0e204h
 	dec (hl)
 	jp nz,l71b8h
 	ld a,001h
-	call sub_7108h
+	call world_blit
 	call wpic1
 	jr l705ah
 world_pic2:                       ; 0x7078  stamp wpic2, then overlay
@@ -2466,7 +2423,7 @@ world_pic2:                       ; 0x7078  stamp wpic2, then overlay
 	dec (hl)
 	ret nz
 	xor a
-	call sub_7108h
+	call world_blit
 	call wpic2
 	call vdp_fill
 	call strm_a642
@@ -2474,7 +2431,7 @@ world_pic2:                       ; 0x7078  stamp wpic2, then overlay
 world_out:                        ; 0x708D  EDC8=6, start shrink
 	ld a,006h
 	ld (0edc8h),a
-	call sub_711bh
+	call world_shrink
 	ld a,010h
 	jp world_delay
 world_count:                      ; 0x709A  shrink EDC8; 4 sprites at 0
@@ -2491,7 +2448,7 @@ world_count:                      ; 0x709A  shrink EDC8; 4 sprites at 0
 	pop hl
 	ld a,(hl)
 	cp 0ffh
-	jp nz,sub_711bh
+	jp nz,world_shrink
 	ld (hl),000h
 	ld a,004h
 	call sat_fx
@@ -2521,7 +2478,7 @@ world_in:                         ; 0x70CD  grow EDC8 to 7
 	call z,sfx_25
 	ld a,(hl)
 	cp 007h
-	jp nz,sub_711bh
+	jp nz,world_shrink
 	call sfx_83
 	ld a,0c0h
 	jp world_delay
@@ -2530,12 +2487,12 @@ world_exit:                       ; 0x70F3  E257=0; copy pyramid tiles
 	dec (hl)
 	ret nz
 	call sfx_82
-	call sfx_01
+	call sfx_01                   ; stop
 	xor a
 	ld (0e257h),a
 	call scr_reset
-	jp 05bebh
-sub_7108h:
+	jp wmap_font
+world_blit:                     ; 0x7108  HMMM 60x80 from 0040/6000
 	ld hl,00040h
 	or a
 	jr z,l7110h
@@ -2545,9 +2502,9 @@ l7110h:
 	ld bc,06080h
 	ld a,001h
 	jp vdp_hmmm
-sub_711bh:
+world_shrink:                   ; 0x711B  HMMM shrink tiles for count-down
 	push af
-	ld hl,l6040h
+	ld hl,06040h                  ; HMMM src XY (not the SAT template)
 	ld de,0a030h
 	ld bc,03070h
 	ld a,001h
@@ -2564,7 +2521,7 @@ sub_711bh:
 	ld bc,03030h
 	ld a,001h
 	jp vdp_hmmm
-sub_7140h:
+world_delta:                    ; 0x7140  EDCA dir -> step EDCB/EDCC
 	ld hl,0edcbh
 	ld a,(0edcah)
 	dec a
@@ -2586,7 +2543,7 @@ l7156h:
 	inc hl
 	inc (hl)
 	ret
-sub_7159h:
+world_pose:                     ; 0x7159  toggle EDD8 every B frames
 	ld hl,0edceh
 	dec (hl)
 	ret nz
@@ -2595,7 +2552,7 @@ sub_7159h:
 	xor 003h
 	ld (0edd8h),a
 	ret
-sub_7168h:
+world_done:                     ; 0x7168  Z if EDC8 == world_len[world]
 	ld a,(0e241h)
 	dec a
 	ld hl,world_len
@@ -2603,18 +2560,18 @@ sub_7168h:
 	ld a,(0edc8h)
 	cp (hl)
 	ret
-; BLOCK 'world_len' (start 0x7177 end 0x717c)  tour steps; [5]=CDh overlaps sub_717ch
+; BLOCK 'world_len' (start 0x7177 end 0x717c)  tour steps; [5]=CDh overlaps world_path
 world_len:
 	defb 058h
 	defb 0b8h
 	defb 088h
 	defb 08eh
 	defb 095h
-sub_717ch:
+world_path:                     ; 0x717C  page D; path byte -> EDCA
 	call page_bank_d
-	call sub_7185h
+	call world_path_d
 	jp page_banks_123
-sub_7185h:
+world_path_d:                   ; 0x7185  ba57 tour path for this world
 	ld hl,0ba57h
 	ld a,(0e241h)
 	dec a
@@ -2648,7 +2605,7 @@ l71b8h:
 	call page_bank_c
 	call 0bdd7h
 	jp page_banks_123
-sub_71c1h:
+world_far:                      ; 0x71C1  page C 0xBDDA then banks 123
 	call page_bank_c
 	call 0bddah
 	jp page_banks_123
@@ -2806,7 +2763,7 @@ clear_wipe:                       ; 0x7296  erase 12 columns from both edges
 	add a,a
 	ld e,a
 	push bc
-	call sub_72d2h
+	call clear_blank
 	pop bc
 	ld a,017h
 	sub c
@@ -2814,7 +2771,7 @@ clear_wipe:                       ; 0x7296  erase 12 columns from both edges
 	add a,a
 	add a,a
 	ld e,a
-	call sub_72d2h
+	call clear_blank
 	ld hl,0e258h
 	inc (hl)
 	ld a,(hl)
@@ -2834,7 +2791,7 @@ l72c2h:
 	ld hl,0e257h
 	inc (hl)
 	ret
-sub_72d2h:
+clear_blank:                    ; 0x72D2  stamp 32 empty tiles across X
 	ld b,020h
 	ld d,000h
 l72d6h:
@@ -3024,7 +2981,7 @@ end_scr1:                         ; 0x7412  blit_9043 + copy_ab59 + pic
 	call sat_fx
 	ld bc,0e201h
 	call WRTVDP
-	call sfx_12
+	call sfx_12                   ; ending
 end_next:                         ; 0x7440  inc E257
 	ld hl,0e257h
 	inc (hl)
@@ -3096,9 +3053,9 @@ end_timer:                        ; 0x74C3  E902 at t=30
 	jr z,l74d8h
 	ld a,(hl)
 	cp 030h
-	call z,sub_74d2h
+	call z,end_flag
 	jp spark_far
-sub_74d2h:
+end_flag:                       ; 0x74D2  E902=1 (spark spawn enable)
 	ld a,001h
 	ld (0e902h),a
 	ret
@@ -3127,7 +3084,7 @@ end_stamp:                        ; 0x74E1  bank12 0xAF37 stamps
 	ld e,(hl)
 	inc hl
 	ld a,(hl)
-	call 05767h
+	call tile_pset
 	ld hl,0edceh
 	inc (hl)
 	call page_banks_123
@@ -3243,7 +3200,7 @@ end_cols:                         ; 0x75F1  sat_fx 2, draw_cols 0Fh
 	call sat_fx
 	ld a,00fh
 	call draw_cols
-	call sfx_0e
+	call sfx_0e                   ; ending
 	jp end_next
 end_wait4:                        ; 0x7609
 	ld a,(0e880h)
@@ -3532,7 +3489,7 @@ sat_fx_run:                       ; 0x7825  DISPATCH_A on E881
 	ld a,(0e880h)
 	or a
 	ret z
-	call sub_7903h
+	call sat_fx_done
 	ld a,(0e880h)
 	or a
 	ret z
@@ -3545,19 +3502,19 @@ d_7835_jp_start:
 	defw sat_fx1
 	defw sat_fx2
 d_7835_jp_end:
-sat_fx0:                          ; 0x783E  nibble expand (sub_78adh)
+sat_fx0:                          ; 0x783E  nibble expand (sat_fx_hi)
 	ld hl,0e882h
 	dec (hl)
 	ret nz
 	ld a,(0e883h)
 	ld (hl),a
-	call sub_7918h
+	call sat_fx_ptr
 	ld b,010h
 l784ch:
 	push bc
 	push hl
 	push de
-	call sub_78adh
+	call sat_fx_hi
 	pop de
 	pop hl
 	pop bc
@@ -3566,7 +3523,7 @@ l784ch:
 	inc de
 	inc de
 	djnz l784ch
-	call sub_78eeh
+	call sat_fx_pal
 l785eh:
 	ld hl,0e881h
 	inc (hl)
@@ -3577,13 +3534,13 @@ sat_fx1:                          ; 0x7863
 	ret nz
 	ld a,(0e883h)
 	ld (hl),a
-	call sub_7918h
+	call sat_fx_ptr
 	ld b,010h
 l7871h:
 	push bc
 	push hl
 	push de
-	call sub_78c8h
+	call sat_fx_lo
 	pop de
 	pop hl
 	pop bc
@@ -3592,7 +3549,7 @@ l7871h:
 	inc de
 	inc de
 	djnz l7871h
-	call sub_78eeh
+	call sat_fx_pal
 	jr l785eh
 sat_fx2:                          ; 0x7885  last pass, E881=0
 	ld hl,0e882h
@@ -3600,7 +3557,7 @@ sat_fx2:                          ; 0x7885  last pass, E881=0
 	ret nz
 	ld a,(0e883h)
 	ld (hl),a
-	call sub_7918h
+	call sat_fx_ptr
 	inc hl
 	inc de
 	ld b,010h
@@ -3608,7 +3565,7 @@ l7895h:
 	push bc
 	push hl
 	push de
-	call sub_78dbh
+	call sat_fx_lo2
 	pop de
 	pop hl
 	pop bc
@@ -3617,11 +3574,11 @@ l7895h:
 	inc de
 	inc de
 	djnz l7895h
-	call sub_78eeh
+	call sat_fx_pal
 	ld hl,0e881h
 	ld (hl),000h
 	ret
-sub_78adh:
+sat_fx_hi:                      ; 0x78AD  morph dest high nibble toward src
 	ld a,(hl)
 	rra
 	rra
@@ -3645,7 +3602,7 @@ l78c4h:
 	add a,c
 	ld (hl),a
 	ret
-sub_78c8h:
+sat_fx_lo:                      ; 0x78C8  morph dest low nibble toward src
 	ld a,(hl)
 	and 00fh
 	ld c,a
@@ -3661,7 +3618,7 @@ l78d7h:
 	add a,c
 	ld (hl),a
 	ret
-sub_78dbh:
+sat_fx_lo2:                     ; 0x78DB  last-pass low nibble morph
 	ld a,(hl)
 	and 00fh
 	ld c,a
@@ -3677,7 +3634,7 @@ l78eah:
 	add a,c
 	ld (hl),a
 	ret
-sub_78eeh:
+sat_fx_pal:                     ; 0x78EE  palette_set E887 16 colours
 	ld hl,0e887h
 	xor a
 l78f2h:
@@ -3694,7 +3651,7 @@ l78f2h:
 	cp 010h
 	ret z
 	jr l78f2h
-sub_7903h:
+sat_fx_done:                    ; 0x7903  Z if E887 matches dest; clear E880
 	ld b,020h
 	ld de,0e887h
 	ld hl,(0e884h)
@@ -3708,7 +3665,7 @@ l790bh:
 	ld hl,0e880h
 	ld (hl),000h
 	ret
-sub_7918h:
+sat_fx_ptr:                     ; 0x7918  HL=E884 dest, DE=E887 work
 	ld hl,(0e884h)
 	ld de,0e887h
 	ex de,hl
@@ -3733,7 +3690,7 @@ cont_boot:                        ; 0x7933  gfx, E25B=1 (io_ask)
 	ld (0e241h),a
 	call load_world_gfx
 	call pal_15
-	call sub_7a96h
+	call edit_pat
 	call cont_next
 	ld a,001h
 	ld (0e25bh),a
@@ -3773,7 +3730,7 @@ l7990h:
 	ret
 cont_map:                         ; 0x7996  draw 7-row screen map
 	call scr_reset
-	call sub_7ae1h
+	call scr_grid
 cont_next:                        ; 0x799C  inc E25A, E25B=0
 	ld hl,0e25ah
 	inc (hl)
@@ -3781,9 +3738,9 @@ cont_next:                        ; 0x799C  inc E25A, E25B=0
 	ld (hl),000h
 	ret
 cont_curs:                        ; 0x79A4  cursor E25C/D/E on E788
-	call sub_79aah
+	call map_stick
 	jp l7a69h
-sub_79aah:
+map_stick:                      ; 0x79AA  continue-map cursor on E25C/D/E
 	ld a,(0e20ch)
 	rla
 	jp c,l7a40h
@@ -3807,7 +3764,7 @@ sub_79aah:
 	and a
 	ret z
 	push hl
-	call sub_7adbh
+	call scr_used
 	pop hl
 	ret z
 	dec (hl)
@@ -3818,7 +3775,7 @@ l79e1h:
 	and a
 	jr z,l79ebh
 	push hl
-	call sub_7ab5h
+	call scr_free
 	pop hl
 	ret z
 l79ebh:
@@ -3828,7 +3785,7 @@ l79ebh:
 	inc (hl)
 	ld b,001h
 l79f2h:
-	call sub_7a23h
+	call scr_ptr
 	ld (hl),b
 	ld hl,(0e25ch)
 	ld a,l
@@ -3861,7 +3818,7 @@ l7a13h:
 	pop hl
 	ld bc,0170bh
 	jp vdp_hmmv_hi
-sub_7a23h:
+scr_ptr:                        ; 0x7A23  E25C/D -> HL in E788
 	ld hl,(0e25ch)
 	ld a,l
 	add a,a
@@ -3908,7 +3865,7 @@ l7a5ch:
 	ld (hl),a
 	inc hl
 	ld (hl),a
-	call sub_7b33h
+	call edit_font
 	jp cont_next
 l7a69h:
 	ld hl,0e800h
@@ -3939,21 +3896,21 @@ l7a69h:
 	ld bc,0000fh
 	ldir
 	ret
-sub_7a96h:
+edit_pat:                       ; 0x7A96  pat_15 + clear held + vic_reload
 	call pat_15
 	xor a
 	ld (0e285h),a
 	ld (0e298h),a
 	ld (0e287h),a
 	call vic_reload
-sub_7aa6h:
+rle_minimap:                    ; 0x7AA6  bank D rle_bbfc -> F880
 	call page_bank_d
-	ld de,0bbfch
+	ld de,0bbfch                  ; rle_bbfc minimap
 	ld hl,0f880h
-	call 04e54h
+	call rle_vram
 	jp page_banks_123
-sub_7ab5h:
-	call sub_7a23h
+scr_free:                       ; 0x7AB5  Z if E788 neighbours empty
+	call scr_ptr
 	ld a,(hl)
 	and a
 	jr nz,l7ad9h
@@ -3983,12 +3940,12 @@ sub_7ab5h:
 l7ad9h:
 	xor a
 	ret
-sub_7adbh:
-	call sub_7a23h
+scr_used:                       ; 0x7ADB  Z if E788[cursor] occupied
+	call scr_ptr
 	ld a,(hl)
 	and a
 	ret
-sub_7ae1h:
+scr_grid:                       ; 0x7AE1  7-row HMMV screen-map boxes
 	ld hl,02022h
 	ld d,h
 	ld e,l
@@ -4032,15 +3989,15 @@ edit_hud:                         ; 0x7B1A  legend + screen map
 	call scr_reset
 	call sat_wipe
 	call edit_legend
-	call sub_7d43h
+	call scr_sat
 	ld a,007h
 	ld hl,0d220h
-	call sub_7c04h
+	call cc_fill
 edit_next:                        ; 0x7B2E  inc E25B
 	ld hl,0e25bh
 	inc (hl)
 	ret
-sub_7b33h:
+edit_font:                      ; 0x7B33  bank D 2x13 tiles -> F038
 	call page_bank_d
 	ld hl,0bc44h
 	ld de,0f038h
@@ -4059,13 +4016,13 @@ edit_kind:                        ; 0x7B45  E260 = legend 0..10
 	sub 004h
 	cp 003h
 	jp nc,l7cb3h
-	call sub_7c27h
+	call edit_wipe
 	ld a,007h
 	ld hl,0d200h
-	call sub_7c04h
+	call cc_fill
 	jr l7b9ah
 l7b6ah:
-	call sub_7bdah
+	call kind_sat
 	ld hl,0e260h
 	ld a,(0e207h)
 	rra
@@ -4077,10 +4034,10 @@ l7b6ah:
 	rra
 	ret nc
 	push hl
-	call sub_7c27h
+	call edit_wipe
 	ld a,007h
 	ld hl,0d200h
-	call sub_7c04h
+	call cc_fill
 	pop hl
 	ld a,(hl)
 	cp 009h
@@ -4093,7 +4050,7 @@ l7b6ah:
 l7b9ah:
 	xor a
 	ld (0e261h),a
-	call sub_7c0eh
+	call edit_help
 	jp edit_next
 l7ba4h:
 	ld hl,0e25bh
@@ -4112,7 +4069,7 @@ l7baah:
 	call print_stream
 	jp page_banks_123
 l7bc5h:
-	call sfx_32
+	call sfx_32                   ; cursor
 	dec (hl)
 	ld a,(hl)
 	rla
@@ -4120,14 +4077,14 @@ l7bc5h:
 	ld (hl),00ah
 	ret
 l7bcfh:
-	call sfx_32
+	call sfx_32                   ; cursor
 	inc (hl)
 	ld a,(hl)
 	cp 00bh
 	ret c
 	ld (hl),000h
 	ret
-sub_7bdah:
+kind_sat:                       ; 0x7BDA  legend cursor SAT at E800
 	ld b,010h
 	ld a,(0e260h)
 	ld hl,0e800h
@@ -4153,9 +4110,9 @@ l7be2h:
 	ld a,(0e203h)
 	and 008h
 	ld a,007h
-	jr z,sub_7c04h
+	jr z,cc_fill
 	xor a
-sub_7c04h:
+cc_fill:                        ; 0x7C04  16 colour bytes at HL = A
 	ld d,h
 	ld e,l
 	inc de
@@ -4163,7 +4120,7 @@ sub_7c04h:
 	ld bc,0000fh
 	ldir
 	ret
-sub_7c0eh:
+edit_help:                      ; 0x7C0E  print bcbb stream for E260-4
 	call page_bank_d
 	ld a,(0e260h)
 	sub 004h
@@ -4174,7 +4131,7 @@ sub_7c0eh:
 	inc hl
 	call print_stream
 	jp page_banks_123
-sub_7c27h:
+edit_wipe:                      ; 0x7C27  LMMV wipe + hide SAT+4
 	ld hl,0a010h
 	ld bc,05078h
 	ld a,0ffh
@@ -4187,7 +4144,7 @@ edit_sub:                         ; 0x7C3A  E261 subtype (bcbb_tbl / E263 max)
 	ld a,(0e20ch)
 	rla
 	jp c,l7cb3h
-	call sub_7c77h
+	call sub_sat
 	ld hl,0e261h
 	ld a,(0e207h)
 	rra
@@ -4200,10 +4157,10 @@ edit_sub:                         ; 0x7C3A  E261 subtype (bcbb_tbl / E263 max)
 	ret nc
 	ld a,007h
 	ld hl,0d210h
-	call sub_7c04h
+	call cc_fill
 	jp edit_next
 l7c5fh:
-	call sfx_32
+	call sfx_32                   ; cursor
 	dec (hl)
 	ld a,(hl)
 	rla
@@ -4212,14 +4169,14 @@ l7c5fh:
 	ld (hl),a
 	ret
 l7c6bh:
-	call sfx_32
+	call sfx_32                   ; cursor
 	inc (hl)
 	ld a,(0e263h)
 	cp (hl)
 	ret nc
 	ld (hl),000h
 	ret
-sub_7c77h:
+sub_sat:                        ; 0x7C77  subtype cursor SAT at E804
 	ld b,088h
 	ld a,(0e261h)
 	ld hl,0e804h
@@ -4228,7 +4185,7 @@ edit_scr:                         ; 0x7C82  E262 slot in E788
 	ld a,(0e20ch)
 	rla
 	jp c,l7cb3h
-	call sub_7d43h
+	call scr_sat
 	ld hl,0e262h
 	ld de,0e788h
 	ld a,(0e207h)
@@ -4244,7 +4201,7 @@ edit_scr:                         ; 0x7C82  E262 slot in E788
 	ret nc
 	ld a,007h
 	ld hl,0d220h
-	call sub_7c04h
+	call cc_fill
 	ld a,001h
 	ld (0e25bh),a
 	ret
@@ -4255,7 +4212,7 @@ l7cb3h:
 	inc hl
 	ld (hl),00fh
 	call sat_wipe
-	call sub_7da0h
+	call edit_redraw
 	ld a,004h
 	ld (0e25bh),a
 	ld a,(0e260h)
@@ -4338,7 +4295,7 @@ l7d39h:
 	ld a,(hl)
 	inc a
 	jr l7d26h
-sub_7d43h:
+scr_sat:                        ; 0x7D43  E262 slot cursor SAT at E808
 	ld a,(0e262h)
 	ld b,a
 	and 038h
@@ -4363,21 +4320,21 @@ sub_7d43h:
 	xor a
 l7d67h:
 	ld hl,0d220h
-	jp sub_7c04h
+	jp cc_fill
 l7d6dh:
 	ld hl,0e26ah
 	ld a,(hl)
 	inc hl
 	and (hl)
 	ret z
-	call sub_7d86h
+	call count_gems
 	call scr_reset
 	call sat_wipe
 	call cont_next
 	ld a,001h
 	ld (0e25bh),a
 	ret
-sub_7d86h:
+count_gems:                     ; 0x7D86  nonempty E700 -> E2F4/E2F5
 	ld hl,0e700h
 	ld bc,01000h
 l7d8ch:
@@ -4393,12 +4350,12 @@ l7d91h:
 	ld (0e2f4h),a
 	ld (0e2f5h),a
 	ret
-sub_7da0h:
-	call sub_7e35h
+edit_redraw:                    ; 0x7DA0  stamp map + gems/actors/tools/Vic
+	call edit_unpack
 	ld a,(0e26ch)
 	and a
 	call nz,083e3h
-	call sub_7f39h
+	call edit_screen
 	ld c,a
 	ld ix,0e700h
 	ld b,010h
@@ -4410,13 +4367,13 @@ l7db4h:
 	ld a,(ix+001h)
 	cp c
 	jr nz,l7dc4h
-	call sub_653dh
+	call gem_tiles
 l7dc4h:
 	ld bc,00008h
 	add ix,bc
 	pop bc
 	djnz l7db4h
-	call sub_7f39h
+	call edit_screen
 	ld hl,0e2f3h
 	cp (hl)
 	jr nz,l7de9h
@@ -4433,7 +4390,7 @@ l7dc4h:
 	pop bc
 	call 0860eh
 l7de9h:
-	call sub_7f39h
+	call edit_screen
 	ld c,a
 	ld hl,0e300h
 	ld b,040h
@@ -4454,7 +4411,7 @@ l7df2h:
 	cp c
 	jr nz,l7e0dh
 	ld a,b
-	call 08537h
+	call tool_tiles
 	ld bc,00202h
 	call 05737h
 l7e0dh:
@@ -4474,23 +4431,23 @@ l7e0dh:
 	ret z
 	ld a,(0e243h)
 	ld b,a
-	call sub_7f39h
+	call edit_screen
 	cp b
 	call z,08046h
 	ret
-sub_7e35h:
-	call sub_7f39h
+edit_unpack:                    ; 0x7E35  map_base[screen] -> stamp_map body
+	call edit_screen
 	dec a
 	ld h,000h
 	ld l,a
-	call 05d32h
+	call map_base
 	push hl
 	pop ix
 	xor a
 	ld (0efc0h),a
 	jp 04553h
 edit_yn:                          ; 0x7E49  "edit end" Y/N; yes -> E25A=0
-	call 08a38h
+	call yn_keys
 	and a
 	ret z
 	dec a
@@ -4530,8 +4487,8 @@ put_floor1:                       ; 0x7E81  floor1 stamp (HL=0502h)
 	ld hl,00502h
 l7e84h:
 	ld (0efd0h),hl
-	call sub_871bh
-	call sub_7ff0h
+	call edit_cursor
+	call exit_hit
 	ret c
 	ld a,(0e207h)
 	and 030h
@@ -4543,14 +4500,14 @@ l7e84h:
 l7e9ch:
 	ld a,(0efd0h)
 	ld b,a
-	call sub_7f39h
+	call edit_screen
 	ld h,a
-	call sub_7f2ah
+	call edit_xy
 	ex de,hl
 	push hl
 	ld a,d
 	exx
-	call 09571h
+	call screen_base
 	pop hl
 	call map_tile_de
 	exx
@@ -4572,7 +4529,7 @@ l7ec1h:
 	push hl
 	push af
 	ld bc,00101h
-	call sub_63edh
+	call stamp_rect
 	pop af
 	pop de
 	and a
@@ -4584,7 +4541,7 @@ l7ed5h:
 	call 0576ah
 	pop de
 	push de
-	call sub_7f10h
+	call edit_wrap_x
 	pop hl
 	and a
 	ret z
@@ -4595,21 +4552,21 @@ l7ed5h:
 	jr nz,l7ef0h
 	push hl
 	ld h,0f8h
-	call sub_7ef4h
+	call edit_stamp1
 	pop hl
 l7ef0h:
 	dec c
 	ret nz
 	ld h,000h
-sub_7ef4h:
+edit_stamp1:                    ; 0x7EF4  1x1 stamp_rect at DE; tile if same screen
 	push bc
 	push de
 	ld bc,00101h
 	ld a,(0efd0h)
 	push hl
 	push de
-	call sub_63edh
-	call sub_7f39h
+	call stamp_rect
+	call edit_screen
 	pop bc
 	pop de
 	cp b
@@ -4618,7 +4575,7 @@ sub_7ef4h:
 	pop de
 	pop bc
 	ret
-sub_7f10h:
+edit_wrap_x:                    ; 0x7F10  C=3/4 at left/right edge, else 0
 	ld c,003h
 	ld a,d
 	and a
@@ -4638,7 +4595,7 @@ l7f1eh:
 	pop bc
 	ld a,l
 	ret
-sub_7f2ah:
+edit_xy:                        ; 0x7F2A  E264/E265 * 8 -> DE (pixel Y, X)
 	ld a,(0e264h)
 	add a,a
 	add a,a
@@ -4650,7 +4607,7 @@ sub_7f2ah:
 	add a,a
 	ld d,a
 	ret
-sub_7f39h:
+edit_screen:                    ; 0x7F39  E788[E262] screen id
 	ld de,0e788h
 	ld a,(0e262h)
 	call ADD_DE_A
@@ -4660,8 +4617,8 @@ put_floor2:                       ; 0x7F44  floor2 stamp (HL=5E03h) → put_floo
 	ld hl,05e03h
 	jp l7e84h
 put_ladder:                       ; 0x7F4A
-	call sub_871bh
-	call sub_7ff5h
+	call edit_cursor
+	call exit_hit8
 	ret c
 	ld a,(0e207h)
 	and 030h
@@ -4673,13 +4630,13 @@ put_ladder:                       ; 0x7F4A
 l7f5eh:
 	ld (0efd0h),a
 	ld b,a
-	call sub_7f39h
+	call edit_screen
 	ld h,a
 	exx
-	call 09571h
+	call screen_base
 	ld (0e250h),de
 	exx
-	call sub_7f2ah
+	call edit_xy
 	ex de,hl
 	ld a,b
 	and a
@@ -4705,9 +4662,9 @@ l7f8fh:
 	push af
 	ld bc,00102h
 	push hl
-	call sub_63edh
+	call stamp_rect
 	pop de
-	call sub_7fb5h
+	call edit_stamp_wrap
 	pop af
 	pop de
 	and a
@@ -4726,9 +4683,9 @@ l7fa4h:
 	inc a
 l7fb2h:
 	jp 0576ah
-sub_7fb5h:
+edit_stamp_wrap:                ; 0x7FB5  stamp_rect on wrapped neighbour
 	push de
-	call sub_7fe1h
+	call edit_wrap_y
 	pop hl
 	and a
 	ret z
@@ -4742,8 +4699,8 @@ l7fc4h:
 	ld a,(0efd0h)
 	push hl
 	push de
-	call sub_63edh
-	call sub_7f39h
+	call stamp_rect
+	call edit_screen
 	pop bc
 	pop de
 	cp b
@@ -4754,7 +4711,7 @@ l7fc4h:
 	ld a,003h
 l7fdeh:
 	jp l7fa4h
-sub_7fe1h:
+edit_wrap_y:                    ; 0x7FE1  C=1/2 at top/bottom edge, else 0
 	ld c,001h
 	ld a,e
 	and a
@@ -4764,10 +4721,10 @@ sub_7fe1h:
 	jp z,l7f1eh
 	xor a
 	ret
-sub_7ff0h:
+exit_hit:                       ; 0x7FF0  CY if cursor overlaps exit (0,0)
 	ld bc,02000h
 	jr l7ff8h
-sub_7ff5h:
+exit_hit8:                      ; 0x7FF5  same with 8px X inset
 	ld bc,02808h
 l7ff8h:
 	ld a,(0e26ah)
@@ -4778,11 +4735,11 @@ l7ff8h:
 ; ---------------------------------------------------------------------------
 ;  bank 02 continues at 0x8001 (ld hl high byte was 0x8000)
 ; ---------------------------------------------------------------------------
-	call 07f39h
+	call edit_screen
 	cp (hl)
 	jr nz,l8016h
 	dec hl
-	call 07f2ah
+	call edit_xy
 	ld a,d
 	add a,c
 	sub (hl)
@@ -4797,16 +4754,16 @@ l8016h:
 	or a
 	ret
 put_player:                       ; 0x8018  Vic spawn E282 / E26B; fire places, else erase
-	call sub_871bh
+	call edit_cursor
 	ld a,(0e207h)
 	and 030h
 	ret z
 	and 010h
 	ld hl,0e282h
 	jr z,l8039h
-	call 07f39h
+	call edit_screen
 	ld (0e243h),a
-	call 07f2ah
+	call edit_xy
 	ld (hl),e
 	inc hl
 	inc hl
@@ -4816,7 +4773,7 @@ put_player:                       ; 0x8018  Vic spawn E282 / E26B; fire places, 
 l8039h:
 	ld a,(0e243h)
 	ld b,a
-	call 07f39h
+	call edit_screen
 	cp b
 	ret nz
 	xor a
@@ -4870,18 +4827,18 @@ l805eh:
 	exx
 	ld a,00dh
 	ld hl,0d220h
-	call 07c04h
+	call cc_fill
 	ld a,04eh
 	ld hl,0d230h
-	call 07c04h
+	call cc_fill
 	ld a,00dh
 	ld hl,0d240h
-	call 07c04h
+	call cc_fill
 	ld a,04eh
 	ld hl,0d250h
-	jp 07c04h
+	jp cc_fill
 put_enemy:                        ; 0x80A7  E2C0 delayed pickups; type=E261+1 (HUD names_enemies)
-	call sub_871bh
+	call edit_cursor
 	ld a,(0e207h)
 	and 030h
 	ret z
@@ -4892,7 +4849,7 @@ put_enemy:                        ; 0x80A7  E2C0 delayed pickups; type=E261+1 (H
 	cp 008h
 	ret nc
 	push hl
-	call sub_80e8h
+	call delay_free
 	pop hl
 	ret z
 	inc (hl)
@@ -4912,15 +4869,15 @@ l80d0h:
 	inc hl
 	ld (hl),020h
 	inc hl
-	call 07f39h
+	call edit_screen
 	ld (hl),a
 	inc hl
-	call 07f2ah
+	call edit_xy
 	ld (hl),e
 	inc hl
 	ld (hl),d
 	jr l811fh
-sub_80e8h:
+delay_free:                     ; 0x80E8  Z if E2C0 slot at editor XY
 	ld hl,0e2c0h
 	ld b,008h
 l80edh:
@@ -4928,7 +4885,7 @@ l80edh:
 	and a
 	jr z,l80f7h
 	push hl
-	call sub_819eh
+	call delay_at
 	pop hl
 	ret z
 l80f7h:
@@ -4949,10 +4906,10 @@ l810ah:
 	and a
 	jr z,l8118h
 	push hl
-	call sub_819eh
+	call delay_at
 	pop hl
 	push hl
-	call z,sub_81b0h
+	call z,delay_erase
 	pop hl
 l8118h:
 	ld a,005h
@@ -4965,7 +4922,7 @@ l811fh:
 l8127h:
 	push hl
 	exx
-	call 07f39h
+	call edit_screen
 	exx
 	inc hl
 	inc hl
@@ -5034,14 +4991,14 @@ l814bh:
 	push hl
 	ld a,b
 	push bc
-	call 07c04h
+	call cc_fill
 	pop bc
 	ld a,c
 	exx
 	pop hl
 	ld bc,00010h
 	add hl,bc
-	call 07c04h
+	call cc_fill
 	exx
 	pop de
 	pop hl
@@ -5053,13 +5010,13 @@ l8191h:
 	call ADD_DE_A
 	djnz l8127h
 	ret
-sub_819eh:
-	call 07f39h
+delay_at:                       ; 0x819E  Z if this E2C0 rec is at editor XY
+	call edit_screen
 	inc hl
 	inc hl
 	cp (hl)
 	ret nz
-	call 07f2ah
+	call edit_xy
 	inc hl
 	ld a,(hl)
 	cp e
@@ -5068,13 +5025,13 @@ sub_819eh:
 	ld a,(hl)
 	cp d
 	ret
-sub_81b0h:
+delay_erase:                    ; 0x81B0  clear E2C0 rec; dec E266
 	ld (hl),000h
 	ld hl,0e266h
 	dec (hl)
 	ret
 put_trap:                         ; 0x81B7  E600 via editor_spawn; E261=7 → secret (obj2)
-	call sub_8708h
+	call edit_cursor2
 	ld a,(0e207h)
 	and 030h
 	ret z
@@ -5120,14 +5077,14 @@ l81eeh:
 l8203h:
 	ld a,b
 	ld (ix+000h),a
-	call 07f2ah
+	call edit_xy
 	ld (ix+002h),e
 	ld (ix+003h),d
-	call 07f39h
+	call edit_screen
 	ld (ix+004h),a
 	ld (ix+009h),a
-	call sub_830ch
-	call 07f39h
+	call edit_place
+	call edit_screen
 	ld c,a
 	ld ix,0e600h
 	ld b,010h
@@ -5138,24 +5095,24 @@ l8226h:
 	jr nz,l8234h
 	ld a,(ix+000h)
 	and a
-	call nz,sub_823dh
+	call nz,edit_draw
 l8234h:
 	ld bc,00010h
 	add ix,bc
 	pop bc
 	djnz l8226h
 	ret
-sub_823dh:
+edit_draw:                      ; 0x823D  DISPATCH actor stamp by type
 	dec a
 	call DISPATCH_A
 
 ; BLOCK 'd823e_jp' (start 0x8241 end 0x824b)
 d823e_jp_start:
-	defw 08266h                   ; type 1 Slouman / Flouman (coffin)
-	defw 0827fh                   ; type 2 Pyoncy
-	defw 0829ch                   ; type 3 Rock Roll
-	defw 0bdc0h                   ; type 4 trap (1×4 tile column)
-	defw 09652h                   ; type 5 stone (2×2, pushable)
+	defw stamp_coffin             ; type 1 Slouman / Flouman (coffin)
+	defw stamp_pyoncy             ; type 2 Pyoncy
+	defw stamp_rock               ; type 3 Rock Roll
+	defw stamp_trap               ; type 4 trap (1×4 tile column)
+	defw stamp_stone              ; type 5 stone (2×2, pushable)
 d823e_jp_end:
 	ld ix,0e600h
 	ld b,010h
@@ -5163,7 +5120,7 @@ l8251h:
 	ld a,(ix+000h)
 	and a
 	jr z,l825bh
-	call sub_82f8h
+	call actor_at
 	ret z
 l825bh:
 	ld de,00010h
@@ -5172,6 +5129,7 @@ l825bh:
 	ld a,001h
 	and a
 	ret
+stamp_coffin:                     ; 0x8266  editor preview: coffin facing
 	ld a,(ix+007h)
 	and 002h
 	ld a,003h
@@ -5183,6 +5141,7 @@ l8270h:
 	ld de,l9374h
 	ld bc,l9374h
 	jp 0bb63h
+stamp_pyoncy:                     ; 0x827F  editor preview: pyoncy
 	ld a,(ix+007h)
 	rra
 	rra
@@ -5194,6 +5153,7 @@ l8270h:
 	ld de,l939ch
 	ld bc,l93a4h
 	jp 0bb63h
+stamp_rock:                       ; 0x829C  editor preview: rock-roll row
 	ld e,(ix+002h)
 	ld d,(ix+003h)
 	ld b,(ix+008h)
@@ -5219,15 +5179,15 @@ l82c2h:
 	and a
 	jr z,l82d0h
 	push hl
-	call sub_82f8h
-	call z,sub_82d8h
+	call actor_at
+	call z,edit_erase
 	pop hl
 l82d0h:
 	ld de,00010h
 	add ix,de
 	djnz l82c2h
 	ret
-sub_82d8h:
+edit_erase:                     ; 0x82D8  clear actor at IX; stamp floor
 	ld a,(ix+000h)
 	ld (ix+000h),000h
 	dec (hl)
@@ -5235,44 +5195,45 @@ sub_82d8h:
 	call ADD_HL_A
 	ld c,(hl)
 	ld b,(ix+008h)
-	call 07f2ah
+	call edit_xy
 	ld hl,l86c5h
 	jp 05737h
 	ld (bc),a
 	ld (bc),a
 	ld bc,00204h
-sub_82f8h:
-	call 07f39h
+actor_at:                       ; 0x82F8  Z if IX actor is at editor XY this screen
+	call edit_screen
 	cp (ix+004h)
 	ret nz
-	call 07f2ah
+	call edit_xy
 	ld a,(ix+002h)
 	cp e
 	ret nz
 	ld a,(ix+003h)
 	cp d
 	ret
-sub_830ch:
+edit_place:                     ; 0x830C  DISPATCH_A on E261 (editor tool)
 	ld a,(0e261h)
 	call DISPATCH_A
 
 ; BLOCK 'd830f_jp' (start 0x8312 end 0x8320)
 d830f_jp_start:
-	defw 08320h                   ; E261 0 door1 lr  coffin ix+8=0
-	defw 0834dh                   ; E261 1 door1 rl  coffin ix+8=1 (editor)
-	defw 08320h                   ; E261 2 door2 lr  pyoncy (same init)
-	defw 08351h                   ; E261 3 door2 rl  ix+8=2
-	defw 08346h                   ; E261 4 wall      rock roll
-	defw 0833ch                   ; E261 5 floor     trap
-	defw 08341h                   ; E261 6 stone
+	defw place_lr                 ; E261 0 door1 lr  coffin ix+8=0
+	defw place_coffin_rl          ; E261 1 door1 rl  coffin ix+8=1 (editor)
+	defw place_lr                 ; E261 2 door2 lr  pyoncy (same init)
+	defw place_pyoncy_rl          ; E261 3 door2 rl  ix+8=2
+	defw place_rock               ; E261 4 wall      rock roll
+	defw place_trap               ; E261 5 floor     trap
+	defw place_stone              ; E261 6 stone
 d830f_jp_end:
+place_lr:                         ; 0x8320  door / coffin / pyoncy facing left
 	ld c,000h
 	xor a
 	ld b,003h
 l8325h:
 	ld (ix+005h),c
 	ld (ix+007h),a
-	call sub_8359h
+	call edit_vscan
 	ld (ix+008h),c
 	dec c
 	ret nz
@@ -5280,24 +5241,29 @@ l8325h:
 	ld hl,0e267h
 	dec (hl)
 	ret
+place_trap:                       ; 0x833C
 	ld (ix+008h),001h
 	ret
+place_stone:                      ; 0x8341
 	ld (ix+008h),002h
 	ret
+place_rock:                       ; 0x8346
 	xor a
 	ld c,a
 	ld b,01eh
 	jp l8325h
+place_coffin_rl:                  ; 0x834D
 	ld c,003h
 	jr l8353h
+place_pyoncy_rl:                  ; 0x8351
 	ld c,000h
 l8353h:
 	ld a,002h
 	ld b,003h
 	jr l8325h
-sub_8359h:
+edit_vscan:                     ; 0x8359  walk DE down; count free map cells
 	ld c,001h
-	call 07f2ah
+	call edit_xy
 l835eh:
 	ld a,e
 	add a,008h
@@ -5306,24 +5272,24 @@ l835eh:
 	ret nc
 	push bc
 	push de
-	call sub_8371h
+	call edit_mapbit
 	pop de
 	pop bc
 	ret nc
 	inc c
 	djnz l835eh
 	ret
-sub_8371h:
+edit_mapbit:                    ; 0x8371  CY if map cell at DE is empty
 	push de
-	call 07f39h
+	call edit_screen
 	dec a
 	ld l,a
 	ld h,000h
-	call 05d32h
+	call map_base
 	pop de
 	push hl
 	ex de,hl
-	call 04d7bh
+	call scr5_addr
 	or a
 	ld de,03800h
 	sbc hl,de
@@ -5353,7 +5319,7 @@ l83a5h:
 	cp 010h
 	ret nc
 	push hl
-	call sub_841ah
+	call secret_free
 	pop hl
 	ret z
 	inc (hl)
@@ -5375,16 +5341,16 @@ l83c6h:
 	inc de
 	djnz l83c6h
 	push hl
-	call 07f39h
+	call edit_screen
 	ld (hl),a
 	inc hl
-	call 07f2ah
+	call edit_xy
 	ld (hl),e
 	inc hl
 	ld (hl),d
 	ld b,01eh
 	push hl
-	call sub_8359h
+	call edit_vscan
 	pop hl
 	inc hl
 	ld a,080h
@@ -5396,15 +5362,15 @@ l83c6h:
 	ld b,010h
 l83ebh:
 	push bc
-	call 07f39h
+	call edit_screen
 	cp (ix+000h)
-	call z,sub_83feh
+	call z,secret_stamp
 	ld bc,00004h
 	add ix,bc
 	pop bc
 	djnz l83ebh
 	ret
-sub_83feh:
+secret_stamp:                   ; 0x83FE  stamp ix+3 count of door tiles
 	ld a,(ix+003h)
 	and 01fh
 	ld b,a
@@ -5423,14 +5389,14 @@ l840ah:
 	ld e,a
 	djnz l840ah
 	ret
-sub_841ah:
+secret_free:                    ; 0x841A  Z if E7C0 slot at editor XY
 	ld ix,0e7c0h
 	ld b,010h
 l8420h:
 	ld a,(ix+000h)
 	and a
 	jr z,l842ah
-	call sub_8456h
+	call secret_at
 	ret z
 l842ah:
 	ld de,00004h
@@ -5450,33 +5416,33 @@ l8440h:
 	ld a,(ix+000h)
 	and a
 	jr z,l844dh
-	call sub_8456h
-	call z,sub_846ah
+	call secret_at
+	call z,secret_erase
 l844dh:
 	ld bc,00004h
 	add ix,bc
 	pop bc
 	djnz l8440h
 	ret
-sub_8456h:
-	call 07f39h
+secret_at:                      ; 0x8456  Z if this secret rec is at editor XY
+	call edit_screen
 	cp (ix+000h)
 	ret nz
-	call 07f2ah
+	call edit_xy
 	ld a,(ix+001h)
 	cp e
 	ret nz
 	ld a,(ix+002h)
 	cp d
 	ret
-sub_846ah:
+secret_erase:                   ; 0x846A  clear secret rec; stamp floor
 	ld hl,0e26ch
 	dec (hl)
 	ld (ix+000h),000h
 	ld c,000h
-	jp sub_83feh
+	jp secret_stamp
 put_tool:                         ; 0x8477  E300 map tool; type=E261+1 (names_tools 1-6)
-	call sub_871bh
+	call edit_cursor
 	ld a,(0e207h)
 	and 030h
 	ret z
@@ -5489,7 +5455,7 @@ put_tool:                         ; 0x8477  E300 map tool; type=E261+1 (names_to
 	cp 040h
 	ret nc
 	push hl
-	call sub_8501h
+	call tool_free
 	pop hl
 	ret z
 	inc (hl)
@@ -5506,12 +5472,12 @@ l84a5h:
 	inc a
 	ld (hl),a
 	inc hl
-	call 07f2ah
+	call edit_xy
 	ld (hl),e
 	inc hl
 	ld (hl),d
 	inc hl
-	call 07f39h
+	call edit_screen
 	ld (hl),a
 	jr l84ddh
 l84b8h:
@@ -5528,10 +5494,10 @@ l84c5h:
 	and a
 	jr z,l84d4h
 	push hl
-	call sub_851bh
+	call tool_at
 	pop hl
 	push hl
-	call z,sub_852eh
+	call z,tool_erase
 	pop hl
 l84d4h:
 	ld a,008h
@@ -5540,9 +5506,9 @@ l84d4h:
 	djnz l84c5h
 	ret
 l84ddh:
-	call 07f2ah
+	call edit_xy
 	ld a,(0e261h)
-	call sub_8537h
+	call tool_tiles
 	ld a,(0efd0h)
 	and a
 	jr z,l84efh
@@ -5554,11 +5520,11 @@ l84efh:
 	call 05737h
 	pop hl
 	pop bc
-	call 07f39h
+	call edit_screen
 	ld d,a
 	xor a
 	jp 063edh
-sub_8501h:
+tool_free:                      ; 0x8501  Z if E300 slot at editor XY
 	ld hl,0e300h
 	ld b,040h
 l8506h:
@@ -5566,7 +5532,7 @@ l8506h:
 	and a
 	jr z,l8510h
 	push hl
-	call sub_851bh
+	call tool_at
 	pop hl
 	ret z
 l8510h:
@@ -5576,14 +5542,14 @@ l8510h:
 	ld a,001h
 	and a
 	ret
-sub_851bh:
-	call 07f39h
+tool_at:                        ; 0x851B  Z if this E300 rec is at editor XY
+	call edit_screen
 	inc hl
 	inc hl
 	inc hl
 	cp (hl)
 	ret nz
-	call 07f2ah
+	call edit_xy
 	dec hl
 	ld a,(hl)
 	cp d
@@ -5592,18 +5558,18 @@ sub_851bh:
 	ld a,(hl)
 	cp e
 	ret
-sub_852eh:
+tool_erase:                     ; 0x852E  clear E300 rec; dec E268
 	ld (hl),000h
 	ld hl,0e268h
 	dec (hl)
 	jp l84ddh
-sub_8537h:
+tool_tiles:                     ; 0x8537  HL = 9328 + A*4 tool stamp
 	ld hl,l9328h
 	add a,a
 	add a,a
 	jp ADD_HL_A
 put_gem:                          ; 0x853F  E700 soul stone (max 16)
-	call sub_871bh
+	call edit_cursor
 	ld a,(0e207h)
 	and 030h
 	ret z
@@ -5631,10 +5597,10 @@ l8561h:
 l856ch:
 	ld (hl),001h
 	inc hl
-	call 07f39h
+	call edit_screen
 	ld (hl),a
 	inc hl
-	call 07f2ah
+	call edit_xy
 	ld (hl),e
 	inc hl
 	ld (hl),d
@@ -5651,10 +5617,10 @@ l8584h:
 	and a
 	jr z,l8593h
 	push hl
-	call sub_859ch
+	call gem_at
 	pop hl
 	push hl
-	call z,sub_85adh
+	call z,gem_erase
 	pop hl
 l8593h:
 	ld a,008h
@@ -5662,12 +5628,12 @@ l8593h:
 	pop bc
 	djnz l8584h
 	ret
-sub_859ch:
-	call 07f39h
+gem_at:                         ; 0x859C  Z if this E700 rec is at editor XY
+	call edit_screen
 	inc hl
 	cp (hl)
 	ret nz
-	call 07f2ah
+	call edit_xy
 	inc hl
 	ld a,(hl)
 	cp e
@@ -5676,12 +5642,12 @@ sub_859ch:
 	ld a,(hl)
 	cp d
 	ret
-sub_85adh:
+gem_erase:                      ; 0x85AD  clear E700 rec; stamp floor
 	ld (hl),000h
 	ld hl,0e269h
 	dec (hl)
 l85b3h:
-	call 07f2ah
+	call edit_xy
 	ld a,(0efd0h)
 	and a
 	ld hl,l9324h
@@ -5694,12 +5660,12 @@ l85c2h:
 	call 05737h
 	pop hl
 	pop bc
-	call 07f39h
+	call edit_screen
 	ld d,a
 	xor a
 	jp 063edh
 put_exit:                         ; 0x85D4  E2F1 exit door / E26A placed
-	call sub_871bh
+	call edit_cursor
 	ld a,(0e207h)
 	and 030h
 	ret z
@@ -5707,19 +5673,19 @@ put_exit:                         ; 0x85D4  E2F1 exit door / E26A placed
 	jr z,l8616h
 	ld a,(0e26ah)
 	and a
-	call nz,sub_8621h
-	call sub_8633h
+	call nz,exit_undraw
+	call exit_clear
 	ld hl,0e2f1h
-	call 07f2ah
+	call edit_xy
 	ld (hl),e
 	inc hl
 	ld (hl),d
 	inc hl
-	call 07f39h
+	call edit_screen
 	ld (hl),a
 	ld a,001h
 	ld (0e26ah),a
-	call 07f2ah
+	call edit_xy
 	ld hl,l9340h
 l8604h:
 	ld bc,00404h
@@ -5728,19 +5694,19 @@ l8604h:
 	call 05737h
 	pop bc
 	pop hl
-	call 07f39h
+	call edit_screen
 	ld d,a
 	xor a
 	jp 063edh
 l8616h:
-	call sub_8621h
-	call sub_8633h
+	call exit_undraw
+	call exit_clear
 	xor a
 	ld (0e26ah),a
 	ret
-sub_8621h:
+exit_undraw:                    ; 0x8621  erase exit tiles if this screen
 	ld hl,0e2f3h
-	call 07f39h
+	call edit_screen
 	cp (hl)
 	ret nz
 	dec hl
@@ -5749,7 +5715,7 @@ sub_8621h:
 	ld e,(hl)
 	ld hl,l86c5h
 	jp l8604h
-sub_8633h:
+exit_clear:                     ; 0x8633  zero E2F0..E2F7
 	ld hl,0e2f0h
 	ld de,0e2f1h
 	ld bc,00007h
@@ -5778,13 +5744,13 @@ sub_8633h:
 	xor a
 l8661h:
 	ld hl,0d200h
-	jp 07c04h
+	jp cc_fill
 cont_esc:                         ; 0x8667  GRAPH/ESC or after place -> E25A=5 (cont_edit)
 	ld a,(0e20ch)
 	rla
 	rla
 	jr c,l8676h
-	call sub_88abh
+	call io_menu
 	ld a,(0e25bh)
 	and a
 	ret nz
@@ -5898,7 +5864,7 @@ l86f6h:
 l8705h:
 	ld (hl),000h
 	ret
-sub_8708h:
+edit_cursor2:                   ; 0x8708  cursor with 2x1 / 2x2 step
 	exx
 	ld a,(0e261h)
 	ld bc,00201h
@@ -5908,7 +5874,7 @@ sub_8708h:
 	cp 006h
 	jr z,l871fh
 	jr l871ch
-sub_871bh:
+edit_cursor:                    ; 0x871B  stick moves E264/E265 in E27C box
 	exx
 l871ch:
 	ld bc,00101h
@@ -5937,7 +5903,7 @@ l871fh:
 	jr c,l8778h
 	rra
 	ret nc
-	call sfx_32
+	call sfx_32                   ; cursor
 	ex de,hl
 	ld a,(hl)
 	exx
@@ -5952,7 +5918,7 @@ l871fh:
 	ld (hl),a
 	ret
 l8757h:
-	call sfx_32
+	call sfx_32                   ; cursor
 	ld a,(hl)
 	exx
 	sub c
@@ -5969,7 +5935,7 @@ l8766h:
 	dec (hl)
 	ret
 l8769h:
-	call sfx_32
+	call sfx_32                   ; cursor
 	ld a,(hl)
 	exx
 	add a,c
@@ -5983,7 +5949,7 @@ l8769h:
 	ld (hl),a
 	ret
 l8778h:
-	call sfx_32
+	call sfx_32                   ; cursor
 	ex de,hl
 	ld a,(hl)
 	exx
@@ -6000,7 +5966,7 @@ l8788h:
 	ld (hl),b
 	dec (hl)
 	ret
-sub_878bh:
+secret_draw:                    ; 0x878B  each E7C0 rec -> secret_rect
 	ld hl,0e7c0h
 	ld b,010h
 l8790h:
@@ -6008,14 +5974,14 @@ l8790h:
 	ld a,(hl)
 	and a
 	push hl
-	call nz,sub_87a1h
+	call nz,secret_rect
 	pop hl
 	pop bc
 	ld a,004h
 	call ADD_HL_A
 	djnz l8790h
 	ret
-sub_87a1h:
+secret_rect:                    ; 0x87A1  stamp_rect secret door at rec XY
 	ld a,(hl)
 	push af
 	inc hl
@@ -6042,7 +6008,7 @@ l87c2h:
 	jr nz,l87d3h
 	push hl
 	push bc
-	call sub_87fah
+	call link_scan
 	pop bc
 	pop hl
 	inc c
@@ -6056,11 +6022,11 @@ l87d6h:
 	ld a,(0efc0h)
 	ld hl,0ed80h
 	ld de,0ed90h
-	call sub_87ebh
+	call link_ff
 	ld a,(0efc1h)
 	ld hl,0eda0h
 	ld de,0edb0h
-sub_87ebh:
+link_ff:                        ; 0x87EB  write 0xFF into link table pair
 	add a,a
 	ld b,a
 	call ADD_HL_A
@@ -6070,7 +6036,7 @@ sub_87ebh:
 	ld a,0ffh
 	ld (de),a
 	ret
-sub_87fah:
+link_scan:                      ; 0x87FA  build ED80-EDB0 from E788 neighbours
 	push hl
 	dec hl
 	ld b,(hl)
@@ -6085,7 +6051,7 @@ sub_87fah:
 	push bc
 	ld bc,0ed80h
 	ld de,0ed91h
-	call sub_882ah
+	call link_ud
 	ld hl,0efc0h
 	inc (hl)
 	pop bc
@@ -6096,11 +6062,11 @@ l8819h:
 	ret nz
 	ld bc,0eda0h
 	ld de,0edb1h
-	call sub_884dh
+	call link_lr
 	ld hl,0efc1h
 	inc (hl)
 	ret
-sub_882ah:
+link_ud:                        ; 0x882A  fill up/down link words
 	ld a,(0efc0h)
 	add a,a
 	push af
@@ -6130,7 +6096,7 @@ l8839h:
 	dec de
 	ld (de),a
 	ret
-sub_884dh:
+link_lr:                        ; 0x884D  fill left/right link words
 	ld a,(0efc1h)
 	add a,a
 	push af
@@ -6179,7 +6145,7 @@ l888ch:
 	rla
 	push af
 	ld a,c
-	call c,05767h
+	call c,tile_pset
 	ld a,d
 	add a,008h
 	ld d,a
@@ -6197,22 +6163,23 @@ l889ch:
 	call page_banks_123
 	call scr_on
 	ret
-sub_88abh:
+io_menu:                        ; 0x88AB  DISPATCH_A on E25B (file submenu)
 	ld a,(0e25bh)
 	dec a
 	call DISPATCH_A
 
 ; BLOCK 'd88af_jp' (start 0x88b2 end 0x88be)
 d88af_jp_start:
-	defw 088beh
-	defw 08917h
-	defw 089e9h
-	defw 08a54h
-	defw 08b43h
-	defw 08b88h
+	defw io_open
+	defw io_dev_keys
+	defw io_save_yn
+	defw io_enter
+	defw io_commit
+	defw io_go
 d88af_jp_end:
-	call sub_8908h
-	call 05bebh
+io_open:                          ; 0x88BE  password / file menu + minimap
+	call pwd_spaces
+	call wmap_font
 	xor a
 	call draw_minimap
 	call page_bank_d
@@ -6243,11 +6210,11 @@ l88e9h:
 	ld (0e26eh),a
 	ld (0e27fh),a
 	ld (0e21eh),a
-sub_8903h:
+io_step:                        ; 0x8903  inc E25B
 	ld hl,0e25bh
 	inc (hl)
 	ret
-sub_8908h:
+pwd_spaces:                     ; 0x8908  0 in E270.. -> space
 	ld hl,0e270h
 	ld b,00bh
 l890dh:
@@ -6259,6 +6226,7 @@ l8913h:
 	inc hl
 	djnz l890dh
 	ret
+io_dev_keys:                      ; 0x8917  stick: pick tape/disk/sram
 	call io_dev_sat
 	ld hl,0e26dh
 	ld a,(0e207h)
@@ -6271,7 +6239,7 @@ l8913h:
 	rra
 	ret nc
 	call sat_wipe
-	call sub_8903h
+	call io_step
 	call io_set_dev
 	call scr_reset
 	xor a
@@ -6352,7 +6320,7 @@ l89a3h:
 	call page_banks_123
 	ld a,003h
 	ld (0f0e5h),a
-	jp sub_8903h
+	jp io_step
 io_set_dev:                       ; 0x89CD  E26D → F0F8 (tape/disk/sram)
 	ld a,(0e26dh)
 	ld b,a
@@ -6371,7 +6339,8 @@ l89e4h:
 	ld a,b
 	ld (0f0f8h),a
 	ret
-	call sub_8a38h
+io_save_yn:                       ; 0x89E9  GRAPH/ESC then name or catalog
+	call yn_keys
 	and a
 	ret z
 	dec a
@@ -6384,15 +6353,15 @@ l89e4h:
 	jr z,l89a3h
 	xor a
 	call draw_minimap
-	call sub_8903h
+	call io_step
 	call page_bank_d
 	ld hl,0bde9h
 	call print_stream
 	call page_banks_123
-sub_8a14h:
+pwd_print8:                     ; 0x8A14  8 glyphs at E270 from 6058
 	ld de,06058h
 	ld hl,0e270h
-sub_8a1ah:
+print_name:                     ; 0x8A1A  B glyphs at HL; +0xA0 stamp
 	ld b,008h
 l8a1ch:
 	push bc
@@ -6416,7 +6385,7 @@ l8a27h:
 	pop bc
 	djnz l8a1ch
 	ret
-sub_8a38h:
+yn_keys:                        ; 0x8A38  A=2 GRAPH, 1 ESC, 0 none
 	ld a,004h
 	call 00141h
 	cpl
@@ -6435,13 +6404,14 @@ l8a4eh:
 l8a51h:
 	ld a,001h
 	ret
+io_enter:                         ; 0x8A54  type filename / password glyphs
 	ld a,(0f0f8h)
 	cp 002h
 	jp z,l8ad1h
 l8a5ch:
-	call sub_8abbh
-	call 06c2eh
-	call 06b8eh
+	call name_sat
+	call keys_snap
+	call pwd_decode
 	ld a,(0ededh)
 	and a
 	jr z,l8a8dh
@@ -6457,14 +6427,14 @@ l8a73h:
 	cp 007h
 	jr nc,l8a83h
 	push af
-	call sfx_32
+	call sfx_32                   ; cursor
 	pop af
 	inc (hl)
 l8a83h:
 	ld hl,0e270h
 	call ADD_HL_A
 	ld (hl),b
-	call sub_8a14h
+	call pwd_print8
 l8a8dh:
 	ld a,(0e207h)
 	rra
@@ -6477,8 +6447,8 @@ l8a8dh:
 	rla
 	ret nc
 	call sat_wipe
-	call sfx_01
-	jp sub_8903h
+	call sfx_01                   ; stop
+	jp io_step
 l8aa6h:
 	ld hl,0e26eh
 	ld a,(hl)
@@ -6493,7 +6463,7 @@ l8ab1h:
 	ret z
 	dec (hl)
 	jp sfx_32
-sub_8abbh:
+name_sat:                       ; 0x8ABB  filename cursor SAT
 	ld hl,0e800h
 	ld (hl),057h
 	inc hl
@@ -6515,33 +6485,22 @@ l8ad5h:
 	add a,a
 	add a,a
 	add a,a
-	ld hl,l8aefh
+	ld hl,file_name
 	call ADD_HL_A
 	ld de,0e270h
 	ld bc,00008h
 	ldir
-	call sfx_01
-	jp sub_8903h
-l8aefh:
-	ld b,(hl)
-	ld c,c
-	ld c,h
-	ld b,l
-	ld sp,02020h
-	jr nz,$+72
-	ld c,c
-	ld c,h
-	ld b,l
-	ld (02020h),a
-	jr nz,l8b46h
-	ld c,c
-	ld c,h
-	ld b,l
-	inc sp
-	jr nz,$+34
+	call sfx_01                   ; stop
+	jp io_step
+; BLOCK 'file_name' (start 0x8aef end 0x8b06)  8-byte slots; FILE3 7 bytes
+file_name:
+	defb "FILE1   "
+	defb "FILE2   "
+	defb "FILE3  "                ; 8th byte is the jr
 	jr nz,l8ad5h
 	inc l
 	adc a,e
+io_file_keys:                     ; 0x8B0A  stick left/right on E26E
 	ld hl,0e26eh
 	ld a,(0e207h)
 	rra
@@ -6582,9 +6541,10 @@ l8b24h:
 	ld (hl),014h
 	inc hl
 	jp sat_col
+io_commit:                        ; 0x8B43
 	call io_save
 l8b46h:
-	call sfx_11
+	call sfx_11                   ; title cursor
 	ld a,(0e27fh)
 	cp 002h
 	jr z,l8b57h
@@ -6603,7 +6563,7 @@ l8b57h:
 	call print_stream
 	call page_banks_123
 l8b6fh:
-	jp sub_8903h
+	jp io_step
 io_save:                          ; 0x8B72  save via tape/disk/sram
 	ld a,(0f0f8h)
 	or a
@@ -6646,7 +6606,7 @@ io_ask:                           ; 0x8BAC  "load data } yes/no"
 	ld hl,0bd6dh                  ; "load data } yes/no"
 	call print_stream
 	call page_banks_123
-	call sub_8f0ch
+	call ram_wipe
 	call 07969h
 io_next:                          ; 0x8BC5  inc E25B
 	ld hl,0e25bh
@@ -6781,7 +6741,7 @@ io_name:                          ; 0x8C95  F0F8: tape name / disk catalog / sra
 	ld hl,0bde9h
 	call print_stream
 	call page_banks_123
-	call sfx_11
+	call sfx_11                   ; title cursor
 	jp io_next
 l8cb5h:
 	call 06e2dh
@@ -6805,7 +6765,7 @@ l8cd6h:
 	push de
 	push bc
 	call page_bank_d
-	call sub_8cfah
+	call print_mode
 	call page_banks_123
 	pop bc
 	pop de
@@ -6819,7 +6779,7 @@ l8cedh:
 	djnz l8cd6h
 	call io_next
 	jp sfx_11
-sub_8cfah:
+print_mode:                     ; 0x8CFA  tape/disk/sram stream from A-'1'
 	sub 031h
 	and a
 	jr z,l8d0ah
@@ -6846,13 +6806,13 @@ io_nofile:                        ; 0x8D1A  str_nofile
 	ld (0e25bh),a
 	jp sfx_11
 l8d31h:
-	call sub_9cabh
+	call dos_dir
 	ld a,(0f0e5h)
 	and a
 	jr z,io_nofile
 	call io_next
-	call sfx_11
-sub_8d40h:
+	call sfx_11                   ; title cursor
+file_list:                      ; 0x8D40  draw EE50 catalog names
 	call scr_reset
 	ld a,001h
 	call draw_minimap
@@ -6867,7 +6827,7 @@ l8d5ch:
 	push bc
 	push hl
 	push de
-	call sub_8a1ah
+	call print_name
 	pop de
 	pop hl
 	pop bc
@@ -6880,7 +6840,7 @@ l8d5ch:
 	push hl
 	push de
 	ld d,0a0h
-	call sub_8a1ah
+	call print_name
 	pop de
 	pop hl
 	pop bc
@@ -6943,20 +6903,20 @@ l8dc9h:
 	ld hl,0be06h                  ; "now loading"
 	call print_stream
 	call page_banks_123
-	call sfx_01
+	call sfx_01                   ; stop
 	jp io_next
 l8defh:
-	call sfx_01
+	call sfx_01                   ; stop
 	ld a,008h
 l8df4h:
 	ld (0e25bh),a
 	ret
 io_list:                          ; 0x8DF8  catalog; continue -> io_pick, title -> edit_gfx
-	call sub_9cabh
-	call sub_8d40h
+	call dos_dir
+	call file_list
 	xor a
 	ld (0e26eh),a
-	call sfx_11
+	call sfx_11                   ; title cursor
 	ld a,(0e200h)
 	cp 00bh
 	ld a,005h
@@ -7039,13 +6999,13 @@ l8e5ah:
 	ld bc,00005h
 	ldir
 	call sat_wipe
-	call sfx_01
+	call sfx_01                   ; stop
 	jp io_next
 io_load:                          ; 0x8E88  do load (tape/disk/sram)
 	call io_do_load
 	ld a,001h
 	ld (0e27eh),a
-	call sfx_11
+	call sfx_11                   ; title cursor
 	ld a,(0e27fh)
 	cp 002h
 	jp z,io_next
@@ -7105,11 +7065,11 @@ edit_boot:                        ; 0x8EF1  world 1, gfx, then io_mode
 	ld a,(0f0f4h)
 	and a
 	call nz,pal_15
-	call 07aa6h
-	call sub_8f0ch
+	call rle_minimap
+	call ram_wipe
 	call 07969h
 	jp io_mode
-sub_8f0ch:
+ram_wipe:                       ; 0x8F0C  clear E226 and E280 work RAM
 	xor a
 	ld hl,0e226h
 	ld de,0e227h
@@ -7128,7 +7088,7 @@ sub_8f0ch:
 	ld (0e27eh),a
 	jp sat_wipe
 edit_gfx:                         ; 0x8F37  reload world gfx
-	call sub_8f72h
+	call edit_reset
 	jp io_next
 edit_play:                        ; 0x8F3D  enter play (E24A=1, E254=1)
 	call io_do_load
@@ -7138,7 +7098,7 @@ edit_play:                        ; 0x8F3D  enter play (E24A=1, E254=1)
 	call screen_idx
 	call vic_reset
 	call e300_list
-	call sub_878bh
+	call secret_draw
 	ld a,001h
 	ld (0e24ah),a
 	ld (0e254h),a
@@ -7155,10 +7115,10 @@ edit_key:                         ; 0x8F64  wait key, E24A=2
 	ld a,002h
 	ld (0e24ah),a
 	ret
-sub_8f72h:
+edit_reset:                     ; 0x8F72  reload pats; clear E2C0; world 1
 	call pat_15
 	call col_15
-	call 058d2h
+	call vic_pat_far
 	xor a
 	ld hl,0e2c0h
 	ld de,0e2c1h
@@ -7194,7 +7154,7 @@ load_exit:                        ; 0x8F96  b8f8_tbl[level] -> E2F1 exit door
 	xor a
 	ld (de),a
 	call page_banks_123
-	jp 07d86h
+	jp count_gems
 probe_exit:                       ; 0x8FBE  all gems + Vic at door -> E257=0, mode_clear
 	ld hl,0e2f3h
 	ld a,(0e243h)
@@ -7217,7 +7177,7 @@ probe_exit:                       ; 0x8FBE  all gems + Vic at door -> E257=0, mo
 	sub c
 	cp 004h
 	ret nc
-	call sub_907fh
+	call wipe_tools
 	xor a
 	ld (0e2f0h),a
 	ld hl,0e257h
@@ -7230,7 +7190,7 @@ probe_exit:                       ; 0x8FBE  all gems + Vic at door -> E257=0, mo
 	ld (0e249h),a
 	ld hl,0e2f7h
 	ld (hl),01eh
-	call sfx_23
+	call sfx_23                   ; walk-in clear
 	call 05687h
 	xor a
 	ld (0e21bh),a
@@ -7259,7 +7219,7 @@ l902dh:
 l9030h:
 	ld a,(hl)
 	push hl
-	call 05767h
+	call tile_pset
 	pop hl
 	inc hl
 	ld a,d
@@ -7302,13 +7262,13 @@ l9057h:
 	ld a,0aeh
 l9073h:
 	push hl
-	call 05767h
+	call tile_pset
 	pop hl
 	inc hl
 	djnz l9057h
 	call page_banks_123
 	ret
-sub_907fh:
+wipe_tools:                     ; 0x907F  zero E500 and E300; sat_wipe
 	ld hl,0e500h
 	ld de,0e501h
 	ld bc,000ffh
@@ -7321,20 +7281,20 @@ sub_907fh:
 	ldir
 	call sat_wipe
 	jp spr_clear
-sub_909fh:
+tools_redraw:                   ; 0x909F  scan EE50 then pack + draw_maptools
 	push ix
-	call sub_90abh
+	call tools_scan
 	pop ix
-	call sub_924ah
+	call tools_pack
 	jr draw_maptools
-sub_90abh:
+tools_scan:                     ; 0x90AB  each occupied E300: undraw / draw if on-screen
 	ld hl,0ee50h
 	ld b,040h
 l90b0h:
 	ld a,(hl)
 	or a
 	ret z
-	call sub_927dh
+	call e300_ix
 	ld a,(ix+000h)
 	or a
 	jr z,l90d6h
@@ -7342,26 +7302,26 @@ l90b0h:
 	jr z,l90c7h
 	cp 0f0h
 	jr nz,l90d6h
-	call sub_90dah
+	call tool_id
 l90c7h:
 	ld a,(0e243h)
 	cp (ix+003h)
 	jr nz,l90d6h
 	push hl
 	push bc
-	call sub_90e3h
+	call tool_undraw
 	pop bc
 	pop hl
 l90d6h:
 	inc hl
 	djnz l90b0h
 	ret
-sub_90dah:
+tool_id:                        ; 0x90DA  ix+0 &= 0x1F (drop in-use nibble)
 	ld a,(ix+000h)
 	and 01fh
 	ld (ix+000h),a
 	ret
-sub_90e3h:
+tool_undraw:                    ; 0x90E3  16x16 HMMM restore under a map tool
 	ld l,(ix+004h)
 	ld h,(ix+005h)
 	ld e,(ix+001h)
@@ -7376,26 +7336,26 @@ l90fch:
 	ld a,(hl)
 	or a
 	jr z,l9112h
-	call sub_927dh
+	call e300_ix
 	ld a,(0e243h)
 	cp (ix+003h)
 	jr nz,l9112h
 	push bc
 	push hl
-	call sub_9116h
+	call tool_stamp
 	pop hl
 	pop bc
 l9112h:
 	dec hl
 	djnz l90fch
 	ret
-sub_9116h:
+tool_stamp:                     ; 0x9116  2x2 tool tiles at ix+1/2
 	ld a,(ix+000h)
 	or a
 	ret z
 	and 0f0h
 	ret nz
-	call sub_913ah
+	call tool_save
 	ld hl,l9328h
 	ld a,(ix+000h)
 	dec a
@@ -7408,8 +7368,8 @@ sub_9116h:
 	ld d,(ix+002h)
 	ld bc,00202h
 	jp draw_tilemap
-sub_913ah:
-	call sub_9151h
+tool_save:                      ; 0x913A  16x16 HMMM backup under a map tool
+	call tool_vram
 	ld (ix+004h),e
 	ld (ix+005h),d
 	ld l,(ix+001h)
@@ -7417,7 +7377,7 @@ sub_913ah:
 	ld bc,01010h
 	ld a,004h
 	jp vdp_hmmm
-sub_9151h:
+tool_vram:                      ; 0x9151  E300 slot -> VRAM backup dest DE
 	push ix
 	pop hl
 	ld de,0e300h
@@ -7440,7 +7400,7 @@ sub_9151h:
 	ld d,a
 	ret
 tools_sat:                        ; 0x916D  E300 in-use -> SAT at E810
-	call sub_9196h
+	call tools_sat_off
 	ld hl,0e300h
 	ld de,0e810h
 	ld b,040h
@@ -7458,7 +7418,7 @@ l9178h:
 	rra
 	and 00fh
 	cp 002h
-	call nc,sub_91a4h
+	call nc,tool_sat2
 l918dh:
 	pop hl
 	ld bc,00008h
@@ -7466,7 +7426,7 @@ l918dh:
 	pop bc
 	djnz l9178h
 	ret
-sub_9196h:
+tools_sat_off:                  ; 0x9196  park 12 SAT slots at E810 (Y=0xE0)
 	ld b,00ch
 	ld hl,0e810h
 l919bh:
@@ -7475,9 +7435,9 @@ l919bh:
 	add hl,de
 	djnz l919bh
 	ret
-sub_91a4h:
+tool_sat2:                      ; 0x91A4  two SAT entries, DE += 8
 	push de
-	call sub_91b2h
+	call tool_sat1
 	pop de
 	inc e
 	inc e
@@ -7488,7 +7448,7 @@ sub_91a4h:
 	inc e
 	inc e
 	ret
-sub_91b2h:
+tool_sat1:                      ; 0x91B2  one E300 slot -> SAT + colour
 	ld a,(hl)
 	ex af,af'
 	ld a,(0e243h)
@@ -7581,7 +7541,7 @@ l922fh:
 	djnz l9227h
 	ld (hl),000h
 	ret
-	call sub_925eh
+	call e300_index
 	ld a,c
 	or a
 	ret z
@@ -7594,8 +7554,8 @@ l922fh:
 	ld hl,0ee50h
 	ld (hl),a
 	ret
-sub_924ah:
-	call sub_925eh
+tools_pack:                     ; 0x924A  compact EE50 occupancy list
+	call e300_index
 	ld d,h
 	ld e,l
 	ld b,(hl)
@@ -7612,7 +7572,7 @@ l9255h:
 	pop af
 	ld (de),a
 	ret
-sub_925eh:
+e300_index:                     ; 0x925E  IX-E300 -> slot index A
 	push ix
 	pop hl
 	ld de,0e300h
@@ -7634,12 +7594,12 @@ l9277h:
 	inc hl
 	inc c
 	jr l9277h
-sub_927dh:
+e300_ix:                        ; 0x927D  A = slot id at (HL) -> IX = E300+n*8
 	push hl
-	call sub_9283h
+	call e300_ix_a
 	pop hl
 	ret
-sub_9283h:
+e300_ix_a:                      ; 0x9283  A = 1-based slot -> IX = E300+(A-1)*8
 	dec a
 	ld l,a
 	ld h,000h
@@ -7677,13 +7637,13 @@ l92b0h:
 	ld b,a
 	add a,a
 	add a,b
-	ld hl,0b844h                  ; Vic spawn X/Y/screen; e242*3
+	ld hl,0b844h                  ; Vic spawn Y/X/screen; e242*3
 	call ADD_HL_A
 	ld a,(hl)
-	ld (0e282h),a
+	ld (0e282h),a                 ; Y
 	inc hl
 	ld a,(hl)
-	ld (0e284h),a
+	ld (0e284h),a                 ; X
 l92c2h:
 	inc hl
 	ld a,(hl)
@@ -7721,23 +7681,24 @@ vic_pose:
 	defb 0feh
 	defb 000h
 	defb 002h
-sub_92ffh:
+; vic_die / vic_hit: overlay SAT (E298) and unpack rle_953d (vic_die.png).
+vic_hurt:                         ; 0x92FF
 	xor a
 	ld (0e295h),a
-	ld (0e285h),a
+	ld (0e285h),a                 ; hmm frame
 	ld a,(0e280h)
-	cp 004h
+	cp 004h                       ; vic_die
 	jr nz,l9312h
 	ld a,004h
 	ld (0e285h),a
 l9312h:
 	ld a,001h
-	ld (0e298h),a
+	ld (0e298h),a                 ; die / hit SAT
 	ld hl,0e215h
 	ld (hl),000h
 	ld a,003h
 	ld (0e296h),a
-	jp 05928h
+	jp vic_die_rle
 l9324h:
 	xor a
 	or b
@@ -7907,13 +7868,13 @@ l93cah:
 	push bc
 	ld a,(ix+000h)
 	cp 005h
-	call z,sub_93dch
+	call z,stone_clamp
 	ld bc,00010h
 	add ix,bc
 	pop bc
 	djnz l93cah
 	ret
-sub_93dch:
+stone_clamp:                    ; 0x93DC  clamp stone X to 0x10..0xE0
 	ld a,(ix+003h)
 	cp 010h
 	jr nc,l93e9h
@@ -7931,11 +7892,12 @@ tick_stone:                       ; 0x93F3  E600 type 5: d93f6 on ix+1
 
 ; BLOCK 'd93f6_jp' (start 0x93f9 end 0x93ff)
 d93f6_jp_start:
-	defw 093ffh
-	defw 09469h
-	defw 094ffh
+	defw stone_idle
+	defw stone_push
+	defw stone_fall
 d93f6_jp_end:
-	call sub_9549h
+stone_idle:                       ; 0x93FF  wait for Vic shove
+	call stone_probe
 	jr nc,l940eh
 	ld a,002h
 	ld (ix+001h),a
@@ -7987,6 +7949,7 @@ l944ch:
 l9464h:
 	ld (ix+006h),00ah
 	ret
+stone_push:                       ; 0x9469  slide on facing until wall
 	bit 1,(ix+007h)
 	ld bc,00002h
 	jr nz,l9475h
@@ -7995,7 +7958,7 @@ l9475h:
 	ld a,(ix+003h)
 	cp b
 	jr z,l94b3h
-	call sub_9543h
+	call stone_step
 	jr nc,l94adh
 	bit 1,(ix+007h)
 	ld a,(ix+003h)
@@ -8008,10 +7971,10 @@ l9490h:
 l9492h:
 	ld (ix+003h),a
 	set 0,(ix+007h)
-	call sfx_24
+	call sfx_24                   ; stone
 	ld l,(ix+002h)
 	ld (ix+00ah),l
-	call sub_9549h
+	call stone_probe
 	jr nc,l94adh
 	ld (ix+006h),001h
 	jr l9448h
@@ -8030,22 +7993,22 @@ l94c3h:
 	ld h,(ix+003h)
 	ld l,(ix+002h)
 	ld (ix+003h),b
-	call sub_95dah
-	call sub_9601h
+	call stone_under
+	call stone_write
 	pop bc
-	call sub_94dah
+	call stone_room
 	jp l94adh
-sub_94dah:
+stone_room:                     ; 0x94DA  move stone onto neighbour screen
 	push bc
-	call sub_969ah
-	call sub_94ebh
+	call stone_restore
+	call stone_slot
 	pop bc
 	ld b,a
 	ld a,c
 	call 05e38h
 	ld (ix+004h),l
 	ret
-sub_94ebh:
+stone_slot:                     ; 0x94EB  E788 index of stone screen -> A
 	ld a,(ix+004h)
 	ld hl,0e788h
 	ld bc,03000h
@@ -8059,6 +8022,7 @@ l94f4h:
 l94fdh:
 	ld a,c
 	ret
+stone_fall:                       ; 0x94FF  drop 8px when no floor
 	dec (ix+006h)
 	ret nz
 	ld (ix+006h),002h
@@ -8074,23 +8038,23 @@ l94fdh:
 	jr nc,l952eh
 	cp 0b0h
 	ret nc
-	call sub_9549h
+	call stone_probe
 	ret c
-	call sfx_25
+	call sfx_25                   ; thud
 	jp l94adh
 l952eh:
 	ld h,(ix+00bh)
 	ld l,(ix+00ah)
 	ld (ix+002h),000h
-	call sub_95dah
-	call sub_9601h
+	call stone_under
+	call stone_write
 	ld c,002h
-	jp sub_94dah
-sub_9543h:
-	call sub_9564h
-	jp l9933h
-sub_9549h:
-	call sub_9564h
+	jp stone_room
+stone_step:                     ; 0x9543  probe_step_de from stone XY
+	call stone_xy
+	jp probe_step_de
+stone_probe:                    ; 0x9549  CY/NC: floor under 2-tile stone width
+	call stone_xy
 	ld bc,00410h
 	add hl,bc
 	push hl
@@ -8106,13 +8070,13 @@ sub_9549h:
 	call map_tile_de
 	cp 001h
 	ret
-sub_9564h:
+stone_xy:                       ; 0x9564  HL = stone pixel XY; DE = screen map
 	ld a,(ix+004h)
-	call sub_9571h
+	call screen_base
 	ld h,(ix+003h)
 	ld l,(ix+002h)
 	ret
-sub_9571h:
+screen_base:                    ; 0x9571  A = screen id -> DE = E900 row
 	ld l,a
 	dec l
 	ld h,000h
@@ -8130,12 +8094,12 @@ sub_9571h:
 	add hl,de
 	ex de,hl
 	ret
-sub_9585h:
-	call sub_95dah
+stone_stamp:                    ; 0x9585  write map + stamp_rect 2x2
+	call stone_under
 	push de
-	call sub_9601h
+	call stone_write
 	pop hl
-	call sub_95aah
+	call stone_read
 	ld a,003h
 	ld h,(ix+003h)
 	ld l,(ix+002h)
@@ -8145,19 +8109,19 @@ sub_9585h:
 l95a1h:
 	ld h,(ix+003h)
 	ld l,(ix+002h)
-	call sub_95dah
-sub_95aah:
+	call stone_under
+stone_read:                     ; 0x95AA  copy 2x2 map types under stone
 	ld a,(ix+004h)
 	ld (ix+009h),a
 	ld bc,(0e2feh)
 	ld de,(0e2fch)
 	push hl
-	call sub_95c1h
+	call stone_read1
 	pop hl
 	ld a,l
 	add a,008h
 	ld l,a
-sub_95c1h:
+stone_read1:                    ; 0x95C1  two map_tile_de into (BC)+
 	push hl
 	push de
 	push bc
@@ -8178,10 +8142,10 @@ sub_95c1h:
 	ld (bc),a
 	inc bc
 	ret
-sub_95dah:
+stone_under:                    ; 0x95DA  map ptr + EF40 backup for this stone
 	exx
 	ld a,(ix+004h)
-	call sub_9571h
+	call screen_base
 	ld (0e2fch),de
 	push ix
 	pop hl
@@ -8196,19 +8160,19 @@ sub_95dah:
 	ret
 	ld h,(ix+003h)
 	ld l,(ix+002h)
-	call sub_95dah
-sub_9601h:
+	call stone_under
+stone_write:                    ; 0x9601  restore 2x2 map types under stone
 	ld a,(ix+004h)
 	cp (ix+009h)
 	ret nz
 	ld de,(0e2feh)
 	push hl
-	call sub_9615h
+	call stone_write1
 	pop hl
 	ld a,l
 	add a,008h
 	ld l,a
-sub_9615h:
+stone_write1:                   ; 0x9615  two stamp_rect 1x1 from backup
 	push hl
 	push de
 	ld a,(de)
@@ -8229,25 +8193,26 @@ sub_9615h:
 	pop de
 	inc de
 	ret
-	call sub_969ah
+draw_stone:                       ; 0x9636  restore underfoot, then 2×2 at l9370h
+	call stone_restore
 	ld h,(ix+00bh)
 	ld l,(ix+00ah)
 	ld d,(ix+003h)
 	ld e,(ix+002h)
-	call sub_9585h
+	call stone_stamp
 	ld a,(0e243h)
 	cp (ix+009h)
 	ret nz
-	call sub_9666h
-l9652h:                           ; type 5 stone: 2×2 tiles at l9370h
+	call stone_save
+stamp_stone:                      ; 0x9652  type 5 stone: 2×2 tiles at l9370h
 	ld hl,l9370h
 	ld d,(ix+003h)
 	ld e,(ix+002h)
 	ld bc,00202h
 	jp draw_tilemap
-	call sub_9666h
-	jr l9652h
-sub_9666h:
+	call stone_save
+	jr stamp_stone
+stone_save:                     ; 0x9666  stash XY; copy 16x16 under stone
 	ld h,(ix+003h)
 	ld l,(ix+002h)
 	ld (ix+00bh),h
@@ -8255,7 +8220,7 @@ sub_9666h:
 	ld a,(0f0f4h)
 	and a
 	jr nz,l9686h
-	call 04d7bh
+	call scr5_addr
 	push ix
 	pop de
 	ld a,00ch
@@ -8274,7 +8239,7 @@ l9692h:
 	ld bc,01010h
 	ld a,004h
 	jp vdp_hmmm
-sub_969ah:
+stone_restore:                  ; 0x969A  put 16x16 back at stashed XY
 	ld d,(ix+00bh)
 	ld e,(ix+00ah)
 l96a0h:
@@ -8303,48 +8268,48 @@ l96c7h:
 	ld bc,01010h
 	ld a,001h
 	jp vdp_hmmm
-sub_96cfh:
+stones_redraw:                  ; 0x96CF  each E600 type-5 on this screen
 	ld ix,0e600h
 	ld b,010h
 l96d5h:
 	push bc
 	ld a,(ix+000h)
 	cp 005h
-	call z,sub_96e7h
+	call z,stone_redraw1
 	ld bc,00010h
 	add ix,bc
 	pop bc
 	djnz l96d5h
 	ret
-sub_96e7h:
+stone_redraw1:                  ; 0x96E7  one stone: under + save + draw
 	ld a,(0e243h)
 	cp (ix+004h)
 	ret nz
-	call sub_95dah
+	call stone_under
 	ld h,(ix+003h)
 	ld l,(ix+002h)
 	push hl
 	pop hl
-	call sub_9666h
-	jp l9652h
-sub_96ffh:
+	call stone_save
+	jp stamp_stone
+stones_undraw:                  ; 0x96FF  each E600 type-5: restore tiles
 	ld ix,0e600h
 	ld b,010h
 l9705h:
 	push bc
 	ld a,(ix+000h)
 	cp 005h
-	call z,sub_9717h
+	call z,stone_undraw1
 	ld bc,00010h
 	add ix,bc
 	pop bc
 	djnz l9705h
 	ret
-sub_9717h:
+stone_undraw1:                  ; 0x9717  one stone restore if this screen
 	ld a,(0e243h)
 	cp (ix+004h)
 	ret nz
-	call sub_95dah
+	call stone_under
 	ld h,(ix+003h)
 	ld l,(ix+002h)
 	push hl
@@ -8353,7 +8318,7 @@ sub_9717h:
 disk_err:                         ; 0x972C  DISKERR (F323); C → disk_err_tbl
 	ld l,097h
 	push bc
-	call sub_9de7h
+	call dos_leave
 	ld a,001h
 	ld (0f0e6h),a
 	ld a,(0f0e9h)
@@ -8382,7 +8347,7 @@ l9759h:
 	ld c,006h
 l975eh:
 	push bc
-	call sub_9de7h
+	call dos_leave
 	pop bc
 disk_print:                       ; 0x9763  print disk_err_tbl[C] + str_disk_err
 	ld b,000h
@@ -8403,7 +8368,7 @@ disk_print:                       ; 0x9763  print disk_err_tbl[C] + str_disk_err
 	ld hl,0af60h                  ; str_disk_err
 	call print_stream
 	call page_banks_123
-	call sub_9e1dh
+	call hook_wait
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ld a,002h
@@ -8413,11 +8378,11 @@ disk_print:                       ; 0x9763  print disk_err_tbl[C] + str_disk_err
 l9797h:
 	sbc a,c
 	sub a
-	call sub_9de7h
+	call dos_leave
 	ld a,(0f0e9h)
 	ld h,040h
 	call 00024h
-	call sub_9e1dh
+	call hook_wait
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ld sp,(0f0e2h)
@@ -8433,12 +8398,12 @@ load_map_tools:                   ; 0x97BB  afb1_tbl[level-1] -> 0xE300 (64 x 8)
 	dec a
 	call tbl_word
 l97c9h:
-	call sub_97d4h
+	call load_tool
 	ret z
 	ld de,00008h
 	add ix,de
 	jr l97c9h
-sub_97d4h:                        ; one afb1 rec: type=lo4 -> ix+0, screen=hi4 -> ix+3, Y, X
+load_tool:                      ; 0x97D4  one AFB1 rec: type=lo4 -> ix+0, screen=hi4 -> ix+3, Y, X
 	ld a,(hl)
 	cp 0ffh
 	ret z
@@ -8465,16 +8430,19 @@ sub_97d4h:                        ; one afb1 rec: type=lo4 -> ix+0, screen=hi4 -
 	ld (ix+007h),a
 	inc a
 	ret
+; Pause push-up anim (E2B0 state, E2B1 timer, E2B2 reload, E2B3 frame).
+pause_anim:                       ; 0x9801
 	ld a,(0e2b0h)
 	call DISPATCH_A
 
 ; BLOCK 'd9804_jp' (start 0x9807 end 0x980f)
 d9804_jp_start:
-	defw 0980fh
-	defw 0981ch
-	defw 09831h
-	defw 09846h
+	defw pause_hold
+	defw pause_begin
+	defw pause_up
+	defw pause_down
 d9804_jp_end:
+pause_hold:                       ; 0x980F
 	ld hl,0e2b0h
 	ld (hl),001h
 	inc hl
@@ -8483,19 +8451,21 @@ d9804_jp_end:
 	inc hl
 	ld (hl),000h
 	ret
+pause_begin:                      ; 0x981C  then copy pause_pose
 	ld hl,0e2b1h
 	dec (hl)
 	ret nz
-	ld hl,l982dh
+	ld hl,pause_pose
 	ld de,0e2b0h
 	ld bc,00004h
 	ldir
 	ret
-l982dh:
-	ld (bc),a
-	jr nc,l9860h
-	ld bc,0030eh
-	call sub_984bh
+; BLOCK 'pause_pose' (start 0x982D end 0x9831)
+pause_pose:
+	defb 002h, 030h, 030h, 001h   ; state, timer, reload, frame
+pause_up:                         ; 0x9831  xor mask 3; pose last byte overlaps `ld bc`
+	ld c,003h
+	call pause_frame
 	ld a,(0e2b2h)
 	cp 010h
 	ret nz
@@ -8504,9 +8474,10 @@ l982dh:
 	ld hl,0e2b0h
 	inc (hl)
 	ret
+pause_down:                       ; 0x9846
 	ld c,007h
-	jp sub_984bh
-sub_984bh:
+	jp pause_frame
+pause_frame:                      ; 0x984B  xor E2B3 with C; maybe shrink E2B2
 	ld hl,0e2b1h
 	dec (hl)
 	ret nz
@@ -8526,26 +8497,27 @@ l9860h:
 	dec a
 	ld (0e2b2h),a
 	ret
-vic_sat:                          ; 0x9866  Vic cells into software SAT E800
+; Vic cells into software SAT E800.
+vic_sat:                          ; 0x9866
 	ld a,(0e280h)
 	cp 00eh
-	jr nz,l9881h
+	jr nz,vic_sat_put
 	ld a,(0e2a8h)
 	rra
-	jr c,l9881h
+	jr c,vic_sat_put
 	ld hl,0e800h
 	ld de,0e801h
 	ld (hl),0e0h
 	ld bc,0000fh
 	ldir
 	ret
-l9881h:
+vic_sat_put:                      ; 0x9881  2x2 SAT at Vic Y/X (pause_tick also)
 	ld b,000h
 	ld hl,0e800h
-	ld a,(0e282h)
+	ld a,(0e282h)                 ; SAT Y = E282-9
 	sub 009h
 	ld d,a
-	ld a,(0e284h)
+	ld a,(0e284h)                 ; SAT X = E284
 	ld e,a
 	ld a,(0e280h)
 	cp 002h
@@ -8581,20 +8553,20 @@ l98b9h:
 	ld bc,0000fh
 	ld (hl),00dh
 	ldir
-	call sub_98d2h
+	call fill_4e
 	inc hl
 	inc de
 	ld bc,0000fh
 	ld (hl),00dh
 	ldir
-sub_98d2h:
+fill_4e:                        ; 0x98D2  15 bytes of 0x4E after inc HL/DE
 	inc hl
 	inc de
 	ld bc,0000fh
 	ld (hl),04eh
 	ldir
 	ret
-map_tile_xy:                      ; 0x98DC  2-bit map type at HL (X=L,Y=H); keeps HL
+map_tile_xy:                      ; 0x98DC  2-bit map type at HL (Y=L, X=H); keeps HL
 	push hl
 	call map_tile
 	pop hl
@@ -8637,7 +8609,7 @@ l990ch:
 	ret
 probe_step:                       ; 0x9910  carry if two/three tiles type < 2 (walk/climb)
 	push bc
-	call sub_995ah
+	call step_origin
 	push hl
 	call map_tile
 	pop hl
@@ -8645,20 +8617,20 @@ probe_step:                       ; 0x9910  carry if two/three tiles type < 2 (w
 	sub 002h
 	ret nc
 	push bc
-	call sub_998eh
+	call step_next
 	push hl
 	call map_tile
 	pop hl
 	pop bc
 	sub 002h
 	ret nc
-	call sub_998eh
+	call step_next
 	call map_tile
 	sub 002h
 	ret
-l9933h:
+probe_step_de:                    ; 0x9933  same with caller DE as map base
 	push bc
-	call sub_995ah
+	call step_origin
 	push hl
 	push de
 	call map_tile_de
@@ -8668,7 +8640,7 @@ l9933h:
 	sub 002h
 	ret nc
 	push bc
-	call sub_998eh
+	call step_next
 	push hl
 	push de
 	call map_tile_de
@@ -8677,19 +8649,20 @@ l9933h:
 	pop bc
 	sub 002h
 	ret nc
-	call sub_998eh
+	call step_next
 	call map_tile_de
 	sub 002h
 	ret
-sub_995ah:
+; C = 0 up / 1 down / 2 left / 3 right: first tile of the 3-tile probe.
+step_origin:                      ; 0x995A
 	ld a,c
 	dec a
-	jr z,l9970h
+	jr z,l9970h                   ; 1 down: Y+16
 	dec a
-	jr z,l997eh
+	jr z,l997eh                   ; 2 left: X-1
 	dec a
-	jr z,l9986h
-	ld a,h
+	jr z,l9986h                   ; 3 right: X+16
+	ld a,h                        ; 0 up: X+2, Y-1
 	add a,002h
 	ld h,a
 	ld a,l
@@ -8723,7 +8696,8 @@ l9986h:
 	ret nc
 	ld h,0f8h
 	ret
-sub_998eh:
+; Next tile: up/down X+6, left/right Y+6.
+step_next:                        ; 0x998E
 	ld a,c
 	cp 002h
 	jr nc,l9998h
@@ -8737,7 +8711,7 @@ l9998h:
 	ld l,a
 	ret
 touch_gems:                       ; 0x999D  Vic overlap E700 -> collect, last gem opens door
-	call sub_9a0bh
+	call vic_xy
 	ld a,(0e243h)
 	ld c,a
 	ld b,010h
@@ -8771,8 +8745,8 @@ l99c4h:
 	ret
 l99cdh:
 	push hl
-	call sub_96ffh
-	call sub_90abh
+	call stones_undraw
+	call tools_scan
 	pop hl
 	ld d,(hl)
 	dec l
@@ -8781,11 +8755,11 @@ l99cdh:
 	dec l
 	ld (hl),000h
 	ld bc,00202h
-	call 056deh
+	call stamp_wtiles
 	ld hl,0e2f5h
 	dec (hl)
 	jr nz,l99f8h
-	call sfx_0b
+	call sfx_0b                   ; last gem / door open
 	xor a
 	ld (0e216h),a
 	dec a
@@ -8793,14 +8767,14 @@ l99cdh:
 	ld a,010h
 	ld (0e21bh),a
 l99f8h:
-	call sfx_1a
+	call sfx_1a                   ; gem
 	call draw_exit
 	call draw_maptools
-	call sub_96cfh
+	call stones_redraw
 	ld de,00500h
 	call 04c20h
 	ret
-sub_9a0bh:
+vic_xy:                         ; 0x9A0B  Vic pixel Y,X -> DE
 	ld a,(0e282h)
 	ld e,a
 	ld a,(0e284h)
@@ -8818,7 +8792,7 @@ l9a21h:
 	ld a,(hl)
 	or a
 	ret z
-	call sub_927dh
+	call e300_ix
 	ld a,(0e243h)
 	cp (ix+003h)
 	jr nz,l9a42h
@@ -8829,7 +8803,7 @@ l9a21h:
 	jr nz,l9a42h
 	push hl
 	push bc
-	call sub_9a46h
+	call pickup_box
 	pop bc
 	pop hl
 	jr c,pickup_tool
@@ -8837,7 +8811,7 @@ l9a42h:
 	inc hl
 	djnz l9a21h
 	ret
-sub_9a46h:
+pickup_box:                     ; 0x9A46  CY if Vic AABB overlaps this E300
 	ld a,(0e282h)
 	sub (ix+001h)
 	jr nc,l9a53h
@@ -8860,11 +8834,12 @@ l9a53h:
 
 ; BLOCK 'd9a67_jp' (start 0x9a6a end 0x9a72)
 d9a67_jp_start:
-	defw 09a72h
-	defw 09a7fh
-	defw 09a8ah
-	defw 09a72h
+	defw pickup_dx
+	defw pickup_left
+	defw pickup_right
+	defw pickup_dx
 d9a67_jp_end:
+pickup_dx:                        ; 0x9A72  |Vic X - item X| < 14
 	ld a,(0e284h)
 	sub (ix+002h)
 	jr nc,l9a7ch
@@ -8872,28 +8847,30 @@ d9a67_jp_end:
 l9a7ch:
 	cp 00eh
 	ret
+pickup_left:                      ; 0x9A7F  item left of Vic, dx < 14
 	ld a,(0e284h)
 	ld b,a
 	ld a,(ix+002h)
 	sub b
 	cp 00eh
 	ret
+pickup_right:                     ; 0x9A8A  Vic left of item, dx < 14
 	ld a,(0e284h)
 	sub (ix+002h)
 	cp 00eh
 	ret
 pickup_tool:                      ; 0x9A93  E287 = type, slot |= 0xF0
 	push ix
-	call sub_96ffh
+	call stones_undraw
 	pop ix
 	ld a,(ix+000h)
 	and 00fh
 	ld (0e287h),a
 	or 0f0h
 	ld (ix+000h),a
-	call sfx_19
-	call sub_909fh
-	call sub_96cfh
+	call sfx_19                   ; pickup
+	call tools_redraw
+	call stones_redraw
 	ret
 vic_e500_overlap:                 ; 0x9AB1  active E500 (ix+13 bit 0) -> vic_hit
 	ld a,(0e255h)
@@ -8930,7 +8907,7 @@ l9aebh:
 l9af3h:
 	ld a,005h
 	ld (0e280h),a                 ; vic_hit
-	call sub_92ffh
+	call vic_hurt
 	jp sfx_28
 e300_e500_hit:                    ; 0x9AFE  thrown E500 vs map E300
 	ld ix,0e300h
@@ -8996,12 +8973,12 @@ l9b64h:
 	pop ix
 	ld a,001h
 	ld (0edcdh),a
-	call sub_9b80h
+	call clash_clear
 	ld de,00100h
 	call 04c20h
-	call sfx_26
+	call sfx_26                   ; clash
 	ret
-sub_9b80h:
+clash_clear:                    ; 0x9B80  undraw thrown knife/boom on clash
 	ld a,(ix+000h)
 	cp 004h
 	jp z,0b8c5h
@@ -9012,7 +8989,7 @@ sub_9b80h:
 	ld a,(ix+001h)
 	cp 002h
 	ret nc
-	jp 0ae6fh
+	jp e500_undraw
 l9b98h:
 	di
 	ld a,(0fd9fh)
@@ -9020,51 +8997,51 @@ l9b98h:
 	ld a,0c9h
 	ld (0fd9fh),a
 	ld (0f0e2h),sp
-	call sub_9db3h
+	call dos_enter
 	ld hl,0c270h
 	ld de,0ce00h
-	call sub_9d51h
-	call sub_9ce3h
-	call sub_9d26h
-	call sub_9bcch
-	call sub_9d05h
+	call fcb_copy
+	call dos_open
+	call fcb_init
+	call dos_load
+	call dos_close
 	di
-	call sub_9de7h
+	call dos_leave
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ei
 	ret
-sub_9bcch:
+dos_load:                       ; 0x9BCC  SETDTA + sequential read of save chunks
 	ld de,0c243h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00001h
-	call sub_9da3h
+	call dos_read
 	ld de,0c25ch
 	ld c,01ah
 	call 0f37dh
 	ld hl,00023h
-	call sub_9da3h
+	call dos_read
 	ld de,0c282h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00003h
-	call sub_9da3h
+	call dos_read
 	ld de,0c2c0h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00240h
-	call sub_9da3h
+	call dos_read
 	ld de,0c600h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00200h
-	call sub_9da3h
+	call dos_read
 	ld de,0c900h
 	ld c,01ah
 	call 0f37dh
 	ld hl,004c0h
-	jp sub_9da3h
+	jp dos_read
 l9c20h:
 	di
 	ld a,(0fd9fh)
@@ -9072,76 +9049,76 @@ l9c20h:
 	ld a,0c9h
 	ld (0fd9fh),a
 	ld (0f0e2h),sp
-	call sub_9db3h
+	call dos_enter
 	ld hl,0c270h
 	ld de,0ce00h
-	call sub_9d65h
-	call sub_9e27h
-	call sub_9cf3h
-	call sub_9d26h
-	call sub_9c57h
-	call sub_9d05h
+	call fcb_skip
+	call fcb_ext
+	call dos_create
+	call fcb_init
+	call dos_save
+	call dos_close
 	di
-	call sub_9de7h
+	call dos_leave
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ei
 	ret
-sub_9c57h:
+dos_save:                       ; 0x9C57  SETDTA + sequential write of save chunks
 	ld de,0c243h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00001h
-	call sub_9d93h
+	call dos_write
 	ld de,0c25ch
 	ld c,01ah
 	call 0f37dh
 	ld hl,00023h
-	call sub_9d93h
+	call dos_write
 	ld de,0c282h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00003h
-	call sub_9d93h
+	call dos_write
 	ld de,0c2c0h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00240h
-	call sub_9d93h
+	call dos_write
 	ld de,0c600h
 	ld c,01ah
 	call 0f37dh
 	ld hl,00200h
-	call sub_9d93h
+	call dos_write
 	ld de,0c900h
 	ld c,01ah
 	call 0f37dh
 	ld hl,004c0h
-	jp sub_9d93h
-sub_9cabh:
+	jp dos_write
+dos_dir:                        ; 0x9CAB  hook DOS; scan directory into D0E5
 	di
 	ld a,(0fd9fh)
 	ld (0f0e4h),a
 	ld a,0c9h
 	ld (0fd9fh),a
 	ld (0f0e2h),sp
-	call sub_9db3h
+	call dos_enter
 	ld hl,l9797h
 	ld (0f323h),hl
-	call sub_9ea8h
-	call sub_9d43h
+	call dos_fcb
+	call dir_clear
 	xor a
 	ld (0d0e5h),a
-	call sub_9e33h
+	call dos_scan
 	di
 	ld hl,(0d0e7h)
 	ld (0f323h),hl
-	call sub_9de7h
+	call dos_leave
 	ld a,(0f0e4h)
 	ld (0fd9fh),a
 	ei
 	ret
-sub_9ce3h:
+dos_open:                       ; 0x9CE3  BDOS FOPEN (C=0x0F)
 	ld de,(0d0e0h)
 	ld c,00fh
 	call 0f37dh
@@ -9149,7 +9126,7 @@ sub_9ce3h:
 	inc a
 	jp z,l975eh
 	ret
-sub_9cf3h:
+dos_create:                     ; 0x9CF3  BDOS FMAKE (C=0x16)
 	ld de,(0d0e0h)
 	di
 	ld c,016h
@@ -9159,7 +9136,7 @@ sub_9cf3h:
 	inc a
 	jp z,l975eh
 	ret
-sub_9d05h:
+dos_close:                      ; 0x9D05  BDOS FCLOSE (C=0x10)
 	ld de,(0d0e0h)
 	ld c,010h
 	call 0f37dh
@@ -9167,7 +9144,7 @@ sub_9d05h:
 	inc a
 	jp z,l975eh
 	ret
-sub_9d15h:
+fcb_clear:                      ; 0x9D15  zero 37 bytes at CE00
 	ld hl,0ce00h
 	ld de,0ce01h
 	ld (hl),000h
@@ -9175,7 +9152,7 @@ sub_9d15h:
 	ldir
 	ret
 	ld (0d0e0h),hl
-sub_9d26h:
+fcb_init:                       ; 0x9D26  extent/record fields at D0E0 FCB
 	ld hl,(0d0e0h)
 	ld bc,0000ch
 	add hl,bc
@@ -9196,14 +9173,14 @@ l9d3eh:
 	inc hl
 	djnz l9d3eh
 	ret
-sub_9d43h:
+dir_clear:                      ; 0x9D43  zero CE50 directory buffer
 	ld hl,0ce50h
 	ld de,0ce51h
 	ld (hl),000h
 	ld bc,000afh
 	ldir
 	ret
-sub_9d51h:
+fcb_copy:                       ; 0x9D51  HL name -> DE FCB (11+pad)
 	ld (0d0e0h),de
 	xor a
 	ld (de),a
@@ -9217,7 +9194,7 @@ l9d60h:
 	inc de
 	djnz l9d60h
 	ret
-sub_9d65h:
+fcb_skip:                       ; 0x9D65  FCB from HL skipping leading 0
 	ld (0d0e0h),de
 	xor a
 	ld (de),a
@@ -9250,7 +9227,7 @@ l9d83h:
 	inc de
 	djnz l9d60h
 	ret
-sub_9d93h:
+dos_write:                      ; 0x9D93  BDOS WRND (C=0x26)
 	ld de,(0d0e0h)
 	ld c,026h
 	call 0f37dh
@@ -9258,7 +9235,7 @@ sub_9d93h:
 	or a
 	jp nz,l975eh
 	ret
-sub_9da3h:
+dos_read:                       ; 0x9DA3  BDOS RDND (C=0x27)
 	ld de,(0d0e0h)
 	ld c,027h
 	call 0f37dh
@@ -9266,7 +9243,7 @@ sub_9da3h:
 	or a
 	jp nz,l975eh
 	ret
-sub_9db3h:
+dos_enter:                      ; 0x9DB3  swap F100/DOS page; DISKERR hook
 	ld hl,0f100h
 	ld de,0d780h
 	ld bc,00280h
@@ -9296,8 +9273,8 @@ l9dcbh:
 	ld hl,disk_err
 	ld (0f323h),hl
 	ret
-sub_9de7h:
-	call sub_9e13h
+dos_leave:                      ; 0x9DE7  restore work RAM + F100 from stash
+	call dos_wait
 	ld de,0e000h
 	ld hl,0c000h
 	exx
@@ -9324,7 +9301,7 @@ l9df7h:
 	ld bc,00280h
 	ldir
 	ret
-sub_9e13h:
+dos_wait:                       ; 0x9E13  256x call D0EA
 	ld b,000h
 l9e15h:
 	push bc
@@ -9332,7 +9309,7 @@ l9e15h:
 	pop bc
 	djnz l9e15h
 	ret
-sub_9e1dh:
+hook_wait:                      ; 0x9E1D  256x call F0EA
 	ld b,000h
 l9e1fh:
 	push bc
@@ -9340,7 +9317,7 @@ l9e1fh:
 	pop bc
 	djnz l9e1fh
 	ret
-sub_9e27h:
+fcb_ext:                        ; 0x9E27  FCB ext = ELG
 	ld hl,0ce09h
 	ld (hl),045h
 	inc hl
@@ -9348,7 +9325,7 @@ sub_9e27h:
 	inc hl
 	ld (hl),047h
 	ret
-sub_9e33h:
+dos_scan:                       ; 0x9E33  BDOS FFIRST/FNEXT into catalog
 	ld de,0ce25h
 	ld c,01ah
 	call 0f37dh
@@ -9370,12 +9347,12 @@ l9e4fh:
 	jr nz,l9e5dh
 	xor a
 	ld (0c26fh),a
-	jr sub_9e33h
+	jr dos_scan
 l9e5dh:
 	ld hl,0d0e5h
 	inc (hl)
 	push hl
-	call sub_9e7bh
+	call dos_copyent
 	pop hl
 	ld a,(hl)
 	cp 010h
@@ -9389,16 +9366,16 @@ l9e76h:
 	ld a,(0d0e5h)
 	or a
 	ret
-sub_9e7bh:
+dos_copyent:                    ; 0x9E7B  dir ent D0E5-1 -> CE26
 	ld de,0ce26h
 	ld a,(0d0e5h)
 	dec a
-	call sub_9e8ch
+	call dos_ent
 	ex de,hl
 	ld bc,0000bh
 	ldir
 	ret
-sub_9e8ch:
+dos_ent:                        ; 0x9E8C  A -> HL = CE50 + A*11
 	ld l,a
 	ld h,000h
 	ld b,h
@@ -9412,33 +9389,25 @@ sub_9e8ch:
 	ld bc,0ce50h
 	add hl,bc
 	ret
-l9e9dh:
-	ccf
-	ccf
-	ccf
-	ccf
-	ccf
-	ccf
-	ccf
-	ccf
-	ld b,l
-	ld c,h
-	ld b,a
-sub_9ea8h:
+; BLOCK 'dos_wild' (start 0x9e9d end 0x9ea8)
+dos_wild:
+	defb "????????ELG"
+dos_fcb:                        ; 0x9EA8  wild FCB + fcb_clear
 	ld hl,0ce25h
 	ld de,0ce26h
 	ld (hl),000h
 	ld bc,00024h
 	ldir
-	call sub_9d15h
-	ld hl,l9e9dh
+	call fcb_clear
+	ld hl,dos_wild
 	ld de,0ce01h
 	ld bc,0000bh
 	ldir
 	ret
 vic_tick:                         ; 0x9EC4  per-frame; d_9ecd[(0xE280)]
 	call vic_dispatch
-	jp 0a67ch
+	jp probe_edge
+
 vic_dispatch:                     ; 0x9ECA
 	ld a,(0e280h)
 	call DISPATCH_A
@@ -9462,29 +9431,31 @@ d_9ecd_jp_start:
 	defw vic_hold                 ; 14 hold (e2a8; vic_reset if e202 bit 6)
 d_9ecd_jp_end:
 vic_walk:                         ; 0x9EEE  ground: floor, use_tool, jump/walk
-	call 0a624h
-	call 0a4efh
-	call sub_9f4dh
-	call 0a512h
+	call vic_keys_lr
+	call vic_face
+	call vic_align_y
+	call probe_floor
 	jr nz,l9f02h
-	call 0a45eh
-	jp nz,l9fd4h
+	call probe_ladder
+	jp nz,vic_off_floor
 l9f02h:
 	call use_tool
 	ld a,(0e280h)
 	or a
 	ret nz
-	call sub_9f77h
+	call vic_walk_move
 	ld a,(0e280h)
 	or a
 	ret nz
 	ld a,(0e288h)
 	and 00ch
 	jr z,l9f3fh
+vic_walk_anim:                    ; 0x9F19  E296 timer -> E285 from vic_walk_l/r
 	ld hl,0e296h
 	dec (hl)
 	ret nz
 	ld (hl),004h
+vic_walk_frame:                   ; 0x9F20
 	ld a,(0e295h)
 	inc a
 	and 003h
@@ -9492,9 +9463,9 @@ l9f02h:
 	ld (0e295h),a
 	ld a,(0e294h)
 	or a
-	ld hl,l9f45h
+	ld hl,vic_walk_l
 	jr z,l9f36h
-	ld hl,l9f49h
+	ld hl,vic_walk_r
 l9f36h:
 	ld a,b
 	call ADD_HL_A
@@ -9505,15 +9476,14 @@ l9f3fh:
 	ld a,001h
 	ld (0e296h),a
 	ret
-l9f45h:
-	nop
-	ld bc,00102h
-l9f49h:
-	inc bc
-	inc b
-	dec b
-	inc b
-sub_9f4dh:
+
+; BLOCK 'vic_walk_fr' (start 0x9F45 end 0x9F4D)
+vic_walk_l:                       ; 0x9F45  facing 0: frames 0,1,2,1
+	defb 000h, 001h, 002h, 001h
+vic_walk_r:                       ; 0x9F49  facing 1: frames 3,4,5,4
+	defb 003h, 004h, 005h, 004h
+; Snap Y to 8px when E2A6 and the tile below is solid (type >= 2).
+vic_align_y:                      ; 0x9F4D
 	ld a,(0e2a6h)
 	or a
 	ret z
@@ -9536,8 +9506,9 @@ l9f63h:
 	xor a
 	ld (0e2a6h),a
 	ret
-sub_9f77h:
-	call 0a452h
+; Fire -> jump; up/down -> ladder; else E288 L/R + E28E/E290 delta.
+vic_walk_move:                    ; 0x9F77
+	call vic_busy
 	jr c,l9f95h
 	ld a,(0e207h)
 	bit 4,a
@@ -9545,12 +9516,12 @@ sub_9f77h:
 	ld a,(0e208h)
 	rra
 	jr nc,l9f8fh
-	call 0a5a2h
+	call vic_grab_up
 	jr l9f95h
 l9f8fh:
 	rra
 	jr nc,l9f9ah
-	call 0a591h
+	call vic_grab_dn
 l9f95h:
 	ld a,(0e280h)
 	or a
@@ -9575,7 +9546,8 @@ l9fb0h:
 	call probe_step
 	pop hl
 	pop bc
-	jr c,l9fd0h
+	jr c,vic_set_x
+vic_snap_x:                       ; 0x9FC1  blocked: snap X to 8px from facing
 	ld a,(0e294h)
 	or a
 	ld a,007h
@@ -9586,10 +9558,11 @@ l9fcah:
 	add a,h
 	and 0f8h
 	ld h,a
-l9fd0h:
+vic_set_x:                        ; 0x9FD0
 	ld (0e283h),hl
 	ret
-l9fd4h:
+; No floor and no ladder: pose, then fall through to vic_enter_fall.
+vic_off_floor:                    ; 0x9FD4
 	ld a,001h
 	ld (0e2a7h),a
 	ld a,(0e280h)
@@ -9617,7 +9590,8 @@ l9ffch:
 ; ---------------------------------------------------------------------------
 ;  bank 03 @ 0xA000
 ; ---------------------------------------------------------------------------
-	ld a,003h                     ; boot: vic_fall, then sfx_3c
+vic_enter_fall:                   ; 0xA000  E280=3; boot jp and walk-off both land here
+	ld a,003h
 	ld (0e280h),a
 	jp sfx_3c
 vic_begin_jump:                   ; 0xA008  from walk + fire; inc E280 0->1
@@ -9647,7 +9621,7 @@ vic_begin_jump:                   ; 0xA008  from walk + fire; inc E280 0->1
 	ld (0e2a5h),a
 	ld hl,0fc00h
 	ld (0e292h),hl
-	call sfx_13
+	call sfx_13                   ; jump
 	ld hl,0e280h
 	inc (hl)
 	ret
@@ -9795,7 +9769,8 @@ la0feh:
 	ld a,020h
 	ld (0e286h),a
 	jp la09bh
-sub_a136h:
+; Air L/R from A = E289 & 0x0C. DE = ±0x140, C = 2/3.
+vic_jump_x:                       ; 0xA136
 	ld de,0fec0h
 	ld c,002h
 	bit 2,a
@@ -9810,7 +9785,7 @@ la14bh:
 	add hl,de
 	ld a,h
 	cp 0f0h
-	jp nc,09fd0h
+	jp nc,vic_set_x
 	push bc
 	push hl
 	ld a,(0e2a5h)
@@ -9819,12 +9794,13 @@ la14bh:
 	jr z,la162h
 	add a,006h
 la162h:
-	call sub_a16dh
+	call probe_air_x
 	pop hl
 	pop bc
-	jp c,09fd0h
-	jp 09fc1h
-sub_a16dh:
+	jp c,vic_set_x
+	jp vic_snap_x
+; Solid at (Y=A+8, X+(-1 or +16)) and the tile 6 below.
+probe_air_x:                      ; 0xA16D
 	add a,008h
 	ld l,a
 	ld a,c
@@ -9846,18 +9822,18 @@ la179h:
 	call map_tile
 	sub 002h
 	ret
-vic_jump:                         ; 0xA190  air: e292 += 0x80 -> Y; land -> 0
+vic_jump:                         ; 0xA190  air: gravity, optional L/R, land -> walk
 	xor a
 	ld (0e2a5h),a
-	call sub_a1c1h
+	call vic_gravity
 	ld a,(0e289h)
 	and 00ch
-	call nz,sub_a136h
-	call sub_a535h
+	call nz,vic_jump_x
+	call probe_land
 	ld a,(0efc0h)
 	or a
 	ret z
-	call sub_a446h
+	call vic_snap_y
 	xor a
 	ld (0e280h),a
 	ld (0e2a6h),a
@@ -9865,9 +9841,10 @@ vic_jump:                         ; 0xA190  air: e292 += 0x80 -> Y; land -> 0
 	ld (0e295h),a
 	inc a
 	ld (0e296h),a
-	call 09f20h
+	call vic_walk_frame
 	jp sfx_38
-sub_a1c1h:
+; E292 += 0x80 (cap 4.00) → E281 Y. CY from probe_air_y = blocked.
+vic_gravity:                      ; 0xA1C1
 	ld hl,(0e292h)
 	ld a,h
 	cp 004h
@@ -9880,7 +9857,7 @@ la1d1h:
 	ld hl,(0e281h)
 	add hl,de
 	ld (0e281h),hl
-	call sub_a1e6h
+	call probe_air_y
 	ret c
 	ld hl,0e2a5h
 	inc (hl)
@@ -9888,21 +9865,22 @@ la1d1h:
 la1e1h:
 	ld de,00400h
 	jr la1d1h
-sub_a1e6h:
+; Two Y samples vs solid (X+2 and X+14).
+probe_air_y:                      ; 0xA1E6
 	ld l,h
 	dec l
-	call sub_a1f9h
+	call probe_solid
 	ret nc
 	ld a,l
 	inc a
 	and 0f8h
 	add a,008h
 	ld l,a
-	call sub_a1f9h
+	call probe_solid
 	ret nc
 	inc l
 	inc l
-sub_a1f9h:
+probe_solid:                      ; 0xA1F9  type >= 2 at (Y=L, X+2) and (Y=L, X+14)
 	ld a,(0e284h)
 	add a,002h
 	ld h,a
@@ -9916,7 +9894,7 @@ sub_a1f9h:
 	sub 002h
 	ret
 vic_climb:                        ; 0xA20F  ladder (tile type 1); L/R probe / U-D
-	call sub_a653h
+	call vic_keys_ud
 	ld a,(0e208h)
 	and 00ch
 	jr z,la290h
@@ -9994,15 +9972,15 @@ la270h:
 	ld (0e2a6h),a
 	ret
 la290h:
-	call sub_a48fh
+	call vic_climb_exit
 	ld a,(0e280h)
 	cp 002h
 	ret nz
-	call sub_a476h
+	call vic_climb_stay
 	ld a,(0e280h)
 	cp 002h
 	ret nz
-	call sub_a2bbh
+	call vic_climb_move
 	ld a,(0e288h)
 	and 003h
 	ret z
@@ -10014,7 +9992,8 @@ la290h:
 	xor 001h
 	ld (0e285h),a
 	ret
-sub_a2bbh:
+; E288 up/down → E28A/E28C delta; C=0/1 for probe_step.
+vic_climb_move:                   ; 0xA2BB
 	ld de,(0e28ah)
 	ld c,000h
 	ld a,(0e288h)
@@ -10054,9 +10033,9 @@ vic_fall:                         ; 0xA2F0  Y+=4 until 0xAD or floor, then walk
 	ld (0e282h),a
 	cp 0adh
 	ret nc
-	call sub_a512h
+	call probe_floor
 	ret z
-	call sub_a446h
+	call vic_snap_y
 	xor a
 	ld (0e280h),a
 	ld (0e2a6h),a
@@ -10111,7 +10090,7 @@ vic_pull_l:                       ; 0xA350  coffin / Pyoncy pull left
 	dec a
 	dec a
 	ld (0e284h),a
-	jp 09f19h
+	jp vic_walk_anim
 la368h:
 	ld (0e280h),a
 	ret
@@ -10127,7 +10106,7 @@ vic_pull_r:                       ; 0xA36C  coffin / Pyoncy pull right
 	inc a
 	inc a
 	ld (0e284h),a
-	jp 09f19h
+	jp vic_walk_anim
 vic_throw:                        ; 0xA384  knife / boomerang windup
 	ld hl,0e286h
 	dec (hl)
@@ -10249,13 +10228,15 @@ vic_hold:                         ; 0xA43C  until e2a8 hits 0
 	xor a
 	ld (0e280h),a
 	ret
-sub_a446h:
+vic_snap_y:                       ; 0xA446  E281/E282: subpixel 0, Y &= ~7
 	ld a,(0e282h)
 	and 0f8h
 	ld h,a
 	ld l,000h
 	ld (0e281h),hl
 	ret
+; CY while E2A4 < 6 (lock jump/climb; walk still applies).
+vic_busy:                         ; 0xA452
 	ld a,(0e2a4h)
 	cp 006h
 	ret nc
@@ -10263,6 +10244,8 @@ sub_a446h:
 	ld (0e2a4h),a
 	scf
 	ret
+; Z if a ladder (type 1) under Vic at X+2 or X+14.
+probe_ladder:                     ; 0xA45E
 	ld a,(0e284h)
 	add a,002h
 	ld h,a
@@ -10277,7 +10260,8 @@ sub_a446h:
 	call map_tile
 	dec a
 	ret
-sub_a476h:
+; Still on a ladder (type 1 at Y or Y+16), else vic_off_floor.
+vic_climb_stay:                   ; 0xA476
 	ld a,(0e284h)
 	ld h,a
 	ld a,(0e282h)
@@ -10291,8 +10275,9 @@ sub_a476h:
 	call map_tile
 	dec a
 	ret z
-	jp 09fd4h
-sub_a48fh:
+	jp vic_off_floor
+; E288 up/down off the ladder onto floor (or empty above).
+vic_climb_exit:                   ; 0xA48F
 	ld a,(0e284h)
 	ld h,a
 	ld a,(0e282h)
@@ -10328,7 +10313,7 @@ la4b8h:
 	inc a
 	ld (0e2a7h),a
 	ld (0e296h),a
-	jp 09f19h
+	jp vic_walk_anim
 la4d0h:
 	ld a,(0e282h)
 	sub 008h
@@ -10349,6 +10334,8 @@ la4d0h:
 	ld a,l
 	sub 009h
 	jr la4b8h
+; E288 bits 2–3 → E294 facing (0 left / 1 right); reset walk frame on change.
+vic_face:                         ; 0xA4EF
 	ld b,000h
 	ld a,(0e288h)
 	rra
@@ -10372,7 +10359,8 @@ la4ffh:
 	inc a
 	ld (0e296h),a
 	ret
-sub_a512h:
+; NZ if any of three tiles under Vic (Y+16, X+3 / +8 / +13) is nonempty.
+probe_floor:                      ; 0xA512
 	ld a,(0e282h)
 	add a,010h
 	ld l,a
@@ -10394,10 +10382,10 @@ sub_a512h:
 	call map_tile_xy
 	or a
 	ret
-sub_a535h:
+probe_land:                       ; 0xA535  jump: EFC0=1 if floor (not ladder)
 	xor a
 	ld (0efc0h),a
-	call sub_a512h
+	call probe_floor
 	ret z
 	dec a
 	jr nz,la55fh
@@ -10428,10 +10416,10 @@ la565h:
 	ld a,(0e282h)
 	add a,010h
 	ld l,a
-	call sub_a571h
+	call probe_under
 	ret c
 	jr la55fh
-sub_a571h:
+probe_under:                      ; 0xA571  three tiles at L, X+3/+8/+13; CY if all type < 2
 	ld a,(0e284h)
 	add a,003h
 	ld h,a
@@ -10450,7 +10438,8 @@ sub_a571h:
 	call map_tile_xy
 	sub 002h
 	ret
-	call sub_a5fbh
+vic_grab_dn:                      ; 0xA591  down onto ladder (Y+16)
+	call vic_grab_y2
 	ld a,(0e280h)
 	cp 002h
 	ret z
@@ -10458,7 +10447,8 @@ sub_a571h:
 	add a,010h
 	ld l,a
 	jr la5b1h
-	call sub_a5fbh
+vic_grab_up:                      ; 0xA5A2  up onto ladder (Y+10)
+	call vic_grab_y2
 	ld a,(0e280h)
 	cp 002h
 	ret z
@@ -10496,7 +10486,7 @@ la5cch:
 	ld h,a
 	ld l,000h
 	push hl
-	call sub_a603h
+	call probe_ladder_span
 	pop hl
 	ret c
 	ld (0e283h),hl
@@ -10510,12 +10500,13 @@ la5cch:
 	ld a,006h
 	ld (0e285h),a
 	ret
-sub_a5fbh:
+vic_grab_y2:                      ; 0xA5FB  Y+2, then shared grab
 	ld a,(0e282h)
 	add a,002h
 	ld l,a
 	jr la5b1h
-sub_a603h:
+; Count type-1 tiles left of H; CY if odd (ladder not centered).
+probe_ladder_span:                ; 0xA603
 	ld a,(0e208h)
 	rra
 	ld a,(0e282h)
@@ -10540,6 +10531,8 @@ la621h:
 	ld a,c
 	rra
 	ret
+; E208/E207 bits 2–3 → E288 (4 left / 8 right). Both bits together: ignore.
+vic_keys_lr:                      ; 0xA624
 	ld a,(0e208h)
 	and 00ch
 	ld b,a
@@ -10566,7 +10559,8 @@ la64eh:
 	ld a,c
 	ld (0e288h),a
 	ret
-sub_a653h:
+; Same for bits 0–1 → E288 (1 up / 2 down).
+vic_keys_ud:                      ; 0xA653
 	ld a,(0e208h)
 	and 003h
 	ld b,a
@@ -10590,41 +10584,41 @@ sub_a653h:
 	jr c,la64eh
 	ld c,002h
 	jr la64eh
-probe_edge:                       ; screen-exit: E248 = 1 L / 2 R / 3 U / 4 D
-	ld a,(0e282h)
+probe_edge:                       ; 0xA67C  E248 = 1 up / 2 down / 3 left / 4 right
+	ld a,(0e282h)                 ; Y
 	add a,008h
 	cp 002h
-	jr c,la6a8h
+	jr c,la6a8h                   ; top + climb -> 1 up
 	sub 008h
 	cp 0aeh
-	jr nc,la6b4h
+	jr nc,la6b4h                  ; bottom -> 2 down
 	ld a,(0e294h)
 	or a
-	ld a,(0e284h)
+	ld a,(0e284h)                 ; X
 	jr z,la69dh
 	cp 0f1h
 	ret c
-	ld a,004h
+	ld a,004h                     ; facing right, X >= 0xF1 -> 4 right
 	ld (0e248h),a
 	ret
 la69dh:
 	add a,008h
 	cp 00ah
 	ret nc
-	ld a,003h
+	ld a,003h                     ; facing left, X small -> 3 left
 	ld (0e248h),a
 	ret
 la6a8h:
 	ld a,(0e280h)
 	sub 002h
 	ret nz
-	ld a,001h
+	ld a,001h                     ; climb off top -> 1 up
 	ld (0e248h),a
 	ret
 la6b4h:
 	cp 0f0h
 	ret nc
-	ld a,002h
+	ld a,002h                     ; Y >= 0xAE -> 2 down
 	ld (0e248h),a
 	ret
 tick_map_tools:                   ; 0xA6BD  0xE300 64 x 8 (afb1_tbl); skip if (0xE248)
@@ -10635,13 +10629,13 @@ tick_map_tools:                   ; 0xA6BD  0xE300 64 x 8 (afb1_tbl); skip if (0
 	ld b,040h
 la6c8h:
 	push bc
-	call sub_a6d5h
+	call tick_map_tool
 	pop bc
 	ld de,00008h
 	add ix,de
 	djnz la6c8h
 	ret
-sub_a6d5h:
+tick_map_tool:                    ; 0xA6D5  one E300 slot; d_a6dd by lo-nibble
 	ld a,(ix+000h)
 	or a
 	ret z
@@ -10659,35 +10653,38 @@ d_a6dd_jp_start:
 	defw tick_map_drill           ; type 6 drill (wall, 2 deep)
 d_a6dd_jp_end:
 tick_map_knife:                   ; 0xA6EC  then d_a6f2 (in-use states)
-	call sub_ac63h
+	call tool_phase
 	sub 001h
 	ret c
 	call DISPATCH_A
 
 ; BLOCK 'd_a6f2_jp' (start 0xa6f5 end 0xa6ff)
 d_a6f2_jp_start:
-	defw 0a6ffh                   ; knife: snap screen
-	defw 0a706h                   ; fly
-	defw 0a717h
-	defw 0a743h
-	defw 0a76eh
+	defw tool_scr                 ; knife: snap screen
+	defw knife_go                 ; fly
+	defw knife_fly
+	defw knife_wait
+	defw knife_sfx
 d_a6f2_jp_end:
+tool_scr:                         ; 0xA6FF  ix+3 = E243 (also boomerang)
 	ld a,(0e243h)
 	ld (ix+003h),a
 	ret
+knife_go:                         ; 0xA706
 	ld (ix+004h),000h
 	ld a,(0e294h)
 	ld (ix+007h),a
-	call sub_a921h
-	call sub_a79fh
+	call tool_next
+	call knife_probe
 	ret nc
-	call sub_a87fh
-	call sub_a787h
+knife_fly:                        ; 0xA717  shared tail of knife_go
+	call knife_anim
+	call tool_lock
 	jr nc,la724h
 	ld a,(ix+007h)
 	jr la729h
 la724h:
-	call sub_a826h
+	call tool_step_x
 	ret c
 	ld a,c
 la729h:
@@ -10703,18 +10700,19 @@ la72fh:
 	ld a,0f0h
 la73ah:
 	ld (ix+002h),a
-	call sub_a921h
+	call tool_next
 	jp la814h
-	call sub_a787h
-	call sub_a87fh
+knife_wait:                       ; 0xA743
+	call tool_lock
+	call knife_anim
 	dec (ix+006h)
 	ret nz
 	xor a
 	ld (ix+006h),004h
 	ld (ix+005h),a
 	ld (ix+007h),a
-	call sub_a921h
-	call sub_aa17h
+	call tool_next
+	call tool_sat
 	ld a,(ix+000h)
 	and 0f0h
 	ret nz
@@ -10722,9 +10720,10 @@ la73ah:
 	cp (ix+003h)
 	ret nz
 	jp sfx_36
-	call sub_a787h
-	call sub_a87fh
-	call sub_a9bah
+knife_sfx:                        ; 0xA76E
+	call tool_lock
+	call knife_anim
+	call tool_fall
 	ld a,(ix+000h)
 	and 0f0h
 	ret nz
@@ -10732,7 +10731,7 @@ la73ah:
 	cp (ix+003h)
 	ret nz
 	jp sfx_36
-sub_a787h:
+tool_lock:                      ; 0xA787  CY if IX is E2E8; clear EDCD
 	ld a,(0edcdh)
 	and a
 	ret z
@@ -10749,7 +10748,7 @@ sub_a787h:
 la79dh:
 	and a
 	ret
-sub_a79fh:
+knife_probe:                    ; 0xA79F  wall/X probe; B = 8 or 16 step
 	ld a,(0e243h)
 	cp (ix+003h)
 	ret nz
@@ -10814,13 +10813,13 @@ la804h:
 	and 0f8h
 	ld (ix+002h),a
 	call la814h
-	call sub_a921h
+	call tool_next
 	and a
 	ret
 la814h:
 	ld (ix+006h),018h
 	ret
-sub_a819h:
+tool_add_x:                     ; 0xA819  signed X step from B; C dir 2/3
 	ld a,b
 	bit 7,a
 	ld c,003h
@@ -10829,7 +10828,7 @@ sub_a819h:
 	ld b,a
 	dec c
 	jr la836h
-sub_a826h:
+tool_step_x:                    ; 0xA826  X step from ix+7 facing
 	ld a,(ix+007h)
 	or a
 	ld bc,00402h
@@ -10877,10 +10876,10 @@ la86fh:
 	ld h,(ix+002h)
 	ld l,(ix+001h)
 	push bc
-	call 09933h
+	call probe_step_de
 	pop bc
 	ret
-sub_a87fh:
+knife_anim:                     ; 0xA87F  ix+4 mod 3; sfx_1c on wrap
 	ld a,(0e203h)
 	and 001h
 	ret nz
@@ -10896,29 +10895,31 @@ la897h:
 	ld (ix+004h),a
 	ret
 tick_map_boom:                    ; 0xA89B
-	call sub_ac63h
+	call tool_phase
 	sub 001h
 	ret c
 	call DISPATCH_A
 
 ; BLOCK 'd_a8a1_jp' (start 0xa8a4 end 0xa8ae)
 d_a8a1_jp_start:
-	defw 0a6ffh                   ; boomerang: snap screen
-	defw 0a8aeh
-	defw 0a8c7h
-	defw 0a975h
-	defw 0a994h
+	defw tool_scr                 ; boomerang: snap screen
+	defw boom_go
+	defw boom_fly
+	defw boom_wait
+	defw boom_sfx
 d_a8a1_jp_end:
+boom_go:                          ; 0xA8AE
 	ld (ix+004h),003h
 	ld (ix+005h),000h
 	ld (ix+006h),008h
 	ld a,(0e294h)
 	ld (ix+007h),a
-	call sub_a921h
-	call sub_a79fh
+	call tool_next
+	call knife_probe
 	ret nc
-	call sub_a99dh
-	call sub_a787h
+boom_fly:                         ; 0xA8C7  shared tail of boom_go
+	call boom_anim
+	call tool_lock
 	jr nc,la8d4h
 	ld a,(ix+007h)
 	jr la90ah
@@ -10934,14 +10935,14 @@ la8e3h:
 	ld (ix+005h),a
 	ld e,a
 	ld d,000h
-	ld hl,0a96bh
+	ld hl,boom_dt
 	add hl,de
 	ld a,(hl)
 	ld (ix+006h),a
 la8f1h:
 	ld e,(ix+005h)
 	ld d,000h
-	ld hl,la961h
+	ld hl,boom_dx
 	add hl,de
 	ld a,(ix+007h)
 	or a
@@ -10950,7 +10951,7 @@ la8f1h:
 	neg
 la903h:
 	ld b,a
-	call sub_a819h
+	call tool_add_x
 	jr c,la92ah
 	ld a,c
 la90ah:
@@ -10967,7 +10968,7 @@ la910h:
 la91bh:
 	ld (ix+002h),a
 	call la814h
-sub_a921h:
+tool_next:                        ; 0xA921  ix+0 += 0x10 (next in-use state)
 	ld a,(ix+000h)
 	add a,010h
 	ld (ix+000h),a
@@ -10995,27 +10996,20 @@ la94dh:
 	ret nc
 	ld hl,0e2a9h
 	dec (hl)
-	call sfx_35
+	call sfx_35                   ; boom
 	ld (ix+000h),012h
 	ld a,002h
 	ld (0e287h),a
 	ret
-la961h:
-	inc b
-	inc bc
-	ld (bc),a
-	ld bc,0ff00h
-	cp 0fdh
-	call m,008fbh
-	ld b,004h
-	inc bc
-	ld (bc),a
-	inc bc
-	inc b
-	ld b,008h
-	rst 38h
-	call sub_a787h
-	call sub_a99dh
+; BLOCK 'boom_dx' (start 0xa961 end 0xa96b)
+boom_dx:
+	defb 004h, 003h, 002h, 001h, 000h, 0ffh, 0feh, 0fdh, 0fch, 0fbh
+; BLOCK 'boom_dt' (start 0xa96b end 0xa975)
+boom_dt:
+	defb 008h, 006h, 004h, 003h, 002h, 003h, 004h, 006h, 008h, 0ffh
+boom_wait:                        ; 0xA975
+	call tool_lock
+	call boom_anim
 	dec (ix+006h)
 	ret nz
 	xor a
@@ -11023,12 +11017,13 @@ la961h:
 	ld (ix+005h),a
 	ld (ix+006h),004h
 	ld (ix+007h),a
-	call sub_a921h
-	jp sub_aa17h
-	call sub_a787h
-	call sub_a99dh
-	jp sub_a9bah
-sub_a99dh:
+	call tool_next
+	jp tool_sat
+boom_sfx:                         ; 0xA994
+	call tool_lock
+	call boom_anim
+	jp tool_fall
+boom_anim:                      ; 0xA99D  ix+4 mod 6; sfx_1b on wrap
 	ld a,(0e203h)
 	and 001h
 	ret nz
@@ -11043,7 +11038,7 @@ sub_a99dh:
 la9b6h:
 	ld (ix+004h),a
 	ret
-sub_a9bah:
+tool_fall:                      ; 0xA9BA  gravity Y for a map tool
 	dec (ix+006h)
 	ld a,(ix+005h)
 	jr nz,la9d6h
@@ -11054,7 +11049,7 @@ sub_a9bah:
 la9cah:
 	ld e,a
 	ld d,000h
-	ld hl,laa60h
+	ld hl,fall_dt
 	add hl,de
 	ld a,(hl)
 	ld (ix+006h),a
@@ -11067,7 +11062,7 @@ la9d6h:
 	jr nc,laa03h
 	ld a,(0e243h)
 	cp (ix+003h)
-	jr nz,sub_aa17h
+	jr nz,tool_sat
 	ld a,(ix+001h)
 	add a,010h
 	cp 0b8h
@@ -11091,7 +11086,7 @@ laa03h:
 	ld a,002h
 	call 05e38h
 	ld (ix+003h),l
-sub_aa17h:
+tool_sat:                       ; 0xAA17  map-tool SAT at E840 + screen*0xC0
 	ld b,(ix+003h)
 	ld hl,0e840h
 	ld de,000c0h
@@ -11102,7 +11097,7 @@ laa20h:
 	ld h,(ix+002h)
 	ld l,(ix+001h)
 	ld c,001h
-	call 09933h
+	call probe_step_de
 	ret c
 laa30h:
 	ld hl,0e2a9h
@@ -11118,37 +11113,35 @@ laa30h:
 	ret nz
 	call 09237h
 	push ix
-	call 096ffh
+	call stones_undraw
 	pop ix
-	call 09116h
+	call tool_stamp
 	push ix
-	call 096cfh
+	call stones_redraw
 	pop ix
 	ret
-laa60h:
-	inc bc
-	inc bc
-	inc bc
-	inc bc
-	inc bc
-	rst 38h
+; BLOCK 'fall_dt' (start 0xaa60 end 0xaa66)
+fall_dt:
+	defb 003h, 003h, 003h, 003h, 003h, 0ffh
 tick_map_shovel:                  ; 0xAA66
-	call sub_ac63h
+	call tool_phase
 	sub 001h
 	ret c
 	call DISPATCH_A
 
 ; BLOCK 'd_aa6c_jp' (start 0xaa6f end 0xaa75)
 d_aa6c_jp_start:
-	defw 0a6ffh                   ; shovel: snap screen
-	defw 0aa75h
-	defw 0aa84h
+	defw tool_scr                 ; shovel: snap screen
+	defw shovel_go
+	defw shovel_dig
 d_aa6c_jp_end:
+shovel_go:                        ; 0xAA75
 	ld (ix+006h),008h
 	ld (ix+005h),0ffh
 	ld (ix+007h),000h
-	jp sub_a921h
-	call sub_aaa9h
+	jp tool_next
+shovel_dig:                       ; 0xAA84
+	call shovel_anim
 	ld a,(ix+007h)
 	or a
 	ret z
@@ -11169,7 +11162,7 @@ laa95h:
 	xor a
 	ld (0e280h),a
 	ret
-sub_aaa9h:
+shovel_anim:                    ; 0xAAA9  dig frames; stamp from AB03
 	dec (ix+006h)
 	ret nz
 	ld (ix+006h),008h
@@ -11182,13 +11175,13 @@ sub_aaa9h:
 	ld d,h
 	ld e,l
 	ld bc,00102h
-	call 056deh
+	call stamp_wtiles
 	pop af
 	ld (ix+005h),a
 	add a,a
 	ld e,a
 	ld d,000h
-	ld hl,lab03h
+	ld hl,shovel_id
 	add hl,de
 	ex de,hl
 	ld hl,(0e2a2h)
@@ -11197,20 +11190,20 @@ sub_aaa9h:
 	inc hl
 	push hl
 	push de
-	call 05767h
+	call tile_pset
 	pop de
 	pop hl
 	ld a,d
 	add a,008h
 	ld d,a
 	ld a,(hl)
-	jp 05767h
+	jp tile_pset
 laae7h:
 	ld hl,(0e2a2h)
 	ld d,h
 	ld e,l
 	ld bc,00102h
-	call 056deh
+	call stamp_wtiles
 	inc (ix+007h)
 	ld hl,(0e2a2h)
 	ld a,(0e243h)
@@ -11218,30 +11211,29 @@ laae7h:
 	ld bc,00102h
 	xor a
 	jp 063edh
-lab03h:
-	ld b,007h
-	ex af,af'
-	add hl,bc
-	ld a,(bc)
-	dec bc
+; BLOCK 'shovel_id' (start 0xab03 end 0xab09)
+shovel_id:
+	defb 006h, 007h, 008h, 009h, 00ah, 00bh
 tick_map_pick:                    ; 0xAB09
-	call sub_ac63h
+	call tool_phase
 	sub 001h
 	ret c
 	call DISPATCH_A
 
 ; BLOCK 'd_ab0f_jp' (start 0xab12 end 0xab1a)
 d_ab0f_jp_start:
-	defw 0a6ffh                   ; pick: snap screen
-	defw 0ab1ah
-	defw 0ab29h
-	defw 0ab52h
+	defw tool_scr                 ; pick: snap screen
+	defw pick_go
+	defw pick_dig
+	defw pick_dig2
 d_ab0f_jp_end:
+pick_go:                          ; 0xAB1A
 	ld (ix+006h),008h
 	ld (ix+005h),0ffh
 	ld (ix+007h),000h
-	jp sub_a921h
-	call sub_aaa9h
+	jp tool_next
+pick_dig:                         ; 0xAB29
+	call shovel_anim
 	ld a,(ix+007h)
 	or a
 	ret z
@@ -11259,34 +11251,37 @@ d_ab0f_jp_end:
 	call map_tile
 	cp 002h
 	jp nz,laa8ch
-	call d_ab0f_jp_end
-	call sub_aaa9h
+	call pick_go
+pick_dig2:                        ; 0xAB52
+	call shovel_anim
 	ld a,(ix+007h)
 	or a
 	ret z
 	jp laa8ch
 tick_map_hammer:                  ; 0xAB5D
-	call sub_ac63h
+	call tool_phase
 	sub 001h
 	ret c
 	call DISPATCH_A
 
 ; BLOCK 'd_ab63_jp' (start 0xab66 end 0xab6c)
 d_ab63_jp_start:
-	defw 0a6ffh                   ; hammer: snap screen
-	defw 0ab6ch
-	defw 0ab7bh
+	defw tool_scr                 ; hammer: snap screen
+	defw hammer_go
+	defw hammer_dig
 d_ab63_jp_end:
+hammer_go:                        ; 0xAB6C
 	ld (ix+006h),008h
 	ld (ix+005h),0ffh
 	ld (ix+007h),000h
-	jp sub_a921h
-	call sub_ab86h
+	jp tool_next
+hammer_dig:                       ; 0xAB7B
+	call wall_anim
 	ld a,(ix+007h)
 	or a
 	ret z
 	jp laa8ch
-sub_ab86h:
+wall_anim:                      ; 0xAB86  hammer/drill wall frames from ABE9
 	dec (ix+006h)
 	ret nz
 	ld (ix+006h),008h
@@ -11299,17 +11294,17 @@ sub_ab86h:
 	ld d,h
 	ld e,l
 	ld bc,00201h
-	call 056deh
+	call stamp_wtiles
 	pop af
 	ld (ix+005h),a
 	add a,a
 	ld e,a
 	ld d,000h
-	ld hl,labe9h
+	ld hl,hammer_l
 	ld a,(0e294h)
 	or a
 	jr z,labb6h
-	ld hl,labefh
+	ld hl,hammer_r
 labb6h:
 	add hl,de
 	ex de,hl
@@ -11319,20 +11314,20 @@ labb6h:
 	inc hl
 	push hl
 	push de
-	call 05767h
+	call tile_pset
 	pop de
 	pop hl
 	ld a,e
 	add a,008h
 	ld e,a
 	ld a,(hl)
-	jp 05767h
+	jp tile_pset
 labcdh:
 	ld hl,(0e2a2h)
 	ld d,h
 	ld e,l
 	ld bc,00201h
-	call 056deh
+	call stamp_wtiles
 	inc (ix+007h)
 	ld hl,(0e2a2h)
 	ld a,(0e243h)
@@ -11340,36 +11335,32 @@ labcdh:
 	ld bc,00201h
 	xor a
 	jp 063edh
-labe9h:
-	inc c
-	dec c
-	ld c,00fh
-	djnz lac00h
-labefh:
-	ld (de),a
-	inc de
-	inc d
-	dec d
-	ld d,017h
+; BLOCK 'hammer_l' (start 0xabe9 end 0xabef)
+hammer_l:
+	defb 00ch, 00dh, 00eh, 00fh, 010h, 011h
+; BLOCK 'hammer_r' (start 0xabef end 0xabf5)
+hammer_r:
+	defb 012h, 013h, 014h, 015h, 016h, 017h
 tick_map_drill:                   ; 0xABF5
-	call sub_ac63h
+	call tool_phase
 	sub 001h
 	ret c
 	call DISPATCH_A
 
 ; BLOCK 'd_abfb_jp' (start 0xabfe end 0xac06)
 d_abfb_jp_start:
-	defw 0a6ffh                   ; drill: snap screen
-lac00h:
-	defw 0ac06h
-	defw 0ac15h
-	defw 0ac58h
+	defw tool_scr                 ; drill: snap screen
+	defw drill_go
+	defw drill_dig
+	defw drill_dig2
 d_abfb_jp_end:
+drill_go:                         ; 0xAC06
 	ld (ix+006h),008h
 	ld (ix+005h),0ffh
 	ld (ix+007h),000h
-	jp sub_a921h
-	call sub_ab86h
+	jp tool_next
+drill_dig:                        ; 0xAC15
+	call wall_anim
 	ld a,(ix+007h)
 	or a
 	ret z
@@ -11402,13 +11393,14 @@ lac4eh:
 	ld a,(0e284h)
 	add a,b
 	ld (0e284h),a
-	jp d_abfb_jp_end
-	call sub_ab86h
+	jp drill_go
+drill_dig2:                       ; 0xAC58
+	call wall_anim
 	ld a,(ix+007h)
 	or a
 	ret z
 	jp laa8ch
-sub_ac63h:
+tool_phase:                       ; 0xAC63  ix+0 high nibble (in-use state)
 	ld a,(ix+000h)
 	rra
 	rra
@@ -11439,10 +11431,10 @@ lac86h:
 	pop ix
 	exx
 	pop hl
-	call sub_ac91h
+	call spawn_fill
 	xor a
 	ret
-sub_ac91h:
+spawn_fill:                     ; 0xAC91  fill a free E500 slot from spawn_tool
 	ld (hl),c
 	inc l
 	ld (hl),000h
@@ -11460,7 +11452,7 @@ sub_ac91h:
 	add hl,de
 	push hl
 	ld a,(0e252h)
-	call sub_ad15h
+	call map_of_a
 	pop hl
 	ld (hl),e
 	inc l
@@ -11484,7 +11476,7 @@ sub_ac91h:
 	push hl
 	call d_acd9_jp_end
 	ld a,(0e252h)
-	call sub_b266h
+	call screen_of
 	pop hl
 	ld (hl),a
 	ld de,0ffeah
@@ -11495,10 +11487,10 @@ sub_ac91h:
 
 ; BLOCK 'd_acd9_jp' (start 0xacdc end 0xace4)
 d_acd9_jp_start:
-	defw 0ad2ch
-	defw 0ad2ch
-	defw 0b274h
-	defw 0b67eh
+	defw spawn_kb
+	defw spawn_kb
+	defw spawn_shovel
+	defw spawn_pick
 d_acd9_jp_end:
 	ld a,(0f0f4h)
 	and a
@@ -11533,7 +11525,7 @@ lad0bh:
 	ld c,h
 	dec bc
 	ld c,h
-sub_ad15h:
+map_of_a:                       ; 0xAD15  A = screen id -> DE = E900 base
 	dec a
 	ld h,a
 	ld l,000h
@@ -11549,28 +11541,29 @@ sub_ad15h:
 	add hl,de
 	ex de,hl
 	ret
+spawn_kb:                         ; 0xAD2C  knife / boomerang E500 init
 	ld (ix+018h),000h
 	ld (ix+011h),0ffh
 	ld hl,093b2h
-	call sub_ad53h
-	call sub_b223h
+	call e500_stamp
+	call vic_side_x
 	inc c
 	inc c
 	ld (ix+00bh),c
 	ld a,(ix+000h)
 	dec a
-	call z,sub_ae1ah
+	call z,e500_flip
 	ld (ix+014h),020h
 	ld hl,sfx_1e
 	jp lb294h
-sub_ad53h:
+e500_stamp:                     ; 0xAD53  3x2 draw_tilemap under a thrown tool
 	ld a,(0e243h)
 	cp (ix+010h)
 	ret nz
 	push ix
 	push hl
-	call 096ffh
-	call 090abh
+	call stones_undraw
+	call tools_scan
 	pop hl
 	pop ix
 	ld a,(ix+003h)
@@ -11581,7 +11574,7 @@ sub_ad53h:
 	call draw_tilemap
 	push ix
 	call draw_maptools
-	call 096cfh
+	call stones_redraw
 	pop ix
 	ret
 tick_thrown_knife:                ; 0xAD80  E500; d_ad83 (5 states)
@@ -11590,38 +11583,40 @@ tick_thrown_knife:                ; 0xAD80  E500; d_ad83 (5 states)
 
 ; BLOCK 'd_ad83_jp' (start 0xad86 end 0xad90)
 d_ad83_jp_start:
-	defw 0ae35h                   ; knife: throw / fall / land (5 states)
-	defw 0ae55h
-	defw 0ad90h
-	defw 0adbbh
-	defw 0adfah
+	defw thrown_wind              ; knife: throw / fall / land (5 states)
+	defw thrown_hide
+	defw knife_toss
+	defw knife_seek
+	defw knife_home
 d_ad83_jp_end:
-	call 0b15eh
+knife_toss:                       ; 0xAD90
+	call thrown_drop
 	ld a,004h
 	jp c,laf2ch
 	ld (ix+011h),000h
 	dec (ix+014h)
 	ret nz
 	ld de,00180h
-	call sub_b29ch
-	call sub_ae1ah
-	call sub_b165h
+	call thrown_xy_d
+	call e500_flip
+	call thrown_step
 	jp c,lae51h
-	call sub_ae1ah
-	call sub_b165h
+	call e500_flip
+	call thrown_step
 	jp nc,06608h
 	jp lae51h
+knife_seek:                       ; 0xADBB
 	ld (ix+006h),001h
-	call sub_af14h
-	call sub_b15eh
+	call thrown_dir
+	call thrown_drop
 	jr nc,ladcfh
-	call sub_b833h
+	call thrown_snap
 	ld a,004h
 	jp laf2ch
 ladcfh:
-	call sub_b165h
+	call thrown_step
 	jr nc,laddfh
-	call sub_b00fh
+	call thrown_edge
 	dec a
 	cp (ix+00bh)
 	ret nz
@@ -11631,25 +11626,26 @@ laddfh:
 	ld a,(ix+018h)
 	cp 010h
 	jp nc,06608h
-sub_adeah:
-	call sub_b833h
+thrown_air:                     ; 0xADEA  E500 state 2: snap + timer
+	call thrown_snap
 	ld (ix+014h),010h
 	ld (ix+006h),000h
 	ld (ix+001h),002h
 	ret
+knife_home:                       ; 0xADFA
 	ld (ix+006h),001h
-	call sub_b17ah
+	call thrown_origin
 	ret c
-	call sub_b833h
-	call sub_b548h
-	call sub_adeah
+	call thrown_snap
+	call shovel_sfx
+	call thrown_air
 	ld (ix+006h),000h
 	ld a,(ix+019h)
 	xor 001h
 	or 002h
 	ld (ix+00bh),a
 	ret
-sub_ae1ah:
+e500_flip:                      ; 0xAE1A  xor ix+11 facing
 	ld a,(ix+00bh)
 	xor 001h
 	ld (ix+00bh),a
@@ -11660,17 +11656,18 @@ tick_thrown_boom:                 ; 0xAE23  E500; returns
 
 ; BLOCK 'd_ae26_jp' (start 0xae29 end 0xae35)
 d_ae26_jp_start:
-	defw 0ae35h                   ; boomerang: throw / fly / return (6 states)
-	defw 0ae55h
-	defw 0ae8bh
-	defw 0aeb5h
-	defw 0af4eh
-	defw 0af8ah
+	defw thrown_wind              ; boomerang: throw / fly / return (6 states)
+	defw thrown_hide
+	defw boom_toss
+	defw boom_seek
+	defw boom_turn
+	defw boom_catch
 d_ae26_jp_end:
+thrown_wind:                      ; 0xAE35  shared knife/boom wind-up
 	dec (ix+014h)
 	ret nz
 	ld hl,093b8h
-	call sub_ad53h
+	call e500_stamp
 	ld hl,sfx_41
 	call lb294h
 	ld (ix+013h),002h
@@ -11679,16 +11676,17 @@ d_ae26_jp_end:
 lae51h:
 	inc (ix+001h)
 	ret
+thrown_hide:                      ; 0xAE55  shared: undraw then next state
 	dec (ix+014h)
 	ret nz
-	call sub_ae6fh
+	call e500_undraw
 	ld (ix+013h),003h
 	ld (ix+014h),020h
 	ld a,(0e243h)
 	cp (ix+010h)
 	call z,sfx_25
 	jr lae51h
-sub_ae6fh:
+e500_undraw:                    ; 0xAE6F  restore 3x2 world tiles under throw
 	ld a,(0e243h)
 	cp (ix+010h)
 	ret nz
@@ -11697,67 +11695,69 @@ sub_ae6fh:
 	sub 008h
 	ld e,a
 	ld bc,00302h
-	call 056deh
+	call stamp_wtiles
 	ld hl,093ach
-	jp sub_ad53h
-	call sub_b15eh
+	jp e500_stamp
+boom_toss:                        ; 0xAE8B
+	call thrown_drop
 	jp c,laf2ah
 	ld (ix+011h),000h
 	dec (ix+014h)
 	ret nz
-	call sub_b211h
-	call sub_afaah
+	call thrown_reset
+	call thrown_face
 	ld de,00180h
-	call sub_b29ch
-	call sub_b165h
+	call thrown_xy_d
+	call thrown_step
 	jr c,lae51h
-	call sub_ae1ah
-	call sub_b165h
+	call e500_flip
+	call thrown_step
 	jp nc,06608h
 	jr lae51h
+boom_seek:                        ; 0xAEB5
 	ld (ix+006h),001h
-	call sub_af14h
-	call sub_b15eh
+	call thrown_dir
+	call thrown_drop
 	jr nc,laec6h
-	call sub_b833h
+	call thrown_snap
 	jr laf2ah
 laec6h:
-	call sub_b00fh
+	call thrown_edge
 	dec a
 	cp (ix+00bh)
 	jp z,lb0a6h
-	call sub_b165h
+	call thrown_step
 	jr c,laee6h
-	call sub_b833h
+	call thrown_snap
 	inc (ix+018h)
 	ld a,(ix+018h)
 	cp 010h
 	jp nc,06608h
 	jp laf7dh
 laee6h:
-	call sub_b23fh
+	call vic_side_y
 	dec c
 	ret m
 	jr z,laef5h
-	call sub_b143h
+	call floor_down
 	ret nz
 	ld a,001h
 	jr laefah
 laef5h:
-	call sub_b150h
+	call floor_here
 	ret nz
 	xor a
 laefah:
 	ld (ix+00bh),a
 	ld de,00280h
-	call sub_b2a3h
+	call thrown_dxy
 	ld de,00000h
-	call sub_b29ch
+	call thrown_xy_d
 	ld a,(ix+005h)
 	and 0f8h
 	ld (ix+005h),a
 	jp lae51h
-sub_af14h:
+thrown_dir:                     ; 0xAF14  ix+11 from facing + E203 bit 2
 	ld c,001h
 	bit 0,(ix+00bh)
 	jr z,laf1eh
@@ -11785,16 +11785,17 @@ laf2ch:
 laf48h:
 	ld hl,sfx_2c
 	jp lb294h
+boom_turn:                        ; 0xAF4E  reverse when blocked
 	ld (ix+006h),001h
 	ld c,005h
 	call laf1eh
-	call sub_b0f9h
+	call thrown_block
 	jp c,laf73h
-	call sub_b00fh
+	call thrown_edge
 	dec a
 	cp (ix+00bh)
 	jr z,laf6ah
-	call sub_b165h
+	call thrown_step
 	ret c
 laf6ah:
 	ld a,(ix+00bh)
@@ -11802,7 +11803,7 @@ laf6ah:
 	ld (ix+00bh),a
 	ret
 laf73h:
-	call sub_b833h
+	call thrown_snap
 	xor a
 	ld (ix+002h),a
 	ld (ix+018h),a
@@ -11811,11 +11812,12 @@ laf7dh:
 	ld (ix+006h),000h
 	ld (ix+001h),002h
 	ret
+boom_catch:                       ; 0xAF8A
 	ld (ix+006h),001h
-	call sub_b17ah
+	call thrown_origin
 	ret c
-	call sub_b833h
-	call sub_b548h
+	call thrown_snap
+	call shovel_sfx
 	call laf7dh
 	ld a,(ix+019h)
 	xor 001h
@@ -11823,15 +11825,15 @@ laf7dh:
 	ld (ix+00bh),a
 	ld (ix+006h),000h
 	ret
-sub_afaah:
-	call sub_b223h
+thrown_face:                    ; 0xAFAA  ix+11 = vic_side_x | 2
+	call vic_side_x
 	ld a,c
 	or 002h
 	ld (ix+00bh),a
 	ret
 e500_room:                        ; 0xAFB4  E500 vs Vic on room change (pick type 4)
 	ld ix,0e500h
-	call 09a0bh
+	call vic_xy
 	ld b,008h
 lafbdh:
 	ld a,(ix+000h)
@@ -11854,7 +11856,7 @@ lafbdh:
 	jr nc,lafech
 	push de
 	push bc
-	call sub_aff6h
+	call thrown_hit
 	pop bc
 	pop de
 lafech:
@@ -11864,7 +11866,7 @@ lafech:
 	ex de,hl
 	djnz lafbdh
 	ret
-sub_aff6h:
+thrown_hit:                     ; 0xAFF6  room-change overlap: pick vs kill
 	ld a,(ix+000h)
 	cp 004h
 	jp nz,06706h
@@ -11874,13 +11876,13 @@ sub_aff6h:
 	dec a
 	jp nz,06706h
 lb009h:
-	call sub_b9f0h
+	call map_restore
 	jp 06706h
-sub_b00fh:
+thrown_edge:                    ; 0xB00F  Vic near screen edge vs this E500
 	ld a,(0e243h)
 	cp (ix+010h)
 	jp z,lb0a4h
-	call 09a0bh
+	call vic_xy
 	ld l,(ix+003h)
 	ld h,(ix+005h)
 	ld a,(ix+00bh)
@@ -11903,7 +11905,7 @@ sub_b00fh:
 	cp 030h
 	jr nc,lb0a4h
 	ld a,001h
-	call sub_b096h
+	call thrown_link
 	jr nz,lb0a4h
 	ret
 lb048h:
@@ -11919,7 +11921,7 @@ lb048h:
 	cp 030h
 	jr nc,lb0a4h
 	ld a,002h
-	call sub_b096h
+	call thrown_link
 	jr nz,lb0a4h
 	ret
 lb062h:
@@ -11935,7 +11937,7 @@ lb062h:
 	cp 030h
 	jr nc,lb0a4h
 	ld a,003h
-	call sub_b096h
+	call thrown_link
 	jr nz,lb0a4h
 	ret
 lb07ch:
@@ -11951,10 +11953,10 @@ lb07ch:
 	cp 030h
 	jr nc,lb0a4h
 	ld a,004h
-	call sub_b096h
+	call thrown_link
 	jr nz,lb0a4h
 	ret
-sub_b096h:
+thrown_link:                    ; 0xB096  room_link ix+16; Z if H==E244
 	push af
 	ld b,(ix+016h)
 	call 05e38h
@@ -11969,35 +11971,35 @@ lb0a4h:
 lb0a6h:
 	ld a,(ix+00bh)
 	add a,a
-	ld hl,lb0f1h
+	ld hl,thrown_delta
 	call ADD_HL_A
 	ld c,(hl)
 	inc hl
 	ld b,(hl)
-	call sub_b216h
+	call thrown_map
 	ld a,c
 	add a,l
 	ld l,a
 	ld a,b
 	add a,h
 	ld h,a
-	call sub_b0e5h
+	call tile_empty
 	ret nc
 	ld a,008h
 	add a,h
 	ld h,a
-	call sub_b0e5h
+	call tile_empty
 	ret nc
 	ld a,008h
 	add a,l
 	ld l,a
-	call sub_b0e5h
+	call tile_empty
 	ld a,0f8h
 	add a,h
 	ld h,a
-	call sub_b0e5h
+	call tile_empty
 	ret nc
-	call sub_b21ch
+	call thrown_xy
 	ld a,c
 	add a,l
 	ld (ix+003h),a
@@ -12005,7 +12007,7 @@ lb0a6h:
 	add a,h
 	ld (ix+005h),a
 	ret
-sub_b0e5h:
+tile_empty:                     ; 0xB0E5  NC if map_tile_de is air (0)
 	push de
 	push hl
 	push bc
@@ -12015,52 +12017,49 @@ sub_b0e5h:
 	pop de
 	sub 001h
 	ret
-lb0f1h:
-	djnz lb0f3h
-lb0f3h:
-	ret p
-	nop
-	nop
-	djnz lb0f8h
-lb0f8h:
-	ret p
-sub_b0f9h:
+; BLOCK 'thrown_delta' (start 0xb0f1 end 0xb0f9)
+thrown_delta:
+	defb 010h, 000h
+	defb 0f0h, 000h
+	defb 000h, 010h
+	defb 000h, 0f0h
+thrown_block:                   ; 0xB0F9  CY if next 2x2 is blocked
 	ld a,(ix+00bh)
 	dec a
 	jr z,lb128h
 lb0ffh:
-	call sub_b1ach
+	call thrown_ahead
 	ccf
 	ret nc
 	ld a,l
 	add a,007h
 	and 0f8h
 	ld l,a
-	call sub_b12fh
+	call tile_at
 	ret z
 	ld a,008h
 	add a,l
 	ld l,a
-	call sub_b12fh
+	call tile_at
 	ret z
 	ld a,008h
 	add a,h
 	ld h,a
-	call sub_b12fh
+	call tile_at
 	ret z
 	ld a,l
 	sub 008h
 	ld l,a
-	call sub_b12fh
+	call tile_at
 	ret z
 	scf
 	ret
 lb128h:
-	call sub_b165h
+	call thrown_step
 	ccf
 	ret c
 	jr lb0ffh
-sub_b12fh:
+tile_at:                        ; 0xB12F  map_tile_de at HL vs ix+C/D base
 	ld e,(ix+00ch)
 	ld d,(ix+00dh)
 	push hl
@@ -12069,55 +12068,55 @@ sub_b12fh:
 	and a
 	dec a
 	ret
-	call sub_b150h
+	call floor_here
 	ld c,000h
 	ret z
-sub_b143h:
-	call sub_b21ch
+floor_down:                     ; 0xB143  probe 2 tiles 16px below
+	call thrown_xy
 	ld a,010h
 	add a,l
 	ld l,a
-	call sub_b153h
+	call floor_span
 	ld c,001h
 	ret
-sub_b150h:
-	call sub_b21ch
-sub_b153h:
-	call sub_b12fh
+floor_here:                     ; 0xB150  probe 2 tiles at thrown XY
+	call thrown_xy
+floor_span:                     ; 0xB153  two tile_at, H += 8
+	call tile_at
 	ret nz
 	ld a,h
 	add a,008h
 	ld h,a
-	jp sub_b12fh
-sub_b15eh:
-	call sub_b21ch
+	jp tile_at
+thrown_drop:                    ; 0xB15E  down probe via step_origin
+	call thrown_xy
 	ld c,001h
 	jr lb181h
-sub_b165h:
+thrown_step:                    ; 0xB165  probe_step_de in ix+11 dir
 	ld c,(ix+00bh)
-sub_b168h:
-	call sub_b1ach
+thrown_probe:                   ; 0xB168  ahead + probe_step_de; C=dir
+	call thrown_ahead
 	ret c
 	ld e,(ix+00ch)
 	ld d,(ix+00dh)
 	push hl
 	push de
-	call 09933h
+	call probe_step_de
 	pop de
 	pop hl
 	ret
-sub_b17ah:
+thrown_origin:                  ; 0xB17A  step_origin then two tile_air
 	ld c,(ix+00bh)
-	call sub_b1ach
+	call thrown_ahead
 	ret c
 lb181h:
 	ld e,(ix+00ch)
 	ld d,(ix+00dh)
 	call 0995ah
-	call sub_b191h
+	call tile_air
 	ret nc
-	call sub_b19dh
-sub_b191h:
+	call step_shift
+tile_air:                       ; 0xB191  Z if map_tile_de is air
 	push hl
 	push de
 	push bc
@@ -12127,7 +12126,7 @@ sub_b191h:
 	pop hl
 	sub 001h
 	ret
-sub_b19dh:
+step_shift:                     ; 0xB19D  HL += 8 on the travel axis
 	ld a,c
 	cp 002h
 	jr c,lb1a7h
@@ -12140,10 +12139,10 @@ lb1a7h:
 	add a,008h
 	ld h,a
 	ret
-sub_b1ach:
+thrown_ahead:                   ; 0xB1AC  next pixel XY from velocity
 	ld a,(ix+006h)
 	and a
-	jp z,sub_b21ch
+	jp z,thrown_xy
 	ld a,c
 	dec a
 	jr z,lb1c0h
@@ -12161,7 +12160,7 @@ lb1c2h:
 	ld e,(ix+007h)
 	ld d,(ix+008h)
 	and a
-	call z,sub_b200h
+	call z,neg_de
 	add hl,de
 	ld l,h
 	ld h,(ix+005h)
@@ -12181,7 +12180,7 @@ lb1e1h:
 	ld b,h
 	ld d,(ix+00ah)
 	and a
-	call z,sub_b200h
+	call z,neg_de
 	add hl,de
 	ld l,(ix+003h)
 	ld a,h
@@ -12192,7 +12191,7 @@ lb1fch:
 	cp 080h
 	ccf
 	ret
-sub_b200h:
+neg_de:                         ; 0xB200  DE = -DE
 	ld a,e
 	cpl
 	ld e,a
@@ -12202,22 +12201,22 @@ sub_b200h:
 	inc de
 	ret
 	ld a,004h
-sub_b20ah:
+thrown_hold:                    ; 0xB20A  inc ix+14; CY if == A
 	inc (ix+00eh)
 	cp (ix+00eh)
 	ret
-sub_b211h:
+thrown_reset:                   ; 0xB211  ix+14 = 0
 	xor a
 	ld (ix+00eh),a
 	ret
-sub_b216h:
+thrown_map:                     ; 0xB216  DE = map ptr; HL = thrown XY
 	ld e,(ix+00ch)
 	ld d,(ix+00dh)
-sub_b21ch:
+thrown_xy:                      ; 0xB21C  HL = ix+3 Y, ix+5 X
 	ld l,(ix+003h)
 	ld h,(ix+005h)
 	ret
-sub_b223h:
+vic_side_x:                     ; 0xB223  C = 0/1 Vic vs thrown on X
 	ld a,(ix+016h)
 	and 007h
 	ld c,a
@@ -12235,7 +12234,7 @@ lb236h:
 	ret c
 	inc c
 	ret
-sub_b23fh:
+vic_side_y:                     ; 0xB23F  C = row/Y side vs Vic
 	ld a,(ix+016h)
 	and 038h
 	ld c,a
@@ -12261,7 +12260,7 @@ lb261h:
 	ret c
 	inc c
 	ret
-sub_b266h:
+screen_of:                      ; 0xB266  A = E788 index of ix+16
 	ld hl,0e788h
 	ld bc,00040h
 	cpir
@@ -12269,9 +12268,10 @@ sub_b266h:
 	sub 03fh
 	neg
 	ret
+spawn_shovel:                     ; 0xB274  shovel E500 init
 	ld (ix+01bh),0ffh
 	ld (ix+01dh),080h
-	call sub_b223h
+	call vic_side_x
 	ld a,c
 	or 002h
 	ld (ix+00bh),a
@@ -12284,11 +12284,11 @@ lb294h:
 	cp (ix+010h)
 	ret nz
 	jp (hl)
-sub_b29ch:
+thrown_xy_d:                    ; 0xB29C  ix+9/10 = DE
 	ld (ix+009h),e
 	ld (ix+00ah),d
 	ret
-sub_b2a3h:
+thrown_dxy:                     ; 0xB2A3  ix+7/8 = DE
 	ld (ix+007h),e
 	ld (ix+008h),d
 	ret
@@ -12298,16 +12298,17 @@ tick_thrown_shovel:               ; 0xB2AA  E500; floor 1 deep
 
 ; BLOCK 'd_b2ad_jp' (start 0xb2b0 end 0xb2ba)
 d_b2ad_jp_start:
-	defw 0b2bah                   ; shovel: floor hole 1 deep
-	defw 0b307h
-	defw 0b4bbh
-	defw 0b5b7h
-	defw 0b5fbh
+	defw shov_spin                ; shovel: floor hole 1 deep
+	defw shov_drop
+	defw shov_cut
+	defw shov_turn
+	defw shov_end
 d_b2ad_jp_end:
+shov_spin:                        ; 0xB2BA
 	ld a,(0f0f4h)
-	ld hl,lb2f4h
-	ld de,lb2feh
-	call sub_b6e0h
+	ld hl,shovel_fr
+	ld de,shovel_fr2
+	call pick_frame
 	jr z,lb2e8h
 	cp 007h
 	jr nz,lb2e4h
@@ -12331,26 +12332,18 @@ lb2e8h:
 lb2f0h:
 	inc (ix+001h)
 	ret
-lb2f4h:
-	jr lb30fh
-	jr $+27
-	jr $+27
-	ld a,(de)
-	rlca
-	rlca
-	rst 38h
-lb2feh:
-	jr lb319h
-	jr lb31bh
-	jr lb31dh
-	rlca
-	rlca
-	rst 38h
-	call sub_b552h
+; BLOCK 'shovel_fr' (start 0xb2f4 end 0xb2fe)
+shovel_fr:
+	defb 018h, 019h, 018h, 019h, 018h, 019h, 01ah, 007h, 007h, 0ffh
+; BLOCK 'shovel_fr2' (start 0xb2fe end 0xb307)
+shovel_fr2:
+	defb 018h, 019h, 018h, 019h, 018h, 019h, 007h, 007h, 0ffh
+shov_drop:                        ; 0xB307
+	call floor_zero
 	jp z,lb50bh
 	ld c,009h
 lb30fh:
-	call sub_b4afh
+	call shovel_pat
 	dec (ix+014h)
 	ret nz
 	ld a,(ix+01dh)
@@ -12365,7 +12358,7 @@ lb31dh:
 	cp 019h
 	jr c,lb33ch
 lb329h:
-	call sub_b23fh
+	call vic_side_y
 	dec c
 	jp z,lb417h
 	dec c
@@ -12374,14 +12367,14 @@ lb329h:
 	cp 002h
 	jp nc,lb3f5h
 lb33ch:
-	call sub_b60eh
-	call sub_b385h
+	call boom_home
+	call shovel_ceil
 	jr c,lb35fh
 	ld a,(ix+00bh)
 	xor 001h
 	or 002h
 	ld (ix+00bh),a
-	call sub_b385h
+	call shovel_ceil
 	jp nc,06608h
 	ld a,(ix+01ch)
 	cp 010h
@@ -12389,7 +12382,7 @@ lb33ch:
 	inc (ix+01ch)
 lb35fh:
 	ld de,000f0h
-	call sub_b29ch
+	call thrown_xy_d
 	ld (ix+006h),000h
 	ld (ix+014h),011h
 	ld a,(ix+005h)
@@ -12400,19 +12393,19 @@ lb35fh:
 	ld hl,sfx_1f
 	call lb294h
 	jp lb2f0h
-sub_b385h:
-	call sub_b216h
+shovel_ceil:                    ; 0xB385  CY if 3 tiles above are floor
+	call thrown_map
 	ld a,l
 	sub 008h
 	ld l,a
 	jr c,lb3d0h
-	call sub_b3d6h
+	call shovel_wall
 	jr c,lb39ah
-	call sub_b216h
-	call sub_b3d6h
+	call thrown_map
+	call shovel_wall
 	ret nc
 lb39ah:
-	call sub_b216h
+	call thrown_map
 	ld a,l
 	sub 008h
 	ld l,a
@@ -12451,7 +12444,7 @@ lb3d0h:
 	ld (ix+01ah),001h
 	scf
 	ret
-sub_b3d6h:
+shovel_wall:                    ; 0xB3D6  NC if side tile is solid (>=2)
 	bit 0,(ix+00bh)
 	jr nz,lb3e7h
 	ld a,h
@@ -12475,17 +12468,17 @@ lb3eeh:
 lb3f5h:
 	bit 0,(ix+01ch)
 	jr z,lb40bh
-	call sub_b21ch
+	call thrown_xy
 	ld a,l
 	add a,010h
 	ld l,a
-	call sub_b471h
+	call shovel_gap
 	ld a,001h
 	jr nc,lb42fh
 	jr lb417h
 lb40bh:
-	call sub_b21ch
-	call sub_b471h
+	call thrown_xy
+	call shovel_gap
 	ld a,000h
 	jr nc,lb42fh
 	jr lb452h
@@ -12497,8 +12490,8 @@ lb417h:
 	cp 002h
 	jp c,lb33ch
 lb425h:
-	call sub_b21ch
-	call sub_b471h
+	call thrown_xy
+	call shovel_gap
 	jp c,lb33ch
 	xor a
 lb42fh:
@@ -12508,9 +12501,9 @@ lb42fh:
 	ld (ix+006h),001h
 	ld (ix+01ch),000h
 	ld de,00000h
-	call sub_b29ch
+	call thrown_xy_d
 	ld de,00100h
-	call sub_b2a3h
+	call thrown_dxy
 	ld (ix+001h),003h
 	ret
 lb452h:
@@ -12521,16 +12514,16 @@ lb452h:
 	cp 002h
 	jp c,lb33ch
 lb460h:
-	call sub_b21ch
+	call thrown_xy
 	ld a,l
 	add a,010h
 	ld l,a
-	call sub_b471h
+	call shovel_gap
 	jp c,lb33ch
 	ld a,001h
 	jr lb42fh
-sub_b471h:
-	call sub_b12fh
+shovel_gap:                     ; 0xB471  nudge X when 1 of 2 floor cells
+	call tile_at
 	ld c,000h
 	jr z,lb479h
 	inc c
@@ -12539,7 +12532,7 @@ lb479h:
 	add a,008h
 	ld h,a
 	push bc
-	call sub_b12fh
+	call tile_at
 	pop bc
 	jr z,lb486h
 	set 1,c
@@ -12572,7 +12565,7 @@ lb4a4h:
 	ld (ix+005h),a
 	xor a
 	ret
-sub_b4afh:
+shovel_pat:                     ; 0xB4AF  ix+11 = C (+2 if facing)
 	bit 0,(ix+00bh)
 	jr z,lb4b7h
 	inc c
@@ -12580,26 +12573,27 @@ sub_b4afh:
 lb4b7h:
 	ld (ix+011h),c
 	ret
-	call sub_b00fh
+shov_cut:                         ; 0xB4BB
+	call thrown_edge
 	dec a
 	cp (ix+00bh)
 	ld (ix+006h),000h
 	ret z
 	ld (ix+006h),001h
 	ld c,00ah
-	call sub_b4afh
+	call shovel_pat
 	ld a,(ix+014h)
 	and a
 	jr z,lb50bh
 	dec (ix+014h)
 	ld de,000f0h
-	call sub_b29ch
-	call sub_b64eh
-	call nc,sub_b58fh
+	call thrown_xy_d
+	call shovel_land
+	call nc,thrown_still
 	ld a,(ix+014h)
 	cp 008h
 	jr nc,lb4f1h
-	call sub_b555h
+	call floor_dy
 	jr nz,lb52fh
 lb4f1h:
 	ld a,(ix+014h)
@@ -12616,17 +12610,17 @@ lb500h:
 lb50bh:
 	ld (ix+014h),000h
 	ld (ix+006h),001h
-	call sub_b555h
+	call floor_dy
 	jr nz,lb52fh
 	ld de,00500h
-	call sub_b2a3h
+	call thrown_dxy
 	ld de,00000h
-	call sub_b29ch
+	call thrown_xy_d
 	ld (ix+00bh),001h
 	ld (ix+001h),004h
 	jp laf48h
 lb52fh:
-	call sub_b58fh
+	call thrown_still
 	ld (ix+006h),000h
 	ld (ix+014h),008h
 	ld a,(ix+003h)
@@ -12634,18 +12628,18 @@ lb52fh:
 	and 0f8h
 	ld (ix+003h),a
 	ld (ix+001h),001h
-sub_b548h:
+shovel_sfx:                     ; 0xB548  sfx_14 if this screen
 	ld a,(0e243h)
 	cp (ix+010h)
 	jp z,sfx_14
 	ret
-sub_b552h:
+floor_zero:                     ; 0xB552  floor_ok with A=0 extra Y
 	xor a
 	jr lb558h
-sub_b555h:
-	call sub_b673h
+floor_dy:                       ; 0xB555  floor_ok with ix14_val extra Y
+	call ix14_val
 lb558h:
-	call sub_b216h
+	call thrown_map
 	add a,l
 	add a,010h
 	cp 0b8h
@@ -12656,12 +12650,12 @@ lb564h:
 	ld a,h
 	add a,004h
 	ld h,a
-	call sub_b571h
+	call floor_ok
 	ret nz
 	ld a,h
 	add a,008h
 	ld h,a
-sub_b571h:
+floor_ok:                       ; 0xB571  Z if cell is ladder with air above
 	push hl
 	push de
 	call map_tile_de
@@ -12686,9 +12680,9 @@ sub_b571h:
 lb58ch:
 	or 0ffh
 	ret
-sub_b58fh:
+thrown_still:                   ; 0xB58F  ix+9/10 = 0
 	ld de,00000h
-	jp sub_b29ch
+	jp thrown_xy_d
 
 ; BLOCK 'ix14_da' (start 0xb595 end 0xb5a6)
 ix14_da_start:
@@ -12711,7 +12705,7 @@ ix14_da_start:
 	defb 0fbh
 ix14_da_end:
 
-; BLOCK 'ix14_db' (start 0xb5a6 end 0xb5b8)
+; BLOCK 'ix14_db' (start 0xb5a6 end 0xb5b7)
 ix14_db_start:
 	defb 005h
 	defb 004h
@@ -12730,10 +12724,9 @@ ix14_db_start:
 	defb 0feh
 	defb 0fdh
 	defb 0fch
-	defb 0cdh
 ix14_db_end:
-	rrca
-	or b
+shov_turn:                        ; 0xB5B7
+	call thrown_edge
 	dec a
 	cp (ix+00bh)
 	ld (ix+006h),000h
@@ -12741,32 +12734,33 @@ ix14_db_end:
 	ld (ix+006h),001h
 	ld c,00dh
 	call laf1eh
-	call sub_b0f9h
+	call thrown_block
 	jr c,lb5deh
-	call sub_b165h
+	call thrown_step
 	ret c
 	ld a,(ix+00bh)
 	xor 001h
 	ld (ix+00bh),a
 	ret
 lb5deh:
-	call sub_b833h
+	call thrown_snap
 	ld de,00000h
-	call sub_b2a3h
-	call sub_b29ch
+	call thrown_dxy
+	call thrown_xy_d
 	ld (ix+006h),000h
 	ld (ix+014h),008h
 	ld (ix+018h),0ffh
 	ld (ix+001h),001h
 	ret
-	call sub_b555h
+shov_end:                         ; 0xB5FB
+	call floor_dy
 	ret z
 	ld de,00000h
-	call sub_b2a3h
+	call thrown_dxy
 	ld a,(ix+019h)
 	ld (ix+00bh),a
 	jp lb52fh
-sub_b60eh:
+boom_home:                      ; 0xB60E  turn when X matches home / Vic
 	set 1,(ix+00bh)
 	ld a,(ix+018h)
 	cp 0ffh
@@ -12777,7 +12771,7 @@ sub_b60eh:
 	xor 001h
 	or 002h
 	ld (ix+00bh),a
-	jp sub_b211h
+	jp thrown_reset
 lb62ah:
 	ld a,(0e284h)
 	sub (ix+005h)
@@ -12793,16 +12787,16 @@ lb640h:
 	ld (ix+00bh),c
 	ret
 lb644h:
-	call sub_b223h
+	call vic_side_x
 	ld a,c
 	or 002h
 	ld (ix+00bh),a
 	ret
-sub_b64eh:
+shovel_land:                    ; 0xB64E  NC if floor under shovel
 	ld c,(ix+00bh)
-	call sub_b1ach
+	call thrown_ahead
 	ret c
-	call sub_b673h
+	call ix14_val
 	add a,l
 	add a,00fh
 	ld l,a
@@ -12818,12 +12812,13 @@ lb66dh:
 	call map_tile_de
 	sub 002h
 	ret
-sub_b673h:
+ix14_val:                       ; 0xB673  A = ix14_da[ix+14]
 	ld a,(ix+014h)
 	ld de,ix14_da_start
 	call ADD_DE_A
 	ld a,(de)
 	ret
+spawn_pick:                       ; 0xB67E  pick E500 init
 	xor a
 	ld (ix+014h),a
 	ld (ix+01ch),a
@@ -12836,32 +12831,26 @@ tick_thrown_pick:                 ; 0xB68E  E500; floor 2 deep
 
 ; BLOCK 'd_b691_jp' (start 0xb694 end 0xb6a0)
 d_b691_jp_start:
-	defw 0b6a0h                   ; pick: floor hole 2 deep
-	defw 0b6f9h
-	defw 0b754h
-	defw 0b881h
-	defw 0b8ech
-	defw 0b90eh
+	defw pick_spin                ; pick: floor hole 2 deep
+	defw pick_drop
+	defw pick_cut
+	defw pick_push
+	defw pick_stash
+	defw pick_tick
 d_b691_jp_end:
-	ld hl,lb6afh
-	ld de,lb6b6h
-	call sub_b6e0h
+pick_spin:                        ; 0xB6A0
+	ld hl,pick_pat
+	ld de,pick_pat2
+	call pick_frame
 	jr z,lb6bdh
 	ld (ix+011h),a
 	ret
-lb6afh:
-	dec de
-	dec de
-	inc e
-	inc e
-	dec e
-	dec e
-	rst 38h
-lb6b6h:
-	jr $+27
-	jr lb6d3h
-	jr $+27
-	rst 38h
+; BLOCK 'pick_pat' (start 0xb6af end 0xb6b6)
+pick_pat:
+	defb 01bh, 01bh, 01ch, 01ch, 01dh, 01dh, 0ffh
+; BLOCK 'pick_pat2' (start 0xb6b6 end 0xb6bd)
+pick_pat2:
+	defb 018h, 019h, 018h, 019h, 018h, 019h, 0ffh
 lb6bdh:
 	ld (ix+013h),003h
 	ld (ix+014h),03ch
@@ -12871,13 +12860,13 @@ lb6bdh:
 	ld (ix+01eh),007h
 	ld (ix+01fh),049h
 lb6d3h:
-	call sub_b9a2h
-	call sub_ba6eh
+	call map_mark
+	call map_hit
 	jp c,lba7fh
 lb6dch:
 	inc (ix+001h)
 	ret
-sub_b6e0h:
+pick_frame:                     ; 0xB6E0  A = table[ix+14>>3]; FF = end
 	ld a,(0f0f4h)
 	and a
 	jr z,lb6e7h
@@ -12893,13 +12882,14 @@ lb6e7h:
 	ld a,(hl)
 	cp 0ffh
 	ret
+pick_drop:                        ; 0xB6F9
 	ld c,001h
-	call sub_b168h
+	call thrown_probe
 	jr nc,lb706h
-	call sub_b9f0h
+	call map_restore
 	jp lb856h
 lb706h:
-	call sub_b956h
+	call map_stash
 	dec (ix+014h)
 	jr z,lb721h
 	ld (ix+013h),003h
@@ -12912,44 +12902,45 @@ lb71dh:
 	ld (ix+011h),c
 	ret
 lb721h:
-	call sub_b9f0h
+	call map_restore
 	ld a,003h
-	call sub_b20ah
+	call thrown_hold
 	jp c,06608h
-	call sub_b223h
+	call vic_side_x
 	ld a,c
 	or 002h
 	ld (ix+00bh),a
-	call sub_b165h
+	call thrown_step
 	jr c,lb748h
 	ld a,(ix+00bh)
 	xor 001h
 	ld (ix+00bh),a
-	call sub_b165h
+	call thrown_step
 	jp nc,06608h
 lb748h:
 	ld de,00200h
-	call sub_b29ch
+	call thrown_xy_d
 	ld (ix+006h),001h
 	jr lb6dch
-	call sub_b00fh
+pick_cut:                         ; 0xB754
+	call thrown_edge
 	dec a
 	cp (ix+00bh)
 	jp z,lb0a6h
 	dec (ix+014h)
-	call sub_b874h
+	call pick_anim
 	ld a,(ix+005h)
 	and 007h
 	cp 003h
 	jr nc,lb778h
-	call sub_b216h
+	call thrown_map
 	ld c,001h
-	call 09933h
+	call probe_step_de
 	jp c,lb856h
 lb778h:
-	call sub_b165h
+	call thrown_step
 	jr nc,lb7b1h
-	call sub_b7dfh
+	call pick_clash
 	ret nc
 	ld a,(ix+00bh)
 	cp 002h
@@ -12975,9 +12966,9 @@ lb7abh:
 	call ix14_dc_end
 	jp lb7bfh
 lb7b1h:
-	call sub_b833h
+	call thrown_snap
 	ld c,001h
-	call 09933h
+	call probe_step_de
 	jp c,lb856h
 	call ix14_dc_end
 lb7bfh:
@@ -12987,15 +12978,15 @@ lb7bfh:
 	jp sfx_24
 	ld (ix+006h),000h
 	ld de,00000h
-	call sub_b29ch
-	call sub_b2a3h
+	call thrown_xy_d
+	call thrown_dxy
 	ld (ix+014h),03ch
 	ld (ix+001h),001h
 	ret
-sub_b7dfh:
+pick_clash:                     ; 0xB7DF  CY if another pick overlaps
 	ld l,(ix+003h)
 	ld h,(ix+005h)
-	call sub_b1ach
+	call thrown_ahead
 	ccf
 	ret nc
 	ld iy,0e500h
@@ -13036,7 +13027,7 @@ lb824h:
 lb831h:
 	scf
 	ret
-sub_b833h:
+thrown_snap:                    ; 0xB833  snap X or Y to 8px from ix+11
 	ld a,(ix+00bh)
 	cp 002h
 	jr c,lb847h
@@ -13058,16 +13049,16 @@ lb850h:
 	ld (ix+003h),a
 	ret
 lb856h:
-	call sub_b211h
+	call thrown_reset
 	ld (ix+00bh),001h
 	ld de,00500h
-	call sub_b2a3h
+	call thrown_dxy
 	ld de,00000h
-	call sub_b29ch
+	call thrown_xy_d
 	ld (ix+01ch),000h
 	ld (ix+001h),003h
 	jp laf48h
-sub_b874h:
+pick_anim:                      ; 0xB874  ix+11 = 0x11 + (ix+14>>2)&3
 	ld a,(ix+014h)
 	rra
 	rra
@@ -13075,24 +13066,25 @@ sub_b874h:
 	add a,011h
 	ld (ix+011h),a
 	ret
+pick_push:                        ; 0xB881
 	inc (ix+01ch)
 	jr nz,lb889h
 	dec (ix+01ch)
 lb889h:
 	ld (ix+006h),001h
-	call sub_b874h
-	call sub_b165h
+	call pick_anim
+	call thrown_step
 	jr nc,lb8a8h
-	call sub_b7dfh
+	call pick_clash
 	ret nc
-	call sub_b833h
+	call thrown_snap
 	call ix14_dc_end
 	ld a,(ix+01ch)
 	cp 003h
 	ret c
 	jp lb7bfh
 lb8a8h:
-	call sub_b833h
+	call thrown_snap
 	ld (ix+006h),000h
 	ld (ix+011h),011h
 	ld (ix+014h),000h
@@ -13107,12 +13099,12 @@ lb8a8h:
 	jr z,lb8d6h
 	dec a
 	ret nz
-	call sub_b8dbh
+	call thrown_align
 	jr ix14_dc_end
 lb8d6h:
-	call sub_b8dbh
+	call thrown_align
 	jr lb941h
-sub_b8dbh:
+thrown_align:                   ; 0xB8DB  snap both X and Y to 8px
 	ld a,(ix+005h)
 	and 0f8h
 	ld (ix+005h),a
@@ -13120,9 +13112,10 @@ sub_b8dbh:
 	and 0f8h
 	ld (ix+003h),a
 	ret
-	call sub_b956h
+pick_stash:                       ; 0xB8EC
+	call map_stash
 	ld c,001h
-	call sub_b168h
+	call thrown_probe
 	jr c,lb908h
 	ld a,(0e203h)
 	and 003h
@@ -13132,8 +13125,9 @@ sub_b8dbh:
 	ld (ix+001h),001h
 	ret
 lb908h:
-	call sub_b9f0h
+	call map_restore
 	jp lb856h
+pick_tick:                        ; 0xB90E
 	ld a,(ix+014h)
 	cp 012h
 	jr z,ix14_dc_end
@@ -13166,8 +13160,8 @@ ix14_dc_start:
 	defb 000h
 	defb 001h
 ix14_dc_end:
-	call sub_b9a2h
-	call sub_ba6eh
+	call map_mark
+	call map_hit
 	jp c,lba7fh
 lb941h:
 	ld (ix+006h),000h
@@ -13176,10 +13170,10 @@ lb941h:
 	ld (ix+014h),0b4h
 	ld (ix+001h),004h
 	ret
-sub_b956h:
-	call sub_b216h
-	call sub_ba24h
-	call sub_b9c5h
+map_stash:                      ; 0xB956  OR 2x2 bits into ix+18..1B
+	call thrown_map
+	call map_index
+	call map_or
 	ld a,e
 	and a
 	jr z,lb966h
@@ -13194,12 +13188,12 @@ lb969h:
 lb970h:
 	ld (ix+019h),d
 lb973h:
-	call sub_b216h
+	call thrown_map
 	ld a,h
 	add a,008h
 	ld h,a
-	call sub_ba24h
-	call sub_b9c5h
+	call map_index
+	call map_or
 	ld a,e
 	and a
 	jr z,lb987h
@@ -13213,7 +13207,7 @@ lb98ah:
 lb98eh:
 	ld (ix+01bh),d
 	ret
-sub_b992h:
+map_if_pick:                    ; 0xB992  map_mark if pick state 1/4
 	ld a,(ix+001h)
 	cp 004h
 	jr z,lb99bh
@@ -13223,22 +13217,22 @@ lb99bh:
 	ld a,(0e243h)
 	cp (ix+010h)
 	ret nz
-sub_b9a2h:
-	call sub_b216h
-	call sub_ba24h
-	call sub_b9c5h
+map_mark:                       ; 0xB9A2  OR current 2x2 into packed map
+	call thrown_map
+	call map_index
+	call map_or
 	ld (ix+018h),e
 	ld (ix+019h),d
-	call sub_b216h
+	call thrown_map
 	ld a,h
 	add a,008h
 	ld h,a
-	call sub_ba24h
-	call sub_b9c5h
+	call map_index
+	call map_or
 	ld (ix+01ah),e
 	ld (ix+01bh),d
 	ret
-sub_b9c5h:
+map_or:                         ; 0xB9C5  OR bitmask into two map bytes
 	ld b,c
 	ld a,003h
 lb9c8h:
@@ -13262,7 +13256,7 @@ lb9c8h:
 	and b
 	ld d,a
 	ret
-sub_b9e0h:
+map_if_pick2:                   ; 0xB9E0  map_restore if pick state 1/4
 	ld a,(ix+001h)
 	cp 004h
 	jr z,lb9e9h
@@ -13272,20 +13266,20 @@ lb9e9h:
 	ld a,(0e243h)
 	cp (ix+010h)
 	ret nz
-sub_b9f0h:
-	call sub_b216h
+map_restore:                    ; 0xB9F0  put stashed 2x2 back into map
+	call thrown_map
 	ld a,h
 	add a,008h
 	ld h,a
-	call sub_ba24h
+	call map_index
 	ld e,(ix+01ah)
 	ld d,(ix+01bh)
-	call sub_ba0fh
-	call sub_b216h
-	call sub_ba24h
+	call map_put
+	call thrown_map
+	call map_index
 	ld e,(ix+018h)
 	ld d,(ix+019h)
-sub_ba0fh:
+map_put:                        ; 0xBA0F  AND/OR two map bytes from DE
 	ld a,0fch
 	ld b,c
 lba12h:
@@ -13303,7 +13297,7 @@ lba12h:
 	or d
 	ld (hl),a
 	ret
-sub_ba24h:
+map_index:                      ; 0xBA24  pixel HL + base DE -> packed HL
 	ld a,h
 	rra
 	rra
@@ -13330,7 +13324,7 @@ lba42h:
 	push bc
 	ld a,(ix+000h)
 	cp 004h
-	call z,sub_b9e0h
+	call z,map_if_pick2
 	ld de,00020h
 	add ix,de
 	pop bc
@@ -13343,14 +13337,14 @@ lba5ah:
 	ld a,(ix+000h)
 	cp 004h
 	jr nz,lba65h
-	call sub_b992h
+	call map_if_pick
 lba65h:
 	ld de,00020h
 	add ix,de
 	pop bc
 	djnz lba5ah
 	ret
-sub_ba6eh:
+map_hit:                        ; 0xBA6E  CY if stashed 2x2 has bit 0xAA
 	ld a,(ix+018h)
 	or (ix+019h)
 	or (ix+01ah)
@@ -13360,7 +13354,7 @@ sub_ba6eh:
 	scf
 	ret
 lba7fh:
-	call sub_b9f0h
+	call map_restore
 	jp 06608h
 tick_coffin:                      ; 0xBA85  E600 type 1: Vic push opens lid (states 6/7); no walk
 	ld a,(ix+001h)
@@ -13402,8 +13396,8 @@ tick_coffin:                      ; 0xBA85  E600 type 1: Vic push opens lid (sta
 	inc (ix+005h)
 	ld a,007h
 	ld (0e280h),a
-	call sfx_21
-sub_badah:
+	call sfx_21                   ; coffin
+coffin_open:                    ; 0xBADA  Vic grab: E299=0, lid bit, next state
 	xor a
 	ld (0e299h),a
 	set 0,(ix+007h)
@@ -13425,7 +13419,7 @@ lbaeah:
 	dec (ix+005h)
 	ld a,006h
 	ld (0e280h),a
-	call sub_badah
+	call coffin_open
 	inc (ix+001h)
 	jp sfx_21
 lbb0eh:
@@ -13451,6 +13445,7 @@ lbb2bh:
 	ld (ix+001h),a
 	res 1,(ix+007h)
 	ret
+draw_coffin:                      ; 0xBB43  stamp via lbb53h (facing picks 9374 / 9394)
 	ld a,(0e243h)
 	cp (ix+004h)
 	ret nz
@@ -13463,7 +13458,7 @@ lbb53h:
 	ld c,002h
 	ld d,(ix+003h)
 	ld e,(ix+002h)
-	call 056deh
+	call stamp_wtiles
 	exx
 	ld (0efc0h),hl
 	ld (0efc2h),de
@@ -13471,7 +13466,7 @@ lbb53h:
 	ld d,(ix+003h)
 	ld e,(ix+002h)
 	ld hl,(0efc0h)
-	call sub_bb93h
+	call actor_row
 	ld a,(ix+008h)
 	cp 003h
 	jr c,lbb90h
@@ -13482,27 +13477,27 @@ lbb84h:
 	ld hl,(0efc2h)
 	push hl
 	push bc
-	call sub_bb93h
+	call actor_row
 	pop bc
 	pop hl
 	djnz lbb84h
 lbb90h:
 	ld hl,(0efc4h)
-sub_bb93h:
+actor_row:                      ; 0xBB93  2-tile stamp row (coffin/pyoncy)
 	push de
 	ld a,(ix+005h)
 	add a,a
 	call ADD_HL_A
 	ld a,(hl)
 	push hl
-	call 05767h
+	call tile_pset
 	pop hl
 	ld a,d
 	add a,008h
 	ld d,a
 	inc hl
 	ld a,(hl)
-	call 05767h
+	call tile_pset
 	pop de
 	ld a,e
 	add a,008h
@@ -13553,7 +13548,7 @@ lbbfah:
 	inc (ix+005h)
 	inc (ix+001h)
 	ld (ix+006h),008h
-	call sfx_22
+	call sfx_22                   ; pyoncy
 	ret
 lbc10h:
 	ld (ix+006h),01eh
@@ -13581,11 +13576,12 @@ lbc2fh:
 	ld (ix+006h),008h
 	cp 004h
 	ret nz
-	call sfx_22
+	call sfx_22                   ; pyoncy
 	xor a
 	ld (ix+005h),a
 	ld (ix+001h),a
 	jr lbc10h
+draw_pyoncy:                      ; 0xBC50  same stamp path as coffin; facing picks 937C / 9394
 	ld a,(0e243h)
 	cp (ix+004h)
 	ret nz
@@ -13616,12 +13612,12 @@ lbc89h:
 	ld a,(ix+001h)
 	and a
 	jr nz,lbc81h                  ; already falling
-	call sub_bc9ch
+	call rock_under
 	jr nc,lbc81h
 	inc (ix+001h)
 	ld (ix+006h),01eh
 	ret
-sub_bc9ch:                        ; Vic under the column (same screen)
+rock_under:                     ; 0xBC9C  CY if Vic is under the column (same screen)
 	ld a,(0e243h)
 	cp (ix+004h)
 	jr nz,lbcbeh
@@ -13658,6 +13654,7 @@ tick_rockroll:                    ; 0xBCC0  grow ix+5 to height ix+8, then clear
 lbcddh:
 	ld (ix+000h),000h             ; gone; draw punches the fallen tiles
 	ret
+draw_rockroll:                    ; 0xBCE2  fallen column: map bit + tile 5 + sfx_31
 	ld a,(ix+005h)
 	dec a
 	add a,a
@@ -13682,10 +13679,10 @@ lbcddh:
 	ld e,a
 	push ix
 	push de
-	call 090abh
+	call tools_scan
 	pop de
 	ld a,005h
-	call 05767h
+	call tile_pset
 	call draw_maptools
 	pop ix
 	jp sfx_31
@@ -13718,9 +13715,9 @@ lbd46h:
 	cp 002h
 	ret c
 	ld (ix+000h),000h
-	call sub_bd7ah
+	call trap_punch
 	xor a
-sub_bd65h:
+trap_erase:                     ; 0xBD65  stamp_rect 1x4 at trap XY
 	ld bc,00104h
 	ld h,(ix+003h)
 	ld l,(ix+002h)
@@ -13730,8 +13727,8 @@ sub_bd65h:
 lbd75h:
 	ld (ix+00ah),001h
 	ret
-sub_bd7ah:
-	call sfx_27
+trap_punch:                     ; 0xBD7A  sfx_27 + punch tiles / HMMM
+	call sfx_27                   ; trap
 	ld d,(ix+003h)
 	ld e,(ix+002h)
 	push ix
@@ -13756,15 +13753,17 @@ lbda1h:
 	ld a,001h
 	call vdp_hmmm
 	ret
-	xor a                             ; 0xBDC0  type 4 trap: 4 × tile 0x61
+draw_trap:                        ; 0xBDAA  type 4: 4 × tile 0x61
+	xor a
 	ld (ix+00ah),a
 	ld (ix+00bh),a
-	call sub_bddeh
+	call trap_save
 	ld a,003h
-	call sub_bd65h
+	call trap_erase
 	ld a,(0e243h)
 	cp (ix+004h)
 	ret nz
+stamp_trap:                       ; 0xBDC0  4× tile 0x61 (editor + draw_trap tail)
 	ld d,(ix+003h)
 	ld e,(ix+002h)
 	ld b,004h
@@ -13776,20 +13775,20 @@ lbdc8h:
 	jr z,lbdd3h
 	ld a,0adh
 lbdd3h:
-	call 05767h
+	call tile_pset
 	pop de
 	ld a,d
 	add a,008h
 	ld d,a
 	djnz lbdc8h
 	ret
-sub_bddeh:
+trap_save:                      ; 0xBDDE  stash trap tiles before punch
 	ld h,(ix+003h)
 	ld l,(ix+002h)
 	ld a,(0f0f4h)
 	and a
 	jr nz,lbe00h
-	call 04d7bh
+	call scr5_addr
 	push ix
 	pop de
 	ld a,00ch
@@ -13888,15 +13887,15 @@ lbe76h:
 	push hl
 	push de
 	push bc
-	call 096ffh
-	call 090abh
+	call stones_undraw
+	call tools_scan
 	pop bc
 	pop de
 	pop hl
 	push hl
 	push de
 	ld a,005h
-	call sub_bed0h
+	call tile_pair
 	ld a,(hl)
 	and 01fh
 	dec a
@@ -13931,7 +13930,7 @@ lbe76h:
 	and a
 	ld a,000h
 	call nz,063edh
-	call 096cfh
+	call stones_redraw
 	call draw_maptools
 	ld hl,0e282h
 	ld a,(hl)
@@ -13939,16 +13938,16 @@ lbe76h:
 	and 0f8h
 	ld (hl),a
 	jp sfx_40
-sub_bed0h:
+tile_pair:                      ; 0xBED0  two tile_pset, 8px apart in X then Y
 	push hl
 	push de
 	push af
-	call 05767h
+	call tile_pset
 	ld a,d
 	add a,008h
 	ld d,a
 	pop af
-	call 05767h
+	call tile_pset
 	pop de
 	pop hl
 	ld a,e

@@ -8,7 +8,7 @@
 ;    tools/workbench/msx/regen-bank.sh 6 0xA000 banks/banks_456.blocks
 ; ===========================================================================
 
-banks_456_init:                  ; 0x6000  far call from sub_53b6h
+banks_456_init:                  ; 0x6000  far call from scr_boot
 	jp sound_init
 sound_entry:                    ; 0x6003  far call from sound_far
 	jp sound_play

@@ -1,6 +1,6 @@
-; bank 0E Konami RLE (sub_4e54h) 0x86D4–0x98C9.
+; bank 0E Konami RLE (rle_vram) 0x86D4–0x98C9.
 ; Packed chain: each stream’s 00 terminator is the next label.
-; copy_ab59 / copy_pwd / l5928h / col_15 plus held_* VIC_RLE srcs.
+; copy_ab59 / copy_pwd / vic_die / knife SAT plus held_* VIC_RLE srcs.
 
 rle_86d4:                            ; 0x86D4  copy_ab59 / copy_pwd → F880 / FC80
 	defb 008h, 000h, 088h, 004h, 00bh, 004h, 003h, 005h
@@ -22,7 +22,7 @@ rle_86d4:                            ; 0x86D4  copy_ab59 / copy_pwd → F880 / F
 	defb 0f8h, 05ch, 084h, 0c2h, 0c2h, 0f2h, 0fdh, 0feh
 	defb 000h
 
-rle_875d:                            ; 0x875D  held_0 → E000
+rle_875d:                            ; 0x875D  held_0 (vic_unarmed) → E180
 	defb 007h, 000h, 089h, 001h, 006h, 00bh, 017h, 037h
 	defb 05fh, 07fh, 07fh, 03fh, 007h, 000h, 089h, 080h
 	defb 0e0h, 0f0h, 0f8h, 0fch, 0feh, 0feh, 0fch, 0fah
@@ -531,7 +531,7 @@ rle_9510:                            ; 0x9510  held_1, held_2 → E000
 	defb 03fh, 008h, 000h, 088h, 0f8h, 05ch, 084h, 0c2h
 	defb 0c2h, 0f2h, 0fdh, 0feh, 000h
 
-rle_953d:                            ; 0x953D  l5928h → E000
+rle_953d:                            ; 0x953D  vic_die / vic_hit → E000 (vic_die.png)
 	defb 007h, 000h, 089h, 009h, 017h, 009h, 006h, 00bh
 	defb 00ch, 012h, 010h, 009h, 007h, 000h, 089h, 0f0h
 	defb 068h, 0f8h, 07ch, 0fch, 07ch, 07eh, 08ch, 0fch
@@ -610,7 +610,7 @@ rle_953d:                            ; 0x953D  l5928h → E000
 	defb 088h, 01fh, 039h, 04eh, 084h, 006h, 00fh, 017h
 	defb 0feh, 008h, 000h, 000h
 
-rle_97a1:                            ; 0x97A1  col_15 → F880
+rle_97a1:                            ; 0x97A1  thrown knife + boomerang SAT → F880 (knife.png)
 	defb 005h, 000h, 002h, 001h, 090h, 00bh, 017h, 009h
 	defb 004h, 009h, 009h, 012h, 012h, 00ch, 030h, 078h
 	defb 078h, 0f0h, 0f0h, 0e0h, 0e0h, 003h, 0c0h, 083h

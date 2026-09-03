@@ -3,7 +3,7 @@
 #   make            assemble KingsValley2.asm -> KingsValley2.rom
 #   make verify     SHA-1 check against KingsValley2.sha1
 #   make coverage   Shields.io JSON under generated/badges/ (does not edit README)
-#   make gfx        PNG contact sheets (palettes / dests / sprites / fonts)
+#   make gfx        PNG contact sheets + draw_cols / STAMP composites
 #   make music      BGM WAVs (packed-PSG + SCC)
 #   make sfx        SFX WAVs
 #   make banks      extract leftover 8 KiB bins / drop migrated ones

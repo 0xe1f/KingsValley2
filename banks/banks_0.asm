@@ -100,6 +100,7 @@ ADD_DE_A:                       ; 0x4094
 	ret
 DISPATCH_A:                     ; 0x4099  inline word table follows each call
 	pop hl
+dispatch_hl:                    ; 0x409A  HL already the table (draw_actor)
 	add a,a
 	call ADD_HL_A
 	ld a,(hl)
@@ -109,7 +110,7 @@ DISPATCH_A:                     ; 0x4099  inline word table follows each call
 	jp (hl)
 cart_init:                      ; AB header init @ 0x40A3
 	di
-	call sub_4146h          ; slot id -> A
+	call slot_id          ; slot id -> A
 	di
 	ld h,a
 	ld l,0f7h               ; RST 30h
@@ -123,11 +124,11 @@ cart_boot:                      ; was l40b5h
 	ld sp,0e000h
 	ld a,(0ffa7h)           ; H.PHYD
 	cp 0c9h
-	call nz,sub_4162h       ; disk ROM present
+	call nz,boot_stash       ; disk ROM present
 	ld a,0c9h               ; RET
 	ld (0fd9ah),a           ; H.KEYI disabled
-	call sub_4126h
-	call sub_4146h
+	call rdslt_8000
+	call slot_id
 	ld a,001h
 	ld (0f0f4h),a
 	ld (0f0f5h),a
@@ -159,7 +160,7 @@ cart_boot:                      ; was l40b5h
 	ld (0b000h),a
 	inc hl
 	ld (hl),a
-	call sub_53b6h
+	call scr_boot
 	di
 	ld a,0c3h               ; JP
 	ld (0fd9fh),a           ; H.TIMI
@@ -170,7 +171,7 @@ cart_boot:                      ; was l40b5h
 	ei
 l4124h:
 	jr l4124h
-sub_4126h:
+rdslt_8000:                     ; 0x4126  RDSLT page 8000 of the cart slot
 	call 00138h
 	rrca
 	rrca
@@ -192,7 +193,7 @@ sub_4126h:
 	or c
 	ld h,080h
 	jp 00024h
-sub_4146h:
+slot_id:                        ; 0x4146  primary+expanded slot id -> F0E9
 	call 00138h
 	rrca
 	rrca
@@ -212,7 +213,7 @@ sub_4146h:
 	or c
 	ld (0f0e9h),a
 	ret
-sub_4162h:
+boot_stash:                     ; 0x4162  DISKERR + copy work RAM / hook bytes aside
 	ld hl,0972ch
 	ld (0f323h),hl
 	ld hl,0e280h
@@ -293,160 +294,221 @@ page_banks_ef:               ; 0x41CC  8000+A000
 	pop af
 	ei
 	ret
-l41e0h:
-sfx_01:                         ; 0x41E0
-	SFX 1
-sfx_02:                         ; 0x41E5
-	SFX 2
-sub_41eah:
-sfx_03:                         ; 0x41EA
-	SFX 3
-sfx_04:                         ; 0x41EF
-	SFX 4
-sfx_05:                         ; 0x41F4
-	SFX 5
-sfx_06:                         ; 0x41F9
-	SFX 6
-sfx_07:                         ; 0x41FE
-	SFX 7
-sfx_08:                         ; 0x4203
-	SFX 8
-sfx_09:                         ; 0x4208
-	SFX 9
-sfx_0a:                         ; 0x420D
-	SFX 10
-sfx_0b:                         ; 0x4212
-	SFX 11
-sfx_0c:                         ; 0x4217
-	SFX 12
-sfx_0d:                         ; 0x421C
-	SFX 13
-sfx_0e:                         ; 0x4221
-	SFX 14
-sub_4226h:
-sfx_0f:                         ; 0x4226
-	SFX 15
-sub_422bh:
-sfx_10:                         ; 0x422B
-	SFX 16
-sub_4230h:
-sfx_11:                         ; 0x4230
-	SFX 17
-sfx_12:                         ; 0x4235
-	SFX 18
-sfx_13:                         ; 0x423A
-	SFX 19
-sfx_14:                         ; 0x423F
-	SFX 20
-sfx_15:                         ; 0x4244
-	SFX 21
-sfx_16:                         ; 0x4249
-	SFX 22
-sfx_17:                         ; 0x424E
-	SFX 23
-sfx_18:                         ; 0x4253
-	SFX 24
-sfx_19:                         ; 0x4258
-	SFX 25
-sfx_1a:                         ; 0x425D
-	SFX 26
-sfx_1b:                         ; 0x4262
-	SFX 27
-sfx_1c:                         ; 0x4267
-	SFX 28
-sfx_1d:                         ; 0x426C
-	SFX 29
-sfx_1e:                         ; 0x4271
-	SFX 30
-sfx_1f:                         ; 0x4276
-	SFX 31
-sub_427bh:
-sfx_20:                         ; 0x427B
-	SFX 32
-sfx_21:                         ; 0x4280
-	SFX 33
-sfx_22:                         ; 0x4285
-	SFX 34
-sfx_23:                         ; 0x428A
-	SFX 35
-sfx_24:                         ; 0x428F
-	SFX 36
-sfx_25:                         ; 0x4294
-	SFX 37
-sfx_26:                         ; 0x4299
-	SFX 38
-sfx_27:                         ; 0x429E
-	SFX 39
-l42a3h:
-sfx_28:                         ; 0x42A3  jr; last jp was sfx_27
-	SFXR 40
-sfx_29:                         ; 0x42A7
-	SFXR 41
-sub_42abh:
-sfx_2a:                         ; 0x42AB
-	SFXR 42
-sfx_2b:                         ; 0x42AF
-	SFXR 43
-sfx_2c:                         ; 0x42B3
-	SFXR 44
-sfx_2d:                         ; 0x42B7
-	SFXR 45
-sfx_2e:                         ; 0x42BB
-	SFXR 46
-sfx_2f:                         ; 0x42BF
-	SFXR 47
-sfx_30:                         ; 0x42C3
-	SFXR 48
-sfx_31:                         ; 0x42C7
-	SFXR 49
-sfx_32:                         ; 0x42CB
-	SFXR 50
-sfx_33:                         ; 0x42CF
-	SFXR 51
-sfx_34:                         ; 0x42D3
-	SFXR 52
-sfx_35:                         ; 0x42D7
-	SFXR 53
-sfx_36:                         ; 0x42DB
-	SFXR 54
-sfx_37:                         ; 0x42DF
-	SFXR 55
-sfx_38:                         ; 0x42E3
-	SFXR 56
-sfx_39:                         ; 0x42E7
-	SFXR 57
-sfx_3a:                         ; 0x42EB
-	SFXR 58
-sfx_3b:                         ; 0x42EF
-	SFXR 59
-sfx_3c:                         ; 0x42F3  boot vic_fall lands here
-	SFXR 60
-sfx_3d:                         ; 0x42F7
-	SFXR 61
-sfx_3e:                         ; 0x42FB
-	SFXR 62
-sfx_3f:                         ; 0x42FF
-	SFXR 63
-sfx_40:                         ; 0x4303
-	SFXR 64
-sfx_41:                         ; 0x4307
-	SFXR 65
-sub_430bh:
-sfx_80:                         ; 0x430B
-	SFXR 080h
-l430fh:
-sfx_81:                         ; 0x430F
-	SFXR 081h
-sub_4313h:
+; sound_far thunks. Ids 1–0x27 are ld a / jp (5 bytes); 0x28–0x41 are
+; ld a / jr (4 bytes; last jr is +127 onto sound_far). Ids 1–0x41 index
+; psg_01..psg_41 in bank 04. 0x80–0x84 are special-cased in the driver;
+; 0x82/0x83 also poke (0xE21A).
+sfx_01:                         ; 0x41E0  stop
+	ld a,001h               ; stop
+	jp sound_far
+sfx_02:                         ; 0x41E5  unused
+	ld a,002h               ; unused
+	jp sound_far
+sfx_03:                         ; 0x41EA  boot
+	ld a,003h               ; boot
+	jp sound_far
+sfx_04:                         ; 0x41EF  unused
+	ld a,004h               ; unused
+	jp sound_far
+sfx_05:                         ; 0x41F4  bgm_stage
+	ld a,005h               ; bgm_stage
+	jp sound_far
+sfx_06:                         ; 0x41F9  bgm_stage
+	ld a,006h               ; bgm_stage
+	jp sound_far
+sfx_07:                         ; 0x41FE  bgm_stage
+	ld a,007h               ; bgm_stage
+	jp sound_far
+sfx_08:                         ; 0x4203  bgm_stage
+	ld a,008h               ; bgm_stage
+	jp sound_far
+sfx_09:                         ; 0x4208  bgm_stage
+	ld a,009h               ; bgm_stage
+	jp sound_far
+sfx_0a:                         ; 0x420D  puzzle
+	ld a,00ah               ; puzzle
+	jp sound_far
+sfx_0b:                         ; 0x4212  last gem / door open
+	ld a,00bh               ; last gem / door open
+	jp sound_far
+sfx_0c:                         ; 0x4217  unused
+	ld a,00ch               ; unused
+	jp sound_far
+sfx_0d:                         ; 0x421C  world-map BGM
+	ld a,00dh               ; world-map BGM
+	jp sound_far
+sfx_0e:                         ; 0x4221  ending
+	ld a,00eh               ; ending
+	jp sound_far
+sfx_0f:                         ; 0x4226  extra life
+	ld a,00fh               ; extra life
+	jp sound_far
+sfx_10:                         ; 0x422B  title
+	ld a,010h               ; title
+	jp sound_far
+sfx_11:                         ; 0x4230  title cursor
+	ld a,011h               ; title cursor
+	jp sound_far
+sfx_12:                         ; 0x4235  ending
+	ld a,012h               ; ending
+	jp sound_far
+sfx_13:                         ; 0x423A  jump
+	ld a,013h               ; jump
+	jp sound_far
+sfx_14:                         ; 0x423F  shovel
+	ld a,014h               ; shovel
+	jp sound_far
+sfx_15:                         ; 0x4244  shovel
+	ld a,015h               ; shovel
+	jp sound_far
+sfx_16:                         ; 0x4249  drill
+	ld a,016h               ; drill
+	jp sound_far
+sfx_17:                         ; 0x424E  pick
+	ld a,017h               ; pick
+	jp sound_far
+sfx_18:                         ; 0x4253  hammer
+	ld a,018h               ; hammer
+	jp sound_far
+sfx_19:                         ; 0x4258  pickup
+	ld a,019h               ; pickup
+	jp sound_far
+sfx_1a:                         ; 0x425D  gem
+	ld a,01ah               ; gem
+	jp sound_far
+sfx_1b:                         ; 0x4262  boom
+	ld a,01bh               ; boom
+	jp sound_far
+sfx_1c:                         ; 0x4267  knife
+	ld a,01ch               ; knife
+	jp sound_far
+sfx_1d:                         ; 0x426C  shovel
+	ld a,01dh               ; shovel
+	jp sound_far
+sfx_1e:                         ; 0x4271  throw
+	ld a,01eh               ; throw
+	jp sound_far
+sfx_1f:                         ; 0x4276  shovel
+	ld a,01fh               ; shovel
+	jp sound_far
+sfx_20:                         ; 0x427B  play (E20C bit 1)
+	ld a,020h               ; play (E20C bit 1)
+	jp sound_far
+sfx_21:                         ; 0x4280  coffin
+	ld a,021h               ; coffin
+	jp sound_far
+sfx_22:                         ; 0x4285  pyoncy
+	ld a,022h               ; pyoncy
+	jp sound_far
+sfx_23:                         ; 0x428A  walk-in clear
+	ld a,023h               ; walk-in clear
+	jp sound_far
+sfx_24:                         ; 0x428F  stone
+	ld a,024h               ; stone
+	jp sound_far
+sfx_25:                         ; 0x4294  thud
+	ld a,025h               ; thud
+	jp sound_far
+sfx_26:                         ; 0x4299  clash
+	ld a,026h               ; clash
+	jp sound_far
+sfx_27:                         ; 0x429E  trap
+	ld a,027h               ; trap
+	jp sound_far
+sfx_28:                         ; 0x42A3  die; last jp was sfx_27
+	ld a,028h               ; die; last jp was sfx_27
+	jr sound_far
+sfx_29:                         ; 0x42A7  hit
+	ld a,029h               ; hit
+	jr sound_far
+sfx_2a:                         ; 0x42AB  card
+	ld a,02ah               ; card
+	jr sound_far
+sfx_2b:                         ; 0x42AF  unused
+	ld a,02bh               ; unused
+	jr sound_far
+sfx_2c:                         ; 0x42B3  boom
+	ld a,02ch               ; boom
+	jr sound_far
+sfx_2d:                         ; 0x42B7  drop
+	ld a,02dh               ; drop
+	jr sound_far
+sfx_2e:                         ; 0x42BB  clear
+	ld a,02eh               ; clear
+	jr sound_far
+sfx_2f:                         ; 0x42BF  unused
+	ld a,02fh               ; unused
+	jr sound_far
+sfx_30:                         ; 0x42C3  enter
+	ld a,030h               ; enter
+	jr sound_far
+sfx_31:                         ; 0x42C7  rock
+	ld a,031h               ; rock
+	jr sound_far
+sfx_32:                         ; 0x42CB  cursor
+	ld a,032h               ; cursor
+	jr sound_far
+sfx_33:                         ; 0x42CF  unused
+	ld a,033h               ; unused
+	jr sound_far
+sfx_34:                         ; 0x42D3  unused
+	ld a,034h               ; unused
+	jr sound_far
+sfx_35:                         ; 0x42D7  boom
+	ld a,035h               ; boom
+	jr sound_far
+sfx_36:                         ; 0x42DB  knife
+	ld a,036h               ; knife
+	jr sound_far
+sfx_37:                         ; 0x42DF  ending
+	ld a,037h               ; ending
+	jr sound_far
+sfx_38:                         ; 0x42E3  land
+	ld a,038h               ; land
+	jr sound_far
+sfx_39:                         ; 0x42E7  key
+	ld a,039h               ; key
+	jr sound_far
+sfx_3a:                         ; 0x42EB  end_flash
+	ld a,03ah               ; end_flash
+	jr sound_far
+sfx_3b:                         ; 0x42EF  land
+	ld a,03bh               ; land
+	jr sound_far
+sfx_3c:                         ; 0x42F3  fall; boot vic_fall lands here
+	ld a,03ch               ; fall; boot vic_fall lands here
+	jr sound_far
+sfx_3d:                         ; 0x42F7  stamp
+	ld a,03dh               ; stamp
+	jr sound_far
+sfx_3e:                         ; 0x42FB  count
+	ld a,03eh               ; count
+	jr sound_far
+sfx_3f:                         ; 0x42FF  unused
+	ld a,03fh               ; unused
+	jr sound_far
+sfx_40:                         ; 0x4303  secret
+	ld a,040h               ; secret
+	jr sound_far
+sfx_41:                         ; 0x4307  boom
+	ld a,041h               ; boom
+	jr sound_far
+sfx_80:                         ; 0x430B  restore BGM (unpause)
+	ld a,080h               ; restore BGM (unpause)
+	jr sound_far
+sfx_81:                         ; 0x430F  mute BGM (pause)
+	ld a,081h               ; mute BGM (pause)
+	jr sound_far
 sfx_82:                         ; 0x4313
 	xor a
 	ld (0e21ah),a
-	SFXR 082h
-sub_431bh:
+	ld a,082h
+	jr sound_far
 sfx_83:                         ; 0x431B
 	ld a,0ffh
 	ld (0e21ah),a
-	SFXR 083h
+	ld a,083h
+	jr sound_far
 sfx_84:                         ; 0x4324  ld a,84h; falls into sound_far
 	ld a,084h
 sound_far:                      ; 0x4326  page 4/5/6, call sound_entry, restore
@@ -511,7 +573,7 @@ bgm_stage:                        ; 0x4388  sfx_05..09 from level nibble
 l438dh:
 	call sfx_82
 	ld a,(0e242h)
-	call sub_4cfdh
+	call to_bcd
 	dec a
 	and 00fh
 	cp 00fh
@@ -529,9 +591,9 @@ d_43a1_jp_start:
 	defw sfx_08
 	defw sfx_09
 d_43a1_jp_end:
-sub_43aeh:
+set_level:                      ; 0x43AE  E203 BCD low nibble + 1 -> E242
 	ld a,(0e203h)
-	call sub_4cfdh
+	call to_bcd
 	and 00fh
 	inc a
 	ld (0e242h),a
@@ -567,10 +629,10 @@ l43ddh:
 	inc de
 	ld c,a
 l43eah:
-	call sub_43f1h
+	call pack_nibble
 	djnz l43eah
 	jr l43ddh
-sub_43f1h:
+pack_nibble:                    ; 0x43F1  write 2-bit C into next E900 cell
 	ld a,(hl)
 	add a,a
 	add a,a
@@ -620,17 +682,17 @@ l4434h:
 	ret z
 	inc hl
 	push hl
-	call sub_4460h
-	call sub_446ch
+	call overlay_cell
+	call overlay_run
 	pop hl
 l4448h:
 	jr l4434h
 l444ah:
 	push hl
-	call sub_4451h
+	call overlay_next
 	pop hl
 	jr l4448h
-sub_4451h:
+overlay_next:                   ; 0x4451  EFC2++; EFC0 += 0xC0 (next screen overlay)
 	ld hl,0efc2h
 	inc (hl)
 	ld hl,(0efc0h)
@@ -638,7 +700,7 @@ sub_4451h:
 	add hl,bc
 	ld (0efc0h),hl
 	ret
-sub_4460h:
+overlay_cell:                   ; 0x4460  packed overlay XY -> map cell HL
 	ld l,e
 	ld h,d
 	add hl,hl
@@ -647,10 +709,10 @@ sub_4460h:
 	ld bc,(0efc0h)
 	add hl,bc
 	ret
-sub_446ch:
+overlay_run:                    ; 0x446C  OR overlay bits; secret rec if EFC3
 	ld a,(0efc3h)
 	and a
-	call nz,sub_44ach
+	call nz,secret_store
 	ld a,e
 	and 01fh
 	ld b,a
@@ -662,7 +724,7 @@ sub_446ch:
 	ld e,a
 l447eh:
 	push bc
-	call sub_449ah
+	call overlay_bits
 	inc e
 	ld a,e
 	and 003h
@@ -670,7 +732,7 @@ l447eh:
 	jr nz,l448ah
 	inc hl
 l448ah:
-	call sub_449ah
+	call overlay_bits
 	ld bc,00008h
 	dec e
 	jp p,l4495h
@@ -680,7 +742,7 @@ l4495h:
 	pop bc
 	djnz l447eh
 	ret
-sub_449ah:
+overlay_bits:                   ; 0x449A  OR 2-bit run into packed map cell
 	ld a,e
 	and a
 	ld a,040h
@@ -698,7 +760,7 @@ l44a5h:
 	or b
 	ld (hl),a
 	ret
-sub_44ach:
+secret_store:                   ; 0x44AC  append secret-entrance rec at IX
 	ld a,(0efc2h)
 	ld (ix+000h),a
 	ld a,d
@@ -720,18 +782,18 @@ sub_44ach:
 	ld bc,00004h
 	add ix,bc
 	ret
-sub_44d4h:
+load_stage:                     ; 0x44D4  world tileset + stamp_level + stamp_map
 	call 0ba3ch
 	call page_banks_ef
-	call sub_44f2h
-	call sub_4606h
+	call stamp_wpat
+	call stamp_level
 	call page_banks_abc
-	call sub_4535h
+	call stamp_map
 	call page_banks_123
-	call sub_46a4h
+	call stamp_delayed
 	call 0651dh
 	jp 0ba54h
-sub_44f2h:
+stamp_wpat:                     ; 0x44F2  world tileset HMMM (bank EF)
 	ld a,(0e241h)
 	ld hl,07ffeh
 	call tbl_word
@@ -755,7 +817,7 @@ l4512h:
 	push hl
 l4515h:
 	ld a,(hl)
-	call sub_5207h
+	call tile_hmmm
 	ld a,d
 	add a,008h
 	ld d,a
@@ -775,7 +837,7 @@ l4515h:
 	dec c
 	jr nz,l450ch
 	ret
-sub_4535h:
+stamp_map:                      ; 0x4535  unpack E900 2-bit map onto SCREEN 5
 	xor a
 	ld (0efc0h),a
 	ld hl,(0e242h)
@@ -813,9 +875,9 @@ l455eh:
 	ld a,05eh
 l4570h:
 	ld (0efc0h),a
-	call sub_5767h
+	call tile_pset
 l4576h:
-	call sub_524bh
+	call tile_right
 	pop af
 	djnz l455eh
 	inc ix
@@ -835,14 +897,14 @@ l4591h:
 	jr z,l459eh
 	cp c
 	jr nz,l459eh
-	call sub_45a7h
+	call stamp_overlay
 l459eh:
 	ld bc,00004h
 	add ix,bc
 	pop bc
 	djnz l4591h
 	ret
-sub_45a7h:
+stamp_overlay:                  ; 0x45A7  B x 2 world tiles at overlay XY
 	ld c,002h
 	ld a,(ix+003h)
 	and 01fh
@@ -851,12 +913,12 @@ sub_45a7h:
 	ld d,(ix+002h)
 	push bc
 	push de
-	call sub_56deh
+	call stamp_wtiles
 	pop de
 	pop bc
 l45bch:
 	ld hl,l45c9h
-	call sub_4690h
+	call stamp_pair
 	ld a,e
 	add a,008h
 	ld e,a
@@ -899,9 +961,10 @@ l45f9h:
 	jr l45fdh
 l45fdh:
 	ld (0efc0h),a
-	call sub_5767h
+	call tile_pset
 	jp l4576h
-sub_4606h:
+; Per-level glyph records at 0x806A (page_banks_ef); current screen only.
+stamp_level:                      ; 0x4606
 	ld a,(0e254h)
 	and a
 	ret nz
@@ -930,13 +993,14 @@ l4614h:
 	ld c,(hl)
 	dec hl
 	push hl
-	call sub_4638h
+	call stamp_glyph
 	pop hl
 l4634h:
 	inc hl
 	inc hl
 	jr l4614h
-sub_4638h:
+; World*8 + (B&7) -> 0x800C tile-id list; tile_pset at DE.
+stamp_glyph:                      ; 0x4638
 	ld a,b
 	and 007h
 	ld b,a
@@ -967,7 +1031,7 @@ l4663h:
 	ld a,(hl)
 	inc hl
 	push hl
-	call sub_5767h
+	call tile_pset
 	pop hl
 	ld a,d
 	add a,008h
@@ -981,7 +1045,7 @@ l4663h:
 	djnz l4660h
 	ret
 l4679h:
-	call sub_4690h
+	call stamp_pair
 	inc hl
 	ld a,e
 	add a,008h
@@ -990,7 +1054,7 @@ l4679h:
 	dec b
 	dec b
 l4684h:
-	call sub_4690h
+	call stamp_pair
 	dec hl
 	ld a,e
 	add a,008h
@@ -998,11 +1062,11 @@ l4684h:
 	djnz l4684h
 	inc hl
 	inc hl
-sub_4690h:
+stamp_pair:                     ; 0x4690  two tile_pset, 8px apart in X
 	push de
 	ld a,(hl)
 	push hl
-	call sub_5767h
+	call tile_pset
 	pop hl
 	ld a,d
 	add a,008h
@@ -1010,11 +1074,11 @@ sub_4690h:
 	inc hl
 	ld a,(hl)
 	push hl
-	call sub_5767h
+	call tile_pset
 	pop hl
 	pop de
 	ret
-sub_46a4h:
+stamp_delayed:                  ; 0x46A4  E2C0 3x2 stamps for this screen
 	ld hl,0e2c0h
 	ld b,008h
 l46a9h:
@@ -1024,14 +1088,14 @@ l46a9h:
 	and 07fh
 	dec a
 	sub 002h
-	call c,sub_46bdh
+	call c,stamp_delay1
 	pop hl
 	ld de,00005h
 	add hl,de
 	pop bc
 	djnz l46a9h
 	ret
-sub_46bdh:
+stamp_delay1:                   ; 0x46BD  one delayed 3x2 if same screen
 	inc l
 	inc l
 	ld a,(0e243h)
@@ -1090,7 +1154,7 @@ d_470a_jp_start:
 d_470a_jp_end:
 boot_init:                        ; 0x4717
 	call poll_skip                ; ret: no stick on boot substate 0
-	call sfx_01
+	call sfx_01                   ; stop
 	call scr_reset
 	call title_load
 boot_skip:                        ; 0x4723  one frame then sub_next
@@ -1102,12 +1166,12 @@ boot_wait:                        ; 0x4725
 	ld a,(0e203h)
 	rra
 	ret nc
-	call sub_5bc8h
+	call wmap_slide
 	ret nz
 	xor a
 	jr sub_delay
 l4737h:
-	call sub_5bc8h
+	call wmap_slide
 	ld a,(0e2c2h)
 	or a
 	ret z
@@ -1119,14 +1183,14 @@ boot_clear:                       ; 0x4742
 	ret nz
 	call sat_wipe
 	call spr_clear
-	call sub_5bebh
+	call wmap_font
 	call title_jp
-	call sfx_03
+	call sfx_03                   ; boot
 	xor a
 	ld (0e2c2h),a
 	jr sub_delay
 boot_done:                        ; 0x475C
-	call sub_5fc6h
+	call hud_meter
 	ld a,(0e2c2h)
 	or a
 	ret z
@@ -1203,7 +1267,7 @@ d_47c2_jp_start:
 	defw title_go                 ; 11 play_clear, mode_next (stage card)
 d_47c2_jp_end:
 title_jingle:                     ; 0x47DD
-	call sfx_10
+	call sfx_10                   ; title
 	ld a,070h
 	jr sub_delay
 title_blink:                      ; 0x47E4
@@ -1221,7 +1285,7 @@ l47f6h:
 	jp z,print_stream
 	jp print_stream_blank
 l4801h:
-	call sfx_11
+	call sfx_11                   ; title cursor
 	ld a,(0e222h)
 	and a
 	jr z,l4813h
@@ -1324,7 +1388,7 @@ mode_stage:                       ; 0x48AE
 	ld hl,l5f13h
 	call print_stream
 	ld de,09048h
-	call sub_4cefh
+	call print_level
 	call page_bank_d
 	ld a,(0e242h)
 	ld b,a
@@ -1335,20 +1399,20 @@ mode_stage:                       ; 0x48AE
 	call ADD_HL_A
 	ld a,(hl)
 	and 01fh
-	call sub_4cfdh
+	call to_bcd
 	call page_banks_123
 	ld hl,0efc0h
 	ld (hl),a
 	ld b,001h
 	ld de,0a868h
-	call sub_4d26h
+	call print_bcd
 	jr l4913h
 l48f7h:
 	xor a
 	ld (0e240h),a
 	dec a
 	ld (0e245h),a
-	call sub_43aeh
+	call set_level
 	ld a,001h
 	ld (0e241h),a
 	ld hl,l5f28h
@@ -1384,7 +1448,7 @@ sub_set:                          ; 0x493E  A -> E201
 mode_play:                        ; 0x4942
 	ld a,(0e24ch)
 	and a
-	jp nz,l49e1h
+	jp nz,pause_tick
 	ld hl,0e215h
 	ld a,(hl)
 	and a
@@ -1399,7 +1463,7 @@ l4958h:
 	jp nz,l4a07h
 	ld a,(0e20ch)
 	and 010h
-	jr nz,l49a4h                  ; bit 4 -> vic_die
+	jr nz,play_die                  ; bit 4 -> vic_die
 	call play_frame
 	ld a,(0e248h)
 	and a
@@ -1413,7 +1477,7 @@ l4958h:
 	jr z,mode_next
 	ld a,(0e20ch)
 	rra
-	jr c,l49c1h
+	jr c,pause_enter
 	rra
 	ret nc
 	ld a,(0f0f4h)
@@ -1426,16 +1490,17 @@ l4958h:
 	ld (0e24fh),a
 	ld a,0d0h
 	call 00177h
-	call sfx_20
+	call sfx_20                   ; play
 	jp l4d8fh
-l49a4h:
-	ld a,(0e298h)
+; Die: E20C bit 4 → vic_die overlay + sfx_28.
+play_die:                         ; 0x49A4
+	ld a,(0e298h)                 ; already dying / hit
 	or a
 	ret nz
 	ld a,004h
 	ld (0e280h),a                 ; vic_die
-	call 092ffh
-	jp sfx_28
+	call vic_hurt
+	jp sfx_28                     ; die
 l49b4h:
 	xor a
 	ld (0e249h),a
@@ -1443,37 +1508,39 @@ l49b4h:
 	ld (0e257h),a
 	ld a,009h
 	jp mode_goto
-l49c1h:
+; Pause in: skip if vic_die / vic_hit; load pushup SAT.
+pause_enter:                      ; 0x49C1
 	ld a,(0e280h)
 	sub 004h
 	cp 002h                       ; vic_die / vic_hit: skip pause
 	ret c
 	ld a,001h
-	ld (0e24ch),a
+	ld (0e24ch),a                 ; paused
 	ld (0e216h),a
-	call sub_58d2h
+	call vic_pat_far
 	xor a
 	ld (0e2b0h),a
 	ld (0e2b3h),a
 	call vic_blit
-	jp sfx_81
-l49e1h:
-	call 06059h
+	jp sfx_81                     ; mute BGM
+; Paused loop: map overlay, then push-up SAT until F1 up.
+pause_tick:                       ; 0x49E1
+	call pause_overlay
 	ld a,(0edc0h)
 	or a
-	ret nz
-	call 09801h
+	ret nz                        ; overlay busy
+	call pause_anim
 	call vic_blit
-	call 09881h
+	call vic_sat_put
 	call spr_vram
 	ld a,(0e20ch)
 	rra
-	ret nc
+	ret nc                        ; still held
 	xor a
-	ld (0e24ch),a
+	ld (0e24ch),a                 ; unpause
 	ld (0e216h),a
-	call sub_58d2h
-	call sfx_80
+	call vic_pat_far
+	call sfx_80                   ; restore BGM
 l4a07h:
 	ld a,(0e20ch)
 	rra
@@ -1499,7 +1566,7 @@ l4a30h:
 	ld a,004h
 	jp mode_goto
 l4a35h:
-	call sfx_0f
+	call sfx_0f                   ; extra life
 l4a38h:
 	ld a,007h
 	jp mode_goto
@@ -1517,7 +1584,7 @@ mode_over:                        ; 0x4A3D
 	ld (0e218h),a
 	ld hl,l5f59h
 	call nz,print_stream
-	call sub_4c8ah
+	call over_hud
 	xor a
 	ld (0e247h),a
 	ld a,(0e254h)
@@ -1530,7 +1597,7 @@ l4a6ch:
 l4a6fh:
 	ld a,(0e218h)
 	and a
-	call nz,sub_4adbh
+	call nz,over_skip
 	ld a,(0e203h)
 	rra
 	ret c
@@ -1555,8 +1622,8 @@ l4a6fh:
 	ld a,(0f0f8h)
 	and a
 	jr z,l4abch
-	call 08f0ch
-	call sfx_01
+	call ram_wipe
+	call sfx_01                   ; stop
 	ld hl,0e278h
 	ld (hl),045h
 	inc hl
@@ -1585,7 +1652,7 @@ l4acah:
 	and 0bfh
 	ld (hl),a
 	jp mode_reset
-sub_4adbh:
+over_skip:                      ; 0x4ADB  key blanks continue prompt; set E247
 	ld a,007h
 	call 00141h
 	bit 1,a
@@ -1626,7 +1693,7 @@ l4b26h:
 	and a
 	ret nz
 	ld a,(0e242h)
-	call sub_4cfdh
+	call to_bcd
 	and 00fh
 	dec a
 	jp nz,l4a30h
@@ -1723,8 +1790,8 @@ l4bbah:
 l4beah:
 	ld hl,00001h
 	ld (0e200h),hl
-	call sfx_01
-	call sub_5bebh
+	call sfx_01                   ; stop
+	call wmap_font
 	call title_jp
 	jp l5fb2h
 l4bfch:
@@ -1795,10 +1862,10 @@ l4c56h:
 	daa
 	ld (hl),a
 l4c64h:
-	call sfx_2a
+	call sfx_2a                   ; card
 	ld a,(0f0f4h)
 	and a
-	call nz,sub_4d17h
+	call nz,print_lives
 	pop de
 l4c6fh:
 	ex de,hl
@@ -1818,7 +1885,7 @@ l4c7fh:
 	ld l,028h
 	lddr
 	jr l4cc0h
-sub_4c8ah:
+over_hud:                       ; 0x4C8A  MSX2 game-over box + scores
 	ld a,(0f0f4h)
 	and a
 	ret z
@@ -1829,13 +1896,13 @@ sub_4c8ah:
 	ld hl,l5ef2h
 	call print_stream
 	call l4cc0h
-	call sub_4d17h
+	call print_lives
 	ld a,(0e254h)
 	and a
 	jr z,l4cb5h
 	ld hl,0e270h
 	ld de,090cah
-	jp 08a1ah
+	jp print_name
 l4cb5h:
 	jp l4cech
 l4cb8h:
@@ -1848,14 +1915,14 @@ l4cc0h:
 l4cc6h:
 	push hl
 	ld hl,0e225h
-	call sub_4cd2h
+	call print_bcd3
 	pop hl
 	ex de,hl
 	ld hl,0e228h
-sub_4cd2h:
+print_bcd3:                     ; 0x4CD2  3 packed-BCD bytes at HL -> DE
 	ld b,003h
-	jr sub_4d26h
-sub_4cd6h:
+	jr print_bcd
+print_pwd:                      ; 0x4CD6  password (MSX2) or fall through to level
 	ld a,(0e254h)
 	and a
 	jr z,l4ce7h
@@ -1865,17 +1932,17 @@ sub_4cd6h:
 	jp 08a1ch
 l4ce7h:
 	ld de,06868h
-	jr sub_4cefh
+	jr print_level
 l4cech:
 	ld de,0b0cah
-sub_4cefh:
+print_level:                    ; 0x4CEF  E242 as 1 packed-BCD byte
 	ld a,(0e242h)
-	call sub_4cfdh
+	call to_bcd
 	ld hl,0efc0h
 	ld (hl),a
 	ld b,001h
-	jr sub_4d26h
-sub_4cfdh:
+	jr print_bcd
+to_bcd:                         ; 0x4CFD  binary A -> packed BCD (tens:ones)
 	ld b,000h
 l4cffh:
 	ld c,a
@@ -1891,10 +1958,10 @@ l4d07h:
 	ld a,b
 	or c
 	ret
-sub_4d12h:
+print_lives1:                   ; 0x4D12  lives digit at SCREEN 1 dest
 	ld de,0a868h
 	jr l4d1fh
-sub_4d17h:
+print_lives:                    ; 0x4D17  lives digit (MSX2 dest E0CA)
 	ld a,(0f0f4h)
 	and a
 	ret z
@@ -1902,12 +1969,12 @@ sub_4d17h:
 l4d1fh:
 	ld hl,0e240h
 	ld b,001h
-	jr sub_4d26h
-sub_4d26h:
+	jr print_bcd
+print_bcd:                      ; 0x4D26  B packed-BCD bytes at HL -> DE
 	ld a,(0f0f4h)
 	and a
 	ex de,hl
-	call z,sub_4d7bh
+	call z,scr5_addr
 	ex de,hl
 l4d2fh:
 	dec b
@@ -1920,16 +1987,16 @@ l4d34h:
 	rra
 	rra
 	rra
-	call sub_4d45h
+	call print_digit
 	ld a,(hl)
-	call sub_4d45h
+	call print_digit
 	dec hl
 	djnz l4d2fh
 	ret
-sub_4d45h:
+print_digit:                    ; 0x4D45  low nibble + 0xD0 -> print_glyph
 	and 00fh
 	add a,0d0h
-	jp l51e8h
+	jp print_glyph
 tbl_word:                         ; 0x4D4C  HL = word[A] at HL
 	add a,a
 	add a,l
@@ -1963,7 +2030,8 @@ l4d6eh:
 print_ptr:                        ; 0x4D75  l5f68h `"<="`
 	ld hl,l5f68h
 	jp print_at
-sub_4d7bh:
+; SCREEN 5: pixel HL → VRAM in page 0x38 (HUD digits).
+scr5_addr:                        ; 0x4D7B
 	ld a,l
 	rra
 	rra
@@ -1986,7 +2054,7 @@ l4d8fh:
 l4d98h:
 	push bc
 	ld b,000h
-	call sub_4dfbh
+	call ldirvm
 	ld a,010h
 	call ADD_DE_A
 	ld a,020h
@@ -1999,15 +2067,15 @@ l4db1h:
 	push bc
 	xor a
 	ld b,a
-	call sub_4e0fh
+	call filvrm
 	ld a,020h
 	call ADD_HL_A
 	pop bc
 	djnz l4db1h
 	ld hl,l5f6bh
 	call print_stream
-	call sub_4d12h
-	call sub_4cd6h
+	call print_lives1
+	call print_pwd
 	jp l4cb8h
 l4dceh:
 	ld de,03908h
@@ -2016,7 +2084,7 @@ l4dceh:
 l4dd7h:
 	push bc
 	ld b,000h
-	call sub_4e05h
+	call ldirmv
 	ld a,010h
 	call ADD_HL_A
 	ld a,020h
@@ -2040,7 +2108,8 @@ l4dd7h:
 	ld l,a
 	inc hl
 	ret
-sub_4dfbh:
+; BIOS LDIRVM (0059h): HL=memory, DE=VRAM, BC=count.
+ldirvm:                           ; 0x4DFB
 	push hl
 	push de
 	push bc
@@ -2049,7 +2118,8 @@ sub_4dfbh:
 	pop de
 	pop hl
 	ret
-sub_4e05h:
+; BIOS LDIRMV (005Ch): HL=VRAM, DE=memory, BC=count.
+ldirmv:                           ; 0x4E05
 	push hl
 	push de
 	push bc
@@ -2058,7 +2128,8 @@ sub_4e05h:
 	pop de
 	pop hl
 	ret
-sub_4e0fh:
+; BIOS FILVRM (016Bh): A=fill, HL=VRAM, BC=count.
+filvrm:                           ; 0x4E0F
 	push de
 	push af
 	push bc
@@ -2072,88 +2143,93 @@ vdp_wr:                           ; 0x4E19  WRTVDP, preserve BC
 	call WRTVDP
 	pop bc
 	ret
-l4e1fh:
-	ld c,000h
-l4e21h:
+; 0x80: VRAM write ptr from stream (also clears reverse).
+rle_setptr:                       ; 0x4E1F
+	ld c,000h                     ; no bit-reverse
+rle_ptr_rd:                       ; 0x4E21
 	ex de,hl
-	ld e,(hl)
+	ld e,(hl)                     ; dest lo
 	inc hl
-	ld d,(hl)
+	ld d,(hl)                     ; dest hi
 	inc hl
 	ex de,hl
-l4e27h:
-	call 00171h
+rle_setwrt:                       ; 0x4E27
+	call 00171h                   ; SETWRT HL
 	exx
-	ld a,(00007h)
+	ld a,(00007h)                 ; VDP data port
 	ld c,a
 	exx
-l4e30h:
-	ld a,(de)
+; 00 end; 01-7F run; 80 set ptr; 81-FF literal.
+rle_next:                         ; 0x4E30
+	ld a,(de)                     ; control
 	and a
-	ret z
+	ret z                         ; 00 = end
 	inc de
 	ld b,a
 	and 07fh
 	cp b
-	jr z,l4e49h
+	jr z,rle_run                  ; 01-7F: repeat next byte B times
 	and a
-	jr z,l4e1fh
-	ld b,a
-l4e3eh:
-	call sub_4e88h
+	jr z,rle_setptr               ; 80: new dest
+	ld b,a                        ; 81-FF: literal (A&7F) bytes
+rle_lit:                          ; 0x4E3E
+	call rle_byte
 	exx
 	out (c),a
 	exx
-	djnz l4e3eh
-	jr l4e30h
-l4e49h:
-	call sub_4e88h
-l4e4ch:
+	djnz rle_lit
+	jr rle_next
+rle_run:                          ; 0x4E49
+	call rle_byte
+rle_run_out:                      ; 0x4E4C
 	exx
 	out (c),a
 	exx
-	djnz l4e4ch
-	jr l4e30h
-sub_4e54h:
-	ld c,000h
-	jr l4e27h
-	ld c,001h
-	jr l4e21h
-	ld c,001h
-	jr l4e27h
-l4e60h:
-	call sub_4e6ch
-	ld a,020h
+	djnz rle_run_out
+	jr rle_next
+; Konami RLE: DE packed src, HL VRAM dest. C bit 0 = bit-reverse (live callers 0).
+rle_vram:                         ; 0x4E54
+	ld c,000h                     ; no reverse
+	jr rle_setwrt
+	ld c,001h                     ; unused: reverse, dest from stream
+	jr rle_ptr_rd
+	ld c,001h                     ; unused: reverse, dest already in HL
+	jr rle_setwrt
+; VIC_COPY: C 16×16 planes, HL src, DE dest (SAT / work RAM).
+spr_copy:                         ; 0x4E60
+	call spr_plane
+	ld a,020h                     ; next plane (+32)
 	call ADD_DE_A
 	dec c
-	jr nz,l4e60h
+	jr nz,spr_copy
 	ret
-sub_4e6ch:
+; One 16×16 plane: 16 rows, two 8px tiles (bit-reverse each byte).
+spr_plane:                        ; 0x4E6C
 	push de
 l4e6dh:
-	ld b,010h
+	ld b,010h                     ; 16 rows
 l4e6fh:
-	call 00174h
-	call sub_4e8dh
+	call 00174h                   ; RDVRM dest
+	call bit_rev
 	ex de,hl
-	call 00177h
+	call 00177h                   ; WRTVRM
 	ex de,hl
 	inc e
 	inc hl
 	djnz l4e6fh
 	ld a,e
-	sub 020h
+	sub 020h                      ; back 32, then right tile
 	ld e,a
 	bit 4,e
 	jr z,l4e6dh
 	pop de
 	ret
-sub_4e88h:
+rle_byte:                         ; 0x4E88  next packed byte; reverse if C bit 0
 	ld a,(de)
 	inc de
 	bit 0,c
 	ret z
-sub_4e8dh:
+bit_rev:                          ; 0x4E8D
 	push bc
 	ld c,a
 	ld b,008h
@@ -2190,12 +2266,12 @@ scr_off:                          ; 0x4EBE  VDP R#1 display disable
 	jr vdp_spr_off
 spr_clear:                        ; 0x4ECB  128-byte SAT copies at F600/F200 = Y 0xE0
 	ld hl,0f600h
-	call sub_4ed4h
+	call sat_fill
 	ld hl,0f200h
-sub_4ed4h:
+sat_fill:                       ; 0x4ED4  128-byte SAT = Y 0xE0 (off-screen)
 	ld bc,00080h
 	ld a,0e0h
-	jp sub_4e0fh
+	jp filvrm
 vdp_spr_off:                      ; 0x4EDC  VDP R#8 SPD
 	ld a,(0ffe7h)
 	or 002h
@@ -2566,7 +2642,8 @@ l50f3h:
 	ei
 l50ffh:
 	ret
-sub_5100h:
+; VDP command from A (48h PSET-style, 58h LINE-style after munging).
+vdp_cmd:                          ; 0x5100
 	ex af,af'
 	call vdp_ce_wait
 	push bc
@@ -2616,31 +2693,33 @@ sub_5100h:
 	out (c),a
 	ei
 	ret
-copy_tiles:                       ; 0x514C  B tiles from HL → VRAM DE; C=colour
-	call sub_5181h
-	call sub_524bh
+; Copy B 1bpp tiles from HL to VRAM DE (C = on/off nibbles).
+copy_tiles:                       ; 0x514C  B tiles from HL → VRAM DE; C on=low nibble, off=high
+	call copy_tile
+	call tile_right
 	djnz copy_tiles
 	ret
-sub_5155h:
-	ld b,008h
-	ld de,0ef80h
+; copy_tiles: 1bpp at HL → 4bpp scratch EF80; C on=low nibble, off=high.
+tiles_1bpp:                       ; 0x5155
+	ld b,008h                     ; 8 pixel rows
+	ld de,0ef80h                  ; 4bpp scratch
 l515ah:
 	push bc
 	push hl
 	ex de,hl
-	ld a,(de)
+	ld a,(de)                     ; 1bpp row
 	ld d,a
-	ld b,004h
+	ld b,004h                     ; 8 pixels → 4 bytes
 l5161h:
-	ld a,c
+	ld a,c                        ; on colour
 	rl d
 	jr c,l516ah
-	rrca
+	rrca                          ; off = high nibble of C
 	rrca
 	rrca
 	rrca
 l516ah:
-	rld
+	rld                           ; nybble 0
 	ld a,c
 	rl d
 	jr c,l5175h
@@ -2649,7 +2728,7 @@ l516ah:
 	rrca
 	rrca
 l5175h:
-	rld
+	rld                           ; nybble 1
 	inc hl
 	djnz l5161h
 	ex de,hl
@@ -2658,12 +2737,13 @@ l5175h:
 	pop bc
 	djnz l515ah
 	ret
-sub_5181h:
+; One 1bpp tile at HL → VRAM DE, then advance HL.
+copy_tile:                        ; 0x5181
 	push bc
 	push de
 	push hl
 	push de
-	call sub_5155h
+	call tiles_1bpp
 	pop de
 	ld b,d
 	ld d,e
@@ -2674,20 +2754,20 @@ sub_5181h:
 	add a,080h
 	ld d,a
 	ld hl,0ef80h
-	call sub_51a2h
+	call copy_tile_4bpp
 	pop hl
 	ld bc,00008h
 	add hl,bc
 	pop de
 	pop bc
 	ret
-sub_51a2h:
+copy_tile_4bpp:
 	push de
 	ld b,008h
 l51a5h:
 	push bc
 	ld bc,00004h
-	call sub_4e05h
+	call ldirmv
 	ld bc,00004h
 	add hl,bc
 	ex de,hl
@@ -2698,9 +2778,10 @@ l51a5h:
 	djnz l51a5h
 	pop de
 	ret
-l51bbh:
+; B tiles of 4bpp from HL → VRAM DE.
+copy_4bpp:                        ; 0x51BB
 	push bc
-	call sub_51a2h
+	call copy_tile_4bpp
 	ld a,004h
 	add a,e
 	cp 080h
@@ -2712,9 +2793,10 @@ l51bbh:
 l51cbh:
 	ld e,a
 	pop bc
-	djnz l51bbh
+	djnz copy_4bpp
 	ret
-print_stream:                     ; 0x51D0  TEXT/CHAR (text.inc); 0xFE next pos, 0xFF end
+; TEXT/TEXT4 stream at HL; 0xFE next pos, 0xFF end.
+print_stream:                     ; 0x51D0
 	ld c,0ffh
 	jr l51d6h
 print_stream_blank:               ; 0x51D4  same stream, glyphs masked to 0
@@ -2724,7 +2806,8 @@ l51d6h:
 	inc hl
 	ld e,(hl)
 	inc hl
-print_at:                         ; 0x51DA  same loop; DE already set
+; Same as print_stream; DE already set.
+print_at:                         ; 0x51DA
 	ld a,(hl)
 	inc hl
 	ld b,a
@@ -2733,10 +2816,11 @@ print_at:                         ; 0x51DA  same loop; DE already set
 	inc b
 	jr z,l51d6h
 	and c
-	call l51e8h
+	call print_glyph
 	jr print_at
-l51e8h:
-	call sub_5207h
+; One glyph at DE, then DE.x += 8.
+print_glyph:                      ; 0x51E8
+	call tile_hmmm
 	ld a,d
 	add a,008h
 	ld d,a
@@ -2748,8 +2832,9 @@ l51f0h:
 	ld a,e
 	add a,008h
 	ld e,a
-	jr l51fah
-l51fah:
+	jr stamp_at
+; 4-wide stamp stream at HL (FE = next row, FF = end). Pause map cells.
+stamp_at:                         ; 0x51FA
 	ld a,(hl)
 	inc hl
 	ld b,a
@@ -2757,13 +2842,13 @@ l51fah:
 	ret z
 	inc b
 	jr z,l51f0h
-	call l51e8h
-	jr l51fah
-sub_5207h:
+	call print_glyph
+	jr stamp_at
+tile_hmmm:
 	push bc
 	push hl
 	push de
-	call sub_523dh
+	call tile_src
 	ld bc,00808h
 	ld a,001h
 	call vdp_hmmm
@@ -2775,27 +2860,27 @@ l5219h:
 	push bc
 	push hl
 	push de
-	call sub_523dh
+	call tile_src
 	ld bc,00808h
 	ld a,048h
-	call sub_5100h
+	call vdp_cmd
 	pop de
 	pop hl
 	pop bc
 	ret
-sub_522bh:
+tile_line:
 	push bc
 	push hl
 	push de
-	call sub_523dh
+	call tile_src
 	ld bc,00808h
 	ld a,058h
-	call sub_5100h
+	call vdp_cmd
 	pop de
 	pop hl
 	pop bc
 	ret
-sub_523dh:
+tile_src:
 	ld b,a
 	and 01fh
 	add a,a
@@ -2808,7 +2893,7 @@ sub_523dh:
 	rrca
 	ld l,a
 	ret
-sub_524bh:
+tile_right:
 	ld a,d
 	add a,008h
 	ld d,a
@@ -2825,13 +2910,13 @@ l5255h:
 	exx
 l525ch:
 	push bc
-	call sub_5281h
+	call expand_1row
 	pop bc
 	djnz l525ch
 	pop de
 	pop bc
 	ld hl,0e800h
-	jp l51bbh
+	jp copy_4bpp
 l526bh:
 	push bc
 	push de
@@ -2840,24 +2925,24 @@ l526bh:
 	exx
 l5272h:
 	push bc
-	call sub_5281h
+	call expand_1row
 	pop bc
 	djnz l5272h
 	pop de
 	pop bc
 	ld hl,0e800h
 	jp l539eh
-sub_5281h:
+expand_1row:                    ; 0x5281  8 rows of 1bpp -> SCREEN 5 nibbles
 	ld b,008h
 l5283h:
 	ld e,(hl)
 	inc hl
 	push bc
-	call sub_528dh
+	call expand_1nib
 	pop bc
 	djnz l5283h
 	ret
-sub_528dh:
+expand_1nib:                    ; 0x528D  one 1bpp byte -> 4 SCREEN 5 pixels
 	ld b,004h
 l528fh:
 	xor a
@@ -2894,13 +2979,13 @@ l52aeh:
 	exx
 l52b5h:
 	push bc
-	call sub_52dah
+	call expand_2row
 	pop bc
 	djnz l52b5h
 	pop de
 	pop bc
 	ld hl,0e800h
-	jp l51bbh
+	jp copy_4bpp
 l52c4h:
 	push bc
 	push de
@@ -2909,22 +2994,22 @@ l52c4h:
 	exx
 l52cbh:
 	push bc
-	call sub_52dah
+	call expand_2row
 	pop bc
 	djnz l52cbh
 	pop de
 	pop bc
 	ld hl,0e800h
 	jp l539eh
-sub_52dah:
+expand_2row:                    ; 0x52DA  8 rows of 2-plane 1bpp
 	ld b,008h
 l52dch:
 	push bc
-	call sub_52e4h
+	call expand_2nib
 	pop bc
 	djnz l52dch
 	ret
-sub_52e4h:
+expand_2nib:                    ; 0x52E4  one 2-plane pair -> SCREEN 5
 	ld b,004h
 	ld e,(hl)
 	inc hl
@@ -2969,13 +3054,13 @@ l530fh:
 	exx
 l5316h:
 	push bc
-	call sub_533bh
+	call expand_3row
 	pop bc
 	djnz l5316h
 	pop de
 	pop bc
 	ld hl,0e800h
-	jp l51bbh
+	jp copy_4bpp
 l5325h:
 	push bc
 	push de
@@ -2984,22 +3069,22 @@ l5325h:
 	exx
 l532ch:
 	push bc
-	call sub_533bh
+	call expand_3row
 	pop bc
 	djnz l532ch
 	pop de
 	pop bc
 	ld hl,0e800h
 	jp l539eh
-sub_533bh:
+expand_3row:                    ; 0x533B  8 rows of 3-plane 1bpp
 	ld b,008h
 l533dh:
 	push bc
-	call sub_5345h
+	call expand_3nib
 	pop bc
 	djnz l533dh
 	ret
-sub_5345h:
+expand_3nib:                    ; 0x5345  one 3-plane triple -> SCREEN 5
 	ld b,004h
 	ld e,(hl)
 	inc hl
@@ -3042,7 +3127,7 @@ l534dh:
 	exx
 	djnz l534dh
 	ret
-sub_5378h:
+expand_vram:                    ; 0x5378  SETWRT 8 rows, bit-reversed out
 	push de
 	ld a,(00007h)
 	ld c,a
@@ -3078,7 +3163,7 @@ l539eh:
 	inc hl
 l53a1h:
 	push bc
-	call sub_5378h
+	call expand_vram
 	ld a,004h
 	add a,e
 	cp 080h
@@ -3092,7 +3177,7 @@ l53b1h:
 	pop bc
 	djnz l53a1h
 	ret
-sub_53b6h:
+scr_boot:                         ; 0x53B6  sound_init, probe I/O, CHGCLR, wipe VRAM
 	ld a,004h
 	ld (07000h),a
 	inc a
@@ -3106,7 +3191,7 @@ sub_53b6h:
 	ld (09000h),a
 	ld a,(0f0f3h)
 	ld (0b000h),a
-	call 06eeah
+	call 06eeah                   ; I/O device bits -> F0F9
 	ld a,005h
 	call 0005fh
 	ld a,00fh
@@ -3298,12 +3383,12 @@ l54b9h:
 	push hl
 	ld h,(hl)
 	ld l,a
-	call sub_54efh
+	call blit_kind
 	pop hl
 	pop de
 	inc hl
 	jr blit_list
-sub_54efh:
+blit_kind:                      ; 0x54EF  C&7 -> SCREEN 5 expander
 	ld a,c
 	and 007h
 	jp z,l5255h
@@ -3316,8 +3401,9 @@ sub_54efh:
 	dec a
 	jp z,l530fh
 	jp l5325h
-l5508h:
-	ld a,(ix+000h)
+; pat_copy list at IX: n, y, src → sprite patterns (Flouman / Slouman).
+copy_pat:                         ; 0x5508
+	ld a,(ix+000h)                ; n (0 = end)
 	and a
 	ret z
 	ld l,a
@@ -3326,50 +3412,51 @@ l5508h:
 	add hl,hl
 	add hl,hl
 	add hl,hl
-	add hl,hl
+	add hl,hl                     ; n × 32
 	ld c,l
 	ld b,h
-	ld l,(ix+001h)
+	ld l,(ix+001h)                ; y
 	ld h,000h
 	add hl,hl
 	add hl,hl
-	add hl,hl
-	ld de,0f800h
+	add hl,hl                     ; y × 8
+	ld de,0f800h                  ; MSX2 sprite gen
 	ld a,(0f0f4h)
 	and a
 	jr nz,l552bh
-	ld de,01800h
+	ld de,01800h                  ; MSX1 sprite gen
 l552bh:
 	add hl,de
 	ex de,hl
-	ld l,(ix+002h)
+	ld l,(ix+002h)                ; src
 	ld h,(ix+003h)
-	call sub_4e05h
+	call ldirmv                   ; BIOS 005Ch
 	ld de,00004h
 	add ix,de
-	jr l5508h
-l553dh:
+	jr copy_pat
+; pat_flip list at IX: X-mirror n rows in sprite VRAM.
+flip_pat:                         ; 0x553D
 	ld a,(ix+000h)
 	dec a
-	ret m
+	ret m                         ; 0 = end
 	push af
 	ld a,(0f0f4h)
 	and a
-	ld bc,0f800h
+	ld bc,0f800h                  ; MSX2 sprite gen
 	jr nz,l554fh
-	ld bc,01800h
+	ld bc,01800h                  ; MSX1
 l554fh:
 	pop af
 	push af
 	push bc
-	call z,sub_5561h
+	call z,flip_pat1              ; n was 1
 	pop bc
 	pop af
-	call nz,sub_55cdh
+	call nz,flip_pat2             ; n > 1
 	ld bc,00004h
 	add ix,bc
-	jr l553dh
-sub_5561h:
+	jr flip_pat
+flip_pat1:                      ; 0x5561  one Flouman/Slouman pattern pair
 	ld a,(ix+001h)
 	or a
 	ret z
@@ -3392,12 +3479,12 @@ l5581h:
 	ld hl,(0efd2h)
 	ld de,0ef80h
 	ld bc,00020h
-	call sub_4dfbh
-	call sub_55b5h
+	call ldirvm
+	call flip_copy
 	ld de,(0efd4h)
 	ld hl,0efa0h
 	ld bc,00020h
-	call sub_4e05h
+	call ldirmv
 	ld bc,00020h
 	ld hl,(0efd2h)
 	add hl,bc
@@ -3409,13 +3496,13 @@ l5581h:
 	dec (hl)
 	jr nz,l5581h
 	ret
-sub_55b5h:
+flip_copy:                      ; 0x55B5  mirror 16 bytes EFD2 -> EF80
 	ld hl,0ef80h
 	ld de,0efafh
-	call sub_55c4h
+	call flip_rev
 	ld hl,0ef90h
 	ld de,0efbfh
-sub_55c4h:
+flip_rev:                       ; 0x55C4  copy HL.. 16 bytes reversed into DE
 	ld b,010h
 l55c6h:
 	ld a,(hl)
@@ -3424,7 +3511,7 @@ l55c6h:
 	dec de
 	djnz l55c6h
 	ret
-sub_55cdh:
+flip_pat2:                      ; 0x55CD  second pattern plane of flip_pat
 	ld a,(ix+001h)
 	or a
 	ret z
@@ -3444,8 +3531,8 @@ sub_55cdh:
 	add hl,hl
 	add hl,bc
 	ld c,(ix+001h)
-	jp l4e60h
-title_jp_gfx:                     ; 0x55F0  Japanese title dests + stamp_b8db
+	jp spr_copy
+title_jp_gfx:                     ; 0x55F0  Japanese title dests + stamp_logo_jp
 	call blit_9074
 	call page_banks_ef
 	ld de,0b116h
@@ -3454,7 +3541,7 @@ title_jp_gfx:                     ; 0x55F0  Japanese title dests + stamp_b8db
 	ld hl,0bb05h
 	ld de,0f800h
 	ld bc,00100h
-	call sub_4e05h
+	call ldirmv
 	ld hl,0a7ceh
 	call palette_list
 	call page_banks_123
@@ -3466,9 +3553,9 @@ title_jp_gfx:                     ; 0x55F0  Japanese title dests + stamp_b8db
 	ld d,001h
 	call vdp_lmmv
 	call page_banks_ef
-	ld hl,0b8dbh
+	ld hl,0b8dbh                  ; stamp_logo_jp
 	ld de,01050h
-	call sub_576dh
+	call stamp
 	jp page_banks_123
 load_world_gfx:                   ; 0x5634  page triplet 7/8/9, blit world + common gfx
 	call page_banks_789
@@ -3509,14 +3596,14 @@ l566fh:
 	call page_banks_ef
 	ld hl,0f800h
 	ld de,0abb9h
-	call sub_4e54h
+	call rle_vram
 	jp page_banks_123
-pat_15:                           ; 0x5696  two bank-15 pattern lists (98C9 / 98EA)
+pat_15:                           ; 0x5696  Flouman SAT (copy_pat / flip_pat, bank 15)
 	call page_banks_ef
-	ld ix,098c9h
-	call l5508h
-	ld ix,098eah
-	call l553dh
+	ld ix,098c9h                  ; pat_copy
+	call copy_pat
+	ld ix,098eah                  ; pat_flip
+	call flip_pat
 	jp page_banks_123
 	call page_banks_abc
 	ld bc,00307h
@@ -3539,14 +3626,14 @@ ef10_restore:                     ; 0x56C5  stamp 16x16 from bank 0C 0xB1D6 at E
 	call vdp_hmmc
 	jp l57c4h
 	ld c,002h
-sub_56deh:
+stamp_wtiles:                   ; 0x56DE  B x C world tiles at DE
 	call page_banks_ef
 l56e1h:
 	push bc
 	push de
 	ld b,c
 l56e4h:
-	call sub_56f8h
+	call stamp_wtile
 	ld a,d
 	add a,008h
 	ld d,a
@@ -3558,7 +3645,7 @@ l56e4h:
 	pop bc
 	djnz l56e1h
 	jp page_banks_123
-sub_56f8h:
+stamp_wtile:                    ; 0x56F8  one world-tileset tile at DE
 	ld a,(0e241h)
 	ld hl,07ffeh
 	call tbl_word
@@ -3580,7 +3667,7 @@ l570ah:
 	add a,c
 	call ADD_HL_A
 	ld a,(hl)
-	jp sub_5767h
+	jp tile_pset
 	ld b,002h
 l5724h:
 	call 00174h
@@ -3607,7 +3694,7 @@ l573fh:
 l5742h:
 	ld a,(hl)
 	push hl
-	call sub_5758h
+	call tile_draw
 	pop hl
 	ld a,d
 	add a,008h
@@ -3621,44 +3708,46 @@ l5742h:
 	pop bc
 	djnz l573fh
 	ret
-sub_5758h:
+tile_draw:
 	push af
 	ld a,(0efc0h)
 	and a
 	jr nz,l5764h
 	pop af
-	call sub_5767h
+	call tile_pset
 	ret
 l5764h:
 	pop af
 	jr l576ah
-sub_5767h:
+; 8×8 PSET of tile A at DE.
+tile_pset:                        ; 0x5767
 	jp l5219h
 l576ah:
-	jp sub_5207h
-sub_576dh:
-	push de
+	jp tile_hmmm
+; STAMP stream at HL onto VRAM DE: tile id; FE,dy = next row; FF = end.
+stamp:                            ; 0x576D
+	push de                       ; dest
 l576eh:
 	ld a,(hl)
 	inc hl
 	ld c,a
 	inc a
-	jr z,l578bh
+	jr z,l578bh                   ; FF = end
 	inc a
-	jr nz,l5782h
+	jr nz,l5782h                  ; not FE
 	pop de
-	ld a,(hl)
+	ld a,(hl)                     ; row delta (dy)
 	inc hl
 	add a,d
 	ld d,a
-	ld a,008h
+	ld a,008h                     ; +8 X
 	add a,e
 	ld e,a
-	jr sub_576dh
+	jr stamp
 l5782h:
-	ld a,c
-	call sub_522bh
-	call sub_524bh
+	ld a,c                        ; tile id
+	call tile_line
+	call tile_right
 	jr l576eh
 l578bh:
 	pop de
@@ -3686,10 +3775,12 @@ l57bbh:
 l57c4h:
 	call page_banks_123
 	jp page_bank_c
+; Finger-pointer SAT (rle_ba9a → F800). Puzzle UI / sound-select.
+copy_pointer:                     ; 0x57CA
 	call page_banks_ef
 	ld hl,0f800h
-	ld de,0ba9ah
-	call sub_4e54h
+	ld de,0ba9ah                  ; pointer.png
+	call rle_vram
 	jr l57c4h
 sat_flip:                         ; 0x57D8  swap SAT buffers, WRTVDP R#5
 	ld hl,(0e210h)
@@ -3747,43 +3838,45 @@ spr_vram:                         ; 0x583B  D200→F400 (512) + SAT E800→F600
 	ld hl,0d200h
 	ld de,0f400h
 	ld bc,00200h
-	call sub_4e05h
+	call ldirmv
 	ld hl,0e800h
 	ld de,0f600h
 	ld bc,00080h
-	jp sub_4e05h
-vic_reload:                       ; 0x5859  tool patterns + vic_blit tiles
-	call sub_585fh
+	jp ldirmv
+; Tool patterns + vic_blit tiles from banks 0E/0F.
+vic_reload:                       ; 0x5859
+	call vic_reload_go
 	jp page_banks_123
-sub_585fh:
-	call sub_58d2h
+vic_reload_go:
+	call vic_pat_far
 	jr l586ah
-vic_blit:                         ; 0x5864  Vic tiles from banks 0E/0F
+; Vic tiles from banks 0E/0F.
+vic_blit:                         ; 0x5864
 	call l586ah
 	jp page_banks_123
 l586ah:
 	call page_banks_ef
-	ld a,(0e24ch)
+	ld a,(0e24ch)                 ; pause
 	or a
-	jr nz,l58cdh
-	ld a,(0e298h)
+	jr nz,vic_blit_pause
+	ld a,(0e298h)                 ; die / hit SAT
 	or a
-	jp nz,l58bah
-	ld a,(0e287h)
+	jp nz,vic_blit_die
+	ld a,(0e287h)                 ; held tool
 	and 00fh
 	ld hl,0e297h
 	cp (hl)
-	call nz,sub_5925h
-	ld a,(0e285h)
+	call nz,vic_pat_sync          ; tool changed
+	ld a,(0e285h)                 ; vic_hmm frame
 	add a,a
 	ld e,a
 	ld d,000h
-	ld hl,0869ch
+	ld hl,0869ch                  ; vic_hmm dests
 	add hl,de
 	ld e,(hl)
 	inc hl
 	ld d,(hl)
-	ld hl,000f0h
+	ld hl,000f0h                  ; pattern src
 	ex de,hl
 	ld bc,08001h
 	ld a,005h
@@ -3792,17 +3885,18 @@ l586ah:
 	add a,a
 	ld e,a
 	ld d,000h
-	ld hl,086b8h
+	ld hl,086b8h                  ; vic_hmm2 colour dests
 	add hl,de
 	ld e,(hl)
 	inc hl
 	ld d,(hl)
-	ld hl,080f0h
+	ld hl,080f0h                  ; colour src
 	ex de,hl
 	ld bc,08001h
 	ld a,005h
 	jp vdp_hmmm
-l58bah:
+; Die/hit HMMM from 00C0 (E285).
+vic_blit_die:                     ; 0x58BA
 	ld a,(0e285h)
 l58bdh:
 	ld de,000f0h
@@ -3813,25 +3907,28 @@ l58bdh:
 	ld a,005h
 l58cah:
 	jp vdp_hmmm
-l58cdh:
+; Pause HMMM (E2B3).
+vic_blit_pause:                   ; 0x58CD
 	ld a,(0e2b3h)
 	jr l58bdh
-sub_58d2h:
+; Page 0E/0F, load Vic SAT for held / die / pause.
+vic_pat_far:                      ; 0x58D2
 	call page_banks_ef
-	call sub_58dbh
+	call vic_pat
 	jp page_banks_123
-sub_58dbh:
-	ld a,(0e24ch)
+; Vic sprite planes: held_ptr, else vic_die_rle / vic_pause_rle.
+vic_pat:                          ; 0x58DB
+	ld a,(0e24ch)                 ; pause
 	or a
-	jr nz,l5937h
-	ld a,(0e298h)
+	jr nz,vic_pause_rle
+	ld a,(0e298h)                 ; die / hit
 	or a
-	jr nz,l5928h
-	ld a,(0e287h)
+	jr nz,vic_die_rle
+	ld a,(0e287h)                 ; held 0–6
 	add a,a
 	ld e,a
 	ld d,000h
-	ld hl,0858bh
+	ld hl,0858bh                  ; held_ptr
 	add hl,de
 	ld a,(hl)
 	inc hl
@@ -3839,11 +3936,11 @@ sub_58dbh:
 	ld l,a
 l58f6h:
 	ld a,(hl)
-	cp 0ffh
+	cp 0ffh                       ; VIC_END
 	ret z
 	and 00fh
-	jr nz,l5910h
-	ld e,(hl)
+	jr nz,l5910h                  ; VIC_COPY
+	ld e,(hl)                     ; VIC_RLE dest, src
 	inc hl
 	ld d,(hl)
 	inc hl
@@ -3855,11 +3952,11 @@ l58f6h:
 	ld h,b
 	ld l,c
 	ex de,hl
-	call sub_4e54h
+	call rle_vram
 	pop hl
 	jr l58f6h
 l5910h:
-	ld c,a
+	ld c,a                        ; plane count
 	ld a,(hl)
 	and 0f0h
 	ld e,a
@@ -3873,35 +3970,38 @@ l5910h:
 	push hl
 	ld h,b
 	ld l,a
-	call l4e60h
+	call spr_copy
 	pop hl
 	jr l58f6h
-sub_5925h:
+vic_pat_sync:                     ; 0x5925  E297 ← held; reload SAT
 	ld (hl),a
-	jr sub_58dbh
-l5928h:
+	jr vic_pat
+; vic_die / vic_hit overlay (rle_953d / vic_die.png).
+vic_die_rle:                      ; 0x5928
 	call page_banks_ef
 	ld hl,0e000h
-	ld de,0953dh
-	call sub_4e54h
+	ld de,0953dh                  ; rle_953d
+	call rle_vram
 	jp page_banks_123
-l5937h:
+; Pause SAT: rle_ab59 → E000, rle_aa00 pushups → E080 (vic_pushup.png).
+vic_pause_rle:                    ; 0x5937
 	call page_banks_ef
 	ld hl,0e000h
-	ld de,0ab59h
-	call sub_4e54h
+	ld de,0ab59h                  ; rle_ab59
+	call rle_vram
 	ld hl,0e080h
-	ld de,0aa00h
-	call sub_4e54h
+	ld de,0aa00h                  ; vic_pushup
+	call rle_vram
 	jp page_banks_123
-col_15:                           ; 0x594F  bank 0F 0x97A1 → F880
+; Thrown knife + boomerang spin (rle_97a1 / knife.png).
+col_15:                           ; 0x594F
 	call page_banks_ef
-	call sub_5958h
+	call knife_rle
 	jp page_banks_123
-sub_5958h:
+knife_rle:                        ; 0x5958
 	ld hl,0f880h
-	ld de,097a1h
-	jp sub_4e54h
+	ld de,097a1h                  ; rle_97a1
+	jp rle_vram
 blit_902e:                        ; 0x5961  bank 08 blit list 0x902E → 8FFC
 	call page_banks_789
 	ld hl,0902eh
@@ -3957,10 +4057,10 @@ draw_cols:                        ; 0x59DC  A = start idx; 32× 1-wide tilemap f
 	ld bc,0a201h
 	call WRTVDP
 	pop af
-	call sub_59edh
+	call draw_cols_body
 	ld bc,0e201h
 	jp WRTVDP
-sub_59edh:
+draw_cols_body:                 ; 0x59ED  32x 1-wide tilemaps from 9D58
 	call page_banks_ef
 	ld de,00000h
 	ld b,020h
@@ -4011,96 +4111,96 @@ wpic2:                            ; 0x5A3B  14x6 tiles at A030
 	jp page_banks_123
 strm_a6e0:                        ; 0x5A4D  bank 0F stream at 8848
 	call page_banks_ef
-	ld hl,0a6e0h
+	ld hl,0a6e0h                  ; stamp_a6e0
 	ld de,08848h
-	call sub_576dh
+	call stamp
 	jp page_banks_123
 strm_a3e8:                        ; 0x5A5C  two streams (world map)
 	call page_banks_ef
-	ld hl,0a3e8h
+	ld hl,0a3e8h                  ; stamp_a3e8
 	ld de,00040h
-	call sub_576dh
-	ld hl,0a4c7h
+	call stamp
+	ld hl,0a4c7h                  ; stamp_a4c7
 	ld de,06040h
-	call sub_576dh
+	call stamp
 	jp page_banks_123
 strm_a642:                        ; 0x5A74
 	call page_banks_ef
-	ld hl,0a642h
+	ld hl,0a642h                  ; stamp_a642
 	ld de,06040h
-	call sub_576dh
-	ld hl,0a6b1h
+	call stamp
+	ld hl,0a6b1h                  ; stamp_a6b1
 	ld de,09040h
-	call sub_576dh
+	call stamp
 	jp page_banks_123
 copy_af21:                        ; 0x5A8C  world-map 14/15 → VRAM
 	call page_banks_ef
-	ld de,0af21h
+	ld de,0af21h                  ; rle_af21
 	ld hl,0f820h
-	call sub_4e54h
-	ld de,0a9fbh
+	call rle_vram
+	ld de,0a9fbh                  ; rle_a9fb
 	ld hl,0fe80h
-	call sub_4e54h
+	call rle_vram
 	jp page_banks_123
 	ret
 copy_ab59:                        ; 0x5AA5  ending 14/15 → VRAM
 	call page_banks_ef
-	ld de,0ab59h
+	ld de,0ab59h                  ; rle_ab59
 	ld hl,0f800h
-	call sub_4e54h
-	ld de,086d4h
+	call rle_vram
+	ld de,086d4h                  ; rle_86d4
 	ld hl,0f880h
-	call sub_4e54h
-	ld de,08fd9h
+	call rle_vram
+	ld de,08fd9h                  ; rle_8fd9
 	ld hl,0f940h
-	call sub_4e54h
-	ld de,0ae08h
+	call rle_vram
+	ld de,0ae08h                  ; rle_ae08
 	ld hl,0fa00h
-	call sub_4e54h
-	ld de,0a9f6h
+	call rle_vram
+	ld de,0a9f6h                  ; rle_a9f6
 	ld hl,0fe80h
-	call sub_4e54h
+	call rle_vram
 	jp page_banks_123
 copy_pwd:                         ; 0x5AD8  password/continue 14/15 → VRAM
 	call page_banks_ef
-	ld de,0ab59h
+	ld de,0ab59h                  ; rle_ab59
 	ld hl,0f800h
-	call sub_4e54h
-	ld de,086d4h
+	call rle_vram
+	ld de,086d4h                  ; rle_86d4
 	ld hl,0fc80h
-	call sub_4e54h
-	ld de,08fd9h
+	call rle_vram
+	ld de,08fd9h                  ; rle_8fd9
 	ld hl,0fd40h
-	call sub_4e54h
-	ld de,0ae08h
+	call rle_vram
+	ld de,0ae08h                  ; rle_ae08
 	ld hl,0fa00h
-	call sub_4e54h
-	ld de,0a9fbh
+	call rle_vram
+	ld de,0a9fbh                  ; rle_a9fb
 	ld hl,0fe80h
-	call sub_4e54h
+	call rle_vram
 	ld hl,0fc80h
 	ld de,0f890h
 	ld c,00ch
-	call l4e60h
+	call spr_copy
 	jp page_banks_123
 tiles_wmap:                       ; 0x5B16  bank 0C wmap font → VRAM 8030 / B838
 	call page_banks_abc
 	ld de,08030h
-	ld hl,0aa29h
+	ld hl,0aa29h                  ; wmap_aa29 font
 	ld bc,0290ah
 	call copy_tiles
 	ld de,0b838h
-	ld hl,0ab79h
+	ld hl,0ab79h                  ; wmap_ab79 font
 	ld bc,0050ah
 	call copy_tiles
 	jp page_banks_123
 	call page_banks_abc
 	ld de,08030h
-	ld hl,0aa29h
+	ld hl,0aa29h                  ; wmap_aa29 font
 	ld bc,02a0ch
 	call copy_tiles
 	ld de,0b838h
-	ld hl,0ab79h
+	ld hl,0ab79h                  ; wmap_ab79 font
 	ld bc,0050ch
 	call copy_tiles
 	jp page_banks_123
@@ -4140,8 +4240,8 @@ title_load:                       ; 0x5B6A  banks 07–9 palette + tiles, E2C0 c
 	ld bc,01a03h
 	call copy_tiles
 	ld de,l403eh+2
-	ld hl,0bb9bh
-	call sub_576dh
+	ld hl,0bb9bh                  ; stamp_logo_konami
+	call stamp
 	call scr_on
 	ld hl,0e2c0h
 	ld (hl),03ch
@@ -4151,7 +4251,7 @@ title_load:                       ; 0x5B6A  banks 07–9 palette + tiles, E2C0 c
 	ld (hl),000h
 	call page_banks_123
 	ret
-sub_5bc8h:
+wmap_slide:                     ; 0x5BC8  world-map stamp HMMM on E2C0 timer
 	ld hl,0e2c0h
 	dec (hl)
 	ld a,(hl)
@@ -4172,10 +4272,11 @@ l5bdah:
 	ld de,02840h
 	ld a,001h
 	jp vdp_hmmm
-sub_5bebh:
+; World-map font from bank 0C (aa29 / aa89 / abc1).
+wmap_font:                        ; 0x5BEB
 	call page_banks_abc
 	ld de,08030h
-	ld hl,0aa29h
+	ld hl,0aa29h                  ; wmap_aa29 font
 	ld bc,00c0bh
 	call copy_tiles
 	ld de,00038h
@@ -4185,7 +4286,7 @@ sub_5bebh:
 	ld hl,0abc1h
 	ld de,09870h
 	ld b,002h
-	call l51bbh
+	call copy_4bpp
 	jp page_banks_123
 hud_world:                        ; 0x5C14  per-world HUD from bank 0F bd52
 	call page_banks_ef
@@ -4209,7 +4310,7 @@ hud_world:                        ; 0x5C14  per-world HUD from bank 0F bd52
 	inc hl
 	ld d,(hl)
 	ld hl,0ef00h
-	call sub_5c51h
+	call hud_anim
 	ld a,(0e241h)
 	cp 004h
 	jp nz,page_banks_123
@@ -4219,9 +4320,9 @@ hud_world:                        ; 0x5C14  per-world HUD from bank 0F bd52
 	ld bc,00602h
 	ld de,0bdafh
 	ld hl,0ef04h
-	call sub_5c51h
+	call hud_anim
 	jp page_banks_123
-sub_5c51h:
+hud_anim:
 	inc (hl)
 	ld a,(hl)
 	exx
@@ -4309,13 +4410,14 @@ l5c94h:
 	xor a
 	ld (0e287h),a
 	ld (0edcdh),a
-	call sub_58d2h
-room_draw:                        ; 0x5CF5  redraw current screen (E243), set E250
+	call vic_pat_far
+; Redraw current screen (E243) and set E250 map base.
+room_draw:                        ; 0x5CF5
 	call scr_reset
 	call spr_clear
 	call scr_off
 	call stamp_actors
-	call sub_44d4h
+	call load_stage
 	call page_bank_c
 	call 0b51ch                   ; draw_ef10 (bank 0C MODULE)
 	call page_banks_123
@@ -4325,15 +4427,16 @@ room_draw:                        ; 0x5CF5  redraw current screen (E243), set E2
 	call draw_maptools
 	call draw_stones
 	call stamp_actors_c3
-	call sub_4c8ah
+	call over_hud
 	call scr_on
 	ld hl,(0e243h)
 	dec l
 	ld h,000h
-	call sub_5d32h
+	call map_base
 	ld (0e250h),hl
 	ret
-sub_5d32h:
+; Screen index HL → unpacked-map pointer in E900 (192 bytes/screen).
+map_base:                         ; 0x5D32
 	add hl,hl
 	add hl,hl
 	add hl,hl
@@ -4347,7 +4450,8 @@ sub_5d32h:
 	ld de,0e900h
 	add hl,de
 	ret
-sat_wipe:                         ; 0x5D41  E800..E87F SAT Y=0xE0 (offscreen)
+; Fill software SAT at E800 with Y=0xE0 (offscreen).
+sat_wipe:                         ; 0x5D41
 	ld hl,0e800h
 	ld de,0e801h
 	ld bc,0007fh
@@ -4373,7 +4477,8 @@ play_frame:                       ; 0x5D63  vblank wrap around play_tick
 	call play_tick
 	call sat_blit
 	ret
-play_tick:                        ; 0x5D6D  Vic, tools, gems, actors, exit, secrets, EF10
+; Vic, tools, gems, actors, exit, secrets, EF10.
+play_tick:                        ; 0x5D6D
 	call border_flash
 	call vic_tick
 	call vic_blit
@@ -4395,7 +4500,8 @@ play_tick:                        ; 0x5D6D  Vic, tools, gems, actors, exit, secr
 	call e300_e500_hit
 	call bgm_toggle
 	jp hud_world
-load_screens:                        ; 0x5DAC  pyramid screen-present bits (ab5a_flags) -> 0xE788
+; Pyramid screen-present bits (ab5a_flags) → E788.
+load_screens:                     ; 0x5DAC
 	call page_bank_d
 	ld hl,0e780h
 	ld de,0e781h
@@ -4434,10 +4540,11 @@ l5ddah:
 	jp page_banks_123
 screen_idx:                       ; 0x5DE6  E243 -> slot in E788 -> E244
 	ld a,(0e243h)
-	call sub_5df0h
+	call screen_slot
 	ld (0e244h),a
 	ret
-sub_5df0h:
+; Find screen id A in E788; return slot index.
+screen_slot:                      ; 0x5DF0
 	ld hl,0e788h
 	ld c,000h
 l5df5h:
@@ -4462,14 +4569,14 @@ room_exit:                        ; 0x5DFE  E248 dir -> wrap Vic, next screen E2
 	call room_link
 	ld (0e243h),hl
 	ret
-room_wrap:                        ; 0x5E17  dir 1..4 -> Vic X/Y on the new screen
+room_wrap:                        ; 0x5E17  dir 1..4 -> Vic Y/X on the new screen
 	dec a
-	jr z,l5e2ch
+	jr z,l5e2ch                   ; 1 up: Y=0xAD (bottom)
 	dec a
-	jr z,l5e32h
+	jr z,l5e32h                   ; 2 down: Y=3 (top)
 	dec a
-	jr z,l5e26h
-	ld a,003h
+	jr z,l5e26h                   ; 3 left: X=0xF2 (right)
+	ld a,003h                     ; 4 right: X=3 (left)
 	ld (0e284h),a
 	ret
 l5e26h:
@@ -4484,22 +4591,24 @@ l5e32h:
 	ld a,003h
 	ld (0e282h),a
 	ret
-room_link:                        ; 0x5E38  door tables ED80/90/A0/B0
-	call sub_5e3fh
+; Door tables ED80 up / ED90 down / EDA0 left / EDB0 right.
+room_link:                        ; 0x5E38
+	call link_disp
 	ld hl,(0efc0h)
 	ret
-sub_5e3fh:
+; DISPATCH_A on dir 1..4 → ED80/90/A0/B0.
+link_disp:                        ; 0x5E3F
 	dec a
 	call DISPATCH_A
 
 ; BLOCK 'd_5e40_jp' (start 0x5e43 end 0x5e4b)
 d_5e40_jp_start:
-	defw link_left                ; 1 ED80
-	defw link_right               ; 2 ED90
-	defw link_up                  ; 3 EDA0
-	defw link_down                ; 4 EDB0
+	defw link_up                  ; 1 ED80 (screen-8)
+	defw link_down                ; 2 ED90 (screen+8)
+	defw link_left                ; 3 EDA0 (screen-1 in row)
+	defw link_right               ; 4 EDB0 (screen+1 in row)
 d_5e40_jp_end:
-link_left:
+link_up:
 	ld a,b
 	sub 008h
 	jr nc,l5e52h
@@ -4507,7 +4616,7 @@ link_left:
 l5e52h:
 	ld hl,0ed80h
 	jr l5e7fh
-link_right:
+link_down:
 	ld a,b
 	add a,008h
 	cp 030h
@@ -4516,7 +4625,7 @@ link_right:
 l5e60h:
 	ld hl,0ed90h
 	jr l5e7fh
-link_up:
+link_left:
 	ld a,b
 	dec a
 	and 007h
@@ -4526,7 +4635,7 @@ link_up:
 	or c
 	ld hl,0eda0h
 	jr l5e7fh
-link_down:
+link_right:
 	ld a,b
 	inc a
 	and 007h
@@ -4571,18 +4680,19 @@ load_links:                        ; 0x5EB5  door links (adcf/ae47/aebf/af37) ->
 	call page_bank_d
 	ld hl,0adcfh
 	ld de,0ed80h
-	call sub_5edfh
+	call copy_link
 	ld hl,0ae47h
 	ld de,0ed90h
-	call sub_5edfh
+	call copy_link
 	ld hl,0aebfh
 	ld de,0eda0h
-	call sub_5edfh
+	call copy_link
 	ld hl,0af37h
 	ld de,0edb0h
-	call sub_5edfh
+	call copy_link
 	jp page_banks_123
-sub_5edfh:
+; Copy one door-link list (level word table at HL → DE, 0xFF end).
+copy_link:                        ; 0x5EDF
 	ld a,(0e242h)
 	call tbl_word
 l5ee5h:
@@ -4598,58 +4708,58 @@ l5eefh:
 ; BLOCK 'print_txt' (start 0x5ef2 end 0x5f8d)
 print_txt_start:
 l5ef2h:                         ; 0x5EF2  hiscore / score / stage / rest
-	TEXT_AT 010h, 0c2h
+	defb 010h, 0c2h         ; D,E
 	TEXT "hiscore"
-	TEXT_NEXT 060h, 0c2h
+	defb 0feh, 060h, 0c2h   ; next D,E
 	TEXT "score"
-	TEXT_NEXT 098h, 0c2h
+	defb 0feh, 098h, 0c2h   ; next D,E
 	TEXT "stage"
-	TEXT_NEXT 0d0h, 0c2h
+	defb 0feh, 0d0h, 0c2h   ; next D,E
 l5f0eh:                         ; 0x5F0E  glyphs only; DE preloaded
 	TEXT "rest"
-	TEXT_END
+	defb 0ffh               ; end
 l5f13h:                         ; 0x5F13  stage / soul stone
-	TEXT_AT 060h, 048h
+	defb 060h, 048h         ; D,E
 	TEXT "stage"
-	TEXT_NEXT 048h, 068h
+	defb 0feh, 048h, 068h   ; next D,E
 	TEXT "soul stone"
-	TEXT_END
+	defb 0ffh               ; end
 l5f28h:                         ; 0x5F28  file; then Konami / 1988 (':' = ©)
-	TEXT_AT 060h, 048h
+	defb 060h, 048h         ; D,E
 	TEXT "file"
-	TEXT_END
-	TEXT_AT 038h, 050h
+	defb 0ffh               ; end
+	defb 038h, 050h         ; D,E
 	TEXT ":konami 1988"
 	db 0feh                   ; next D,E is l5f3eh if the stream is walked
 l5f3eh:                         ; 0x5F3E  game
-	TEXT_AT 050h, 08ch
+	defb 050h, 08ch         ; D,E
 	TEXT "game"
-	TEXT_END
+	defb 0ffh               ; end
 l5f45h:                         ; 0x5F45  edit
-	TEXT_AT 050h, 09ch
+	defb 050h, 09ch         ; D,E
 	TEXT "edit"
-	TEXT_END
+	defb 0ffh               ; end
 l5f4ch:                         ; 0x5F4C  game  over
-	TEXT_AT 058h, 058h
+	defb 058h, 058h         ; D,E
 	TEXT "game  over"
-	TEXT_END
+	defb 0ffh               ; end
 l5f59h:                         ; 0x5F59  continue
-	TEXT_AT 050h, 068h
+	defb 050h, 068h         ; D,E
 	TEXT "f5  continue"
-	TEXT_END
+	defb 0ffh               ; end
 l5f68h:                         ; 0x5F68  glyphs only; DE preloaded
 	TEXT "<="
-	TEXT_END
+	defb 0ffh               ; end
 l5f6bh:                         ; 0x5F6B  hiscore / st / rest / score
-	TEXT_AT 048h, 048h
+	defb 048h, 048h         ; D,E
 	TEXT "hiscore "
-	TEXT_NEXT 050h, 068h
+	defb 0feh, 050h, 068h   ; next D,E
 	TEXT "st "
-	TEXT_NEXT 080h, 068h
+	defb 0feh, 080h, 068h   ; next D,E
 	TEXT "rest "
-	TEXT_NEXT 058h, 058h
+	defb 0feh, 058h, 058h   ; next D,E
 	TEXT "score "
-	TEXT_END
+	defb 0ffh               ; end
 print_txt_end:
 
 title_jp:                         ; 0x5F8D  Japanese title screen (boot / return)
@@ -4675,16 +4785,16 @@ l5fb2h:
 	ld de,01820h
 	ld bc,0a838h
 	ld a,048h
-	call sub_5100h
-	call sub_5fe7h
+	call vdp_cmd
+	call hud_meter_end
 	jp scr_on
-sub_5fc6h:
+hud_meter:                      ; 0x5FC6  world HUD meter slide (E203 even)
 	ld a,(0e203h)
 	rra
 	ret c
 	ld hl,0e214h
 	dec (hl)
-	jr z,sub_5fe7h
+	jr z,hud_meter_end
 	ld a,(hl)
 	ld c,a
 	add a,01fh
@@ -4698,7 +4808,7 @@ sub_5fc6h:
 	ld a,001h
 	call vdp_hmmm
 	ret
-sub_5fe7h:
+hud_meter_end:                  ; 0x5FE7  final HUD meter blit
 	ld hl,03084h
 	ld bc,04828h
 	xor a

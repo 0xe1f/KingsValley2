@@ -2,872 +2,872 @@
 
 
 	; map_59 continues
-	MAP_RUN 0, 8
-	MAP_RUN 2, 3
-	MAP_RUN 3, 2
-	MAP_RUN 2, 3
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 1
-	MAP_RUN 0, 6
-	MAP_RUN 2, 1
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 1
-	MAP_RUN 0, 6
-	MAP_RUN 2, 1
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 2, 9
-	MAP_RUN 0, 6
-	MAP_RUN 2, 7
-	MAP_RUN 3, 10
-	MAP_RUN 2, 9
-	MAP_RUN 0, 6
-	MAP_RUN 2, 7
-	MAP_RUN 3, 10
-	MAP_RUN 2, 9
-	MAP_RUN 0, 6
-	MAP_RUN 2, 7
-	MAP_RUN 3, 10
-	MAP_RUN 0, 8
-	MAP_RUN 2, 1
-	MAP_RUN 0, 6
-	MAP_RUN 2, 1
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 1
-	MAP_RUN 0, 6
-	MAP_RUN 2, 1
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 24
-	MAP_RUN 3, 8
-	MAP_RUN 0, 24
-	MAP_RUN 3, 8
-	MAP_RUN 0, 24
-	MAP_RUN 3, 8
-	MAP_RUN 0, 24
-	MAP_RUN 3, 44
-	MAP_RUN 0, 2
-	MAP_RUN 3, 26
-	MAP_RUN 0, 6
-	MAP_RUN 2, 12
-	MAP_RUN 0, 6
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 4
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 4
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 10
-	MAP_RUN 3, 8
-	MAP_RUN 0, 2
-	MAP_RUN 3, 27
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 36
-	MAP_RUN 0, 24
-	MAP_RUN 3, 8
-	MAP_RUN 0, 24
-	MAP_RUN 3, 8
-	MAP_RUN 0, 24
-	MAP_RUN 3, 8
-	MAP_RUN 0, 10
-	MAP_RUN 3, 6
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 8
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 2, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 10
-	MAP_RUN 2, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 10
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 2, 4
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 2, 4
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 4
-	MAP_RUN 0, 6
-	MAP_RUN 2, 4
-	MAP_RUN 0, 6
-	MAP_RUN 3, 8
-	MAP_RUN 0, 4
-	MAP_RUN 2, 4
-	MAP_RUN 0, 6
-	MAP_RUN 2, 4
-	MAP_RUN 0, 6
-	MAP_RUN 3, 8
-	MAP_RUN 0, 6
-	MAP_RUN 2, 8
-	MAP_RUN 0, 4
-	MAP_RUN 3, 14
-	MAP_RUN 0, 6
-	MAP_RUN 2, 8
-	MAP_RUN 0, 4
-	MAP_RUN 3, 28
-	MAP_RUN 0, 4
-	MAP_RUN 3, 10
-	MAP_RUN 0, 29
-	MAP_RUN 3, 3
-	MAP_RUN 0, 29
-	MAP_RUN 3, 3
-	MAP_RUN 0, 29
-	MAP_RUN 3, 35
-	MAP_END
+	defb 008h               ; tile 0 x 8
+	defb 083h               ; tile 2 x 3
+	defb 0c2h               ; tile 3 x 2
+	defb 083h               ; tile 2 x 3
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 081h               ; tile 2 x 1
+	defb 006h               ; tile 0 x 6
+	defb 081h               ; tile 2 x 1
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 081h               ; tile 2 x 1
+	defb 006h               ; tile 0 x 6
+	defb 081h               ; tile 2 x 1
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 089h               ; tile 2 x 9
+	defb 006h               ; tile 0 x 6
+	defb 087h               ; tile 2 x 7
+	defb 0cah               ; tile 3 x 10
+	defb 089h               ; tile 2 x 9
+	defb 006h               ; tile 0 x 6
+	defb 087h               ; tile 2 x 7
+	defb 0cah               ; tile 3 x 10
+	defb 089h               ; tile 2 x 9
+	defb 006h               ; tile 0 x 6
+	defb 087h               ; tile 2 x 7
+	defb 0cah               ; tile 3 x 10
+	defb 008h               ; tile 0 x 8
+	defb 081h               ; tile 2 x 1
+	defb 006h               ; tile 0 x 6
+	defb 081h               ; tile 2 x 1
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 081h               ; tile 2 x 1
+	defb 006h               ; tile 0 x 6
+	defb 081h               ; tile 2 x 1
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 018h               ; tile 0 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 018h               ; tile 0 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 018h               ; tile 0 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 018h               ; tile 0 x 24
+	defb 0ech               ; tile 3 x 44
+	defb 002h               ; tile 0 x 2
+	defb 0dah               ; tile 3 x 26
+	defb 006h               ; tile 0 x 6
+	defb 08ch               ; tile 2 x 12
+	defb 006h               ; tile 0 x 6
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 088h               ; tile 2 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 084h               ; tile 2 x 4
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 084h               ; tile 2 x 4
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 00ah               ; tile 0 x 10
+	defb 0c8h               ; tile 3 x 8
+	defb 002h               ; tile 0 x 2
+	defb 0dbh               ; tile 3 x 27
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0e4h               ; tile 3 x 36
+	defb 018h               ; tile 0 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 018h               ; tile 0 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 018h               ; tile 0 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 00ah               ; tile 0 x 10
+	defb 0c6h               ; tile 3 x 6
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c8h               ; tile 3 x 8
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 084h               ; tile 2 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 00ah               ; tile 0 x 10
+	defb 084h               ; tile 2 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 00ah               ; tile 0 x 10
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 084h               ; tile 2 x 4
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 084h               ; tile 2 x 4
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 084h               ; tile 2 x 4
+	defb 006h               ; tile 0 x 6
+	defb 084h               ; tile 2 x 4
+	defb 006h               ; tile 0 x 6
+	defb 0c8h               ; tile 3 x 8
+	defb 004h               ; tile 0 x 4
+	defb 084h               ; tile 2 x 4
+	defb 006h               ; tile 0 x 6
+	defb 084h               ; tile 2 x 4
+	defb 006h               ; tile 0 x 6
+	defb 0c8h               ; tile 3 x 8
+	defb 006h               ; tile 0 x 6
+	defb 088h               ; tile 2 x 8
+	defb 004h               ; tile 0 x 4
+	defb 0ceh               ; tile 3 x 14
+	defb 006h               ; tile 0 x 6
+	defb 088h               ; tile 2 x 8
+	defb 004h               ; tile 0 x 4
+	defb 0dch               ; tile 3 x 28
+	defb 004h               ; tile 0 x 4
+	defb 0cah               ; tile 3 x 10
+	defb 01dh               ; tile 0 x 29
+	defb 0c3h               ; tile 3 x 3
+	defb 01dh               ; tile 0 x 29
+	defb 0c3h               ; tile 3 x 3
+	defb 01dh               ; tile 0 x 29
+	defb 0e3h               ; tile 3 x 35
+	defb 000h               ; end
 
 map_60:                           ; pyramid 60, 6 screens
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 4
-	MAP_RUN 2, 27
-	MAP_RUN 3, 5
-	MAP_RUN 2, 27
-	MAP_RUN 3, 5
-	MAP_RUN 0, 28
-	MAP_RUN 3, 4
-	MAP_RUN 0, 28
-	MAP_RUN 3, 4
-	MAP_RUN 0, 28
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 2, 10
-	MAP_RUN 0, 4
-	MAP_RUN 2, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 5
-	MAP_RUN 3, 5
-	MAP_RUN 0, 2
-	MAP_RUN 2, 10
-	MAP_RUN 0, 4
-	MAP_RUN 2, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 5
-	MAP_RUN 3, 5
-	MAP_RUN 0, 20
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 20
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 20
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 20
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 20
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 10
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 10
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 24
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 24
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 24
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 10
-	MAP_RUN 0, 2
-	MAP_RUN 3, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 12
-	MAP_RUN 2, 10
-	MAP_RUN 0, 2
-	MAP_RUN 3, 63
-	MAP_RUN 3, 1
-	MAP_RUN 0, 63
-	MAP_RUN 0, 33
-	MAP_RUN 3, 1
-	MAP_RUN 2, 30
-	MAP_RUN 3, 2
-	MAP_RUN 2, 30
-	MAP_RUN 3, 1
-	MAP_RUN 0, 63
-	MAP_RUN 0, 33
-	MAP_RUN 3, 1
-	MAP_RUN 2, 3
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 2, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 1
-	MAP_RUN 2, 3
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 2, 2
-	MAP_RUN 0, 12
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 10
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 10
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 22
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 22
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 2
-	MAP_RUN 3, 2
-	MAP_RUN 0, 18
-	MAP_RUN 3, 8
-	MAP_RUN 0, 2
-	MAP_RUN 3, 30
-	MAP_RUN 0, 2
-	MAP_RUN 3, 22
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 2
-	MAP_RUN 2, 27
-	MAP_RUN 3, 5
-	MAP_RUN 2, 27
-	MAP_RUN 3, 4
-	MAP_RUN 0, 28
-	MAP_RUN 3, 4
-	MAP_RUN 0, 28
-	MAP_RUN 3, 4
-	MAP_RUN 0, 28
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 2
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 2
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 2
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 2
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 4
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 8
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 3
-	MAP_RUN 3, 3
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 8
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 6
-	MAP_RUN 0, 3
-	MAP_RUN 3, 63
-	MAP_RUN 3, 39
-	MAP_RUN 0, 17
-	MAP_RUN 2, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 3
-	MAP_RUN 0, 17
-	MAP_RUN 2, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 4
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 2
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 2
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 18
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 2
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 10
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 2
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 2, 10
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 2, 24
-	MAP_RUN 3, 8
-	MAP_RUN 2, 24
-	MAP_RUN 3, 3
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 1
-	MAP_RUN 0, 31
-	MAP_RUN 3, 63
-	MAP_RUN 3, 9
-	MAP_RUN 0, 2
-	MAP_RUN 3, 22
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 3, 2
-	MAP_RUN 2, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 6
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 2, 2
-	MAP_RUN 0, 2
-	MAP_RUN 2, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 4
-	MAP_RUN 3, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 8
-	MAP_RUN 2, 2
-	MAP_RUN 0, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 30
-	MAP_RUN 3, 2
-	MAP_RUN 0, 30
-	MAP_RUN 3, 2
-	MAP_RUN 0, 30
-	MAP_RUN 3, 2
-	MAP_RUN 0, 30
-	MAP_RUN 3, 3
-	MAP_RUN 2, 29
-	MAP_RUN 3, 3
-	MAP_RUN 2, 29
-	MAP_RUN 3, 2
-	MAP_RUN 0, 63
-	MAP_RUN 0, 33
-	MAP_RUN 3, 63
-	MAP_RUN 3, 37
-	MAP_RUN 2, 8
-	MAP_RUN 0, 6
-	MAP_RUN 2, 6
-	MAP_RUN 0, 5
-	MAP_RUN 3, 7
-	MAP_RUN 2, 8
-	MAP_RUN 0, 6
-	MAP_RUN 2, 6
-	MAP_RUN 0, 5
-	MAP_RUN 3, 7
-	MAP_RUN 2, 8
-	MAP_RUN 0, 16
-	MAP_RUN 3, 8
-	MAP_RUN 2, 8
-	MAP_RUN 0, 16
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 16
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 16
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 22
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 22
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 22
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 16
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 16
-	MAP_RUN 2, 6
-	MAP_RUN 3, 2
-	MAP_RUN 0, 2
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 6
-	MAP_RUN 0, 26
-	MAP_RUN 3, 8
-	MAP_RUN 2, 22
-	MAP_RUN 0, 2
-	MAP_RUN 3, 8
-	MAP_RUN 2, 22
-	MAP_RUN 0, 2
-	MAP_RUN 3, 4
-	MAP_RUN 0, 29
-	MAP_RUN 3, 3
-	MAP_RUN 0, 29
-	MAP_RUN 3, 3
-	MAP_RUN 0, 29
-	MAP_RUN 3, 63
-	MAP_RUN 3, 4
-	MAP_END
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c4h               ; tile 3 x 4
+	defb 09bh               ; tile 2 x 27
+	defb 0c5h               ; tile 3 x 5
+	defb 09bh               ; tile 2 x 27
+	defb 0c5h               ; tile 3 x 5
+	defb 01ch               ; tile 0 x 28
+	defb 0c4h               ; tile 3 x 4
+	defb 01ch               ; tile 0 x 28
+	defb 0c4h               ; tile 3 x 4
+	defb 01ch               ; tile 0 x 28
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 08ah               ; tile 2 x 10
+	defb 004h               ; tile 0 x 4
+	defb 084h               ; tile 2 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 085h               ; tile 2 x 5
+	defb 0c5h               ; tile 3 x 5
+	defb 002h               ; tile 0 x 2
+	defb 08ah               ; tile 2 x 10
+	defb 004h               ; tile 0 x 4
+	defb 084h               ; tile 2 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 085h               ; tile 2 x 5
+	defb 0c5h               ; tile 3 x 5
+	defb 014h               ; tile 0 x 20
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 014h               ; tile 0 x 20
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 014h               ; tile 0 x 20
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 014h               ; tile 0 x 20
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 014h               ; tile 0 x 20
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 00ah               ; tile 0 x 10
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 00ah               ; tile 0 x 10
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 018h               ; tile 0 x 24
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 018h               ; tile 0 x 24
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 018h               ; tile 0 x 24
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 08ah               ; tile 2 x 10
+	defb 002h               ; tile 0 x 2
+	defb 0c4h               ; tile 3 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 08ah               ; tile 2 x 10
+	defb 002h               ; tile 0 x 2
+	defb 0ffh               ; tile 3 x 63
+	defb 0c1h               ; tile 3 x 1
+	defb 03fh               ; tile 0 x 63
+	defb 021h               ; tile 0 x 33
+	defb 0c1h               ; tile 3 x 1
+	defb 09eh               ; tile 2 x 30
+	defb 0c2h               ; tile 3 x 2
+	defb 09eh               ; tile 2 x 30
+	defb 0c1h               ; tile 3 x 1
+	defb 03fh               ; tile 0 x 63
+	defb 021h               ; tile 0 x 33
+	defb 0c1h               ; tile 3 x 1
+	defb 083h               ; tile 2 x 3
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 082h               ; tile 2 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c1h               ; tile 3 x 1
+	defb 083h               ; tile 2 x 3
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 082h               ; tile 2 x 2
+	defb 00ch               ; tile 0 x 12
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 00ah               ; tile 0 x 10
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 00ah               ; tile 0 x 10
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 016h               ; tile 0 x 22
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 016h               ; tile 0 x 22
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 082h               ; tile 2 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 012h               ; tile 0 x 18
+	defb 0c8h               ; tile 3 x 8
+	defb 002h               ; tile 0 x 2
+	defb 0deh               ; tile 3 x 30
+	defb 002h               ; tile 0 x 2
+	defb 0d6h               ; tile 3 x 22
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c2h               ; tile 3 x 2
+	defb 09bh               ; tile 2 x 27
+	defb 0c5h               ; tile 3 x 5
+	defb 09bh               ; tile 2 x 27
+	defb 0c4h               ; tile 3 x 4
+	defb 01ch               ; tile 0 x 28
+	defb 0c4h               ; tile 3 x 4
+	defb 01ch               ; tile 0 x 28
+	defb 0c4h               ; tile 3 x 4
+	defb 01ch               ; tile 0 x 28
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 002h               ; tile 0 x 2
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 002h               ; tile 0 x 2
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 002h               ; tile 0 x 2
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 002h               ; tile 0 x 2
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c4h               ; tile 3 x 4
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 088h               ; tile 2 x 8
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 003h               ; tile 0 x 3
+	defb 0c3h               ; tile 3 x 3
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 088h               ; tile 2 x 8
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 086h               ; tile 2 x 6
+	defb 003h               ; tile 0 x 3
+	defb 0ffh               ; tile 3 x 63
+	defb 0e7h               ; tile 3 x 39
+	defb 011h               ; tile 0 x 17
+	defb 084h               ; tile 2 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 084h               ; tile 2 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c3h               ; tile 3 x 3
+	defb 011h               ; tile 0 x 17
+	defb 084h               ; tile 2 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 084h               ; tile 2 x 4
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 002h               ; tile 0 x 2
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 002h               ; tile 0 x 2
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 012h               ; tile 0 x 18
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 002h               ; tile 0 x 2
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 08ah               ; tile 2 x 10
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 002h               ; tile 0 x 2
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 08ah               ; tile 2 x 10
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 098h               ; tile 2 x 24
+	defb 0c8h               ; tile 3 x 8
+	defb 098h               ; tile 2 x 24
+	defb 0c3h               ; tile 3 x 3
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0c1h               ; tile 3 x 1
+	defb 01fh               ; tile 0 x 31
+	defb 0ffh               ; tile 3 x 63
+	defb 0c9h               ; tile 3 x 9
+	defb 002h               ; tile 0 x 2
+	defb 0d6h               ; tile 3 x 22
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 0c2h               ; tile 3 x 2
+	defb 082h               ; tile 2 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c6h               ; tile 3 x 6
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 082h               ; tile 2 x 2
+	defb 002h               ; tile 0 x 2
+	defb 082h               ; tile 2 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 004h               ; tile 0 x 4
+	defb 0c2h               ; tile 3 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 008h               ; tile 0 x 8
+	defb 082h               ; tile 2 x 2
+	defb 006h               ; tile 0 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 01eh               ; tile 0 x 30
+	defb 0c2h               ; tile 3 x 2
+	defb 01eh               ; tile 0 x 30
+	defb 0c2h               ; tile 3 x 2
+	defb 01eh               ; tile 0 x 30
+	defb 0c2h               ; tile 3 x 2
+	defb 01eh               ; tile 0 x 30
+	defb 0c3h               ; tile 3 x 3
+	defb 09dh               ; tile 2 x 29
+	defb 0c3h               ; tile 3 x 3
+	defb 09dh               ; tile 2 x 29
+	defb 0c2h               ; tile 3 x 2
+	defb 03fh               ; tile 0 x 63
+	defb 021h               ; tile 0 x 33
+	defb 0ffh               ; tile 3 x 63
+	defb 0e5h               ; tile 3 x 37
+	defb 088h               ; tile 2 x 8
+	defb 006h               ; tile 0 x 6
+	defb 086h               ; tile 2 x 6
+	defb 005h               ; tile 0 x 5
+	defb 0c7h               ; tile 3 x 7
+	defb 088h               ; tile 2 x 8
+	defb 006h               ; tile 0 x 6
+	defb 086h               ; tile 2 x 6
+	defb 005h               ; tile 0 x 5
+	defb 0c7h               ; tile 3 x 7
+	defb 088h               ; tile 2 x 8
+	defb 010h               ; tile 0 x 16
+	defb 0c8h               ; tile 3 x 8
+	defb 088h               ; tile 2 x 8
+	defb 010h               ; tile 0 x 16
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 010h               ; tile 0 x 16
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 010h               ; tile 0 x 16
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 016h               ; tile 0 x 22
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 016h               ; tile 0 x 22
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 016h               ; tile 0 x 22
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 010h               ; tile 0 x 16
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 010h               ; tile 0 x 16
+	defb 086h               ; tile 2 x 6
+	defb 0c2h               ; tile 3 x 2
+	defb 002h               ; tile 0 x 2
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c6h               ; tile 3 x 6
+	defb 01ah               ; tile 0 x 26
+	defb 0c8h               ; tile 3 x 8
+	defb 096h               ; tile 2 x 22
+	defb 002h               ; tile 0 x 2
+	defb 0c8h               ; tile 3 x 8
+	defb 096h               ; tile 2 x 22
+	defb 002h               ; tile 0 x 2
+	defb 0c4h               ; tile 3 x 4
+	defb 01dh               ; tile 0 x 29
+	defb 0c3h               ; tile 3 x 3
+	defb 01dh               ; tile 0 x 29
+	defb 0c3h               ; tile 3 x 3
+	defb 01dh               ; tile 0 x 29
+	defb 0ffh               ; tile 3 x 63
+	defb 0c4h               ; tile 3 x 4
+	defb 000h               ; end

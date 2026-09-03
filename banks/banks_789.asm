@@ -15,17 +15,28 @@ pal_list:
 	defb 008h, 009h, 00ah, 00bh, 00ch, 00fh, 006h, 008h
 	defb 00ch, 00fh, 000h, 000h, 000h, 000h
 blit_recs:                          ; 0x602A  blit_common; last dest-hi + 0xFF overlap e241_tbl[0]
-	BLIT 000h, 058h, 006h, pat_621c
-	BLIT 00ah, 05eh, 01ch, pat_624c
-	BLIT 012h, 07ah, 006h, pat_640c
-	BLIT 01ah, 080h, 00bh, pat_646c
-	BLIT 024h, 08bh, 004h, pat_6974
-	BLIT 012h, 095h, 003h, pat_656c
-	BLIT 013h, 098h, 003h, pat_656c
-	BLIT 024h, 09bh, 023h, pat_659c
-	BLIT 024h, 0beh, 006h, pat_68e4
-	BLIT 025h, 0c4h, 006h, pat_68e4
-	BLIT 025h, 08fh, 004h, pat_6974
+	defb 000h, 058h, 006h
+	defw pat_621c
+	defb 00ah, 05eh, 01ch
+	defw pat_624c
+	defb 012h, 07ah, 006h
+	defw pat_640c
+	defb 01ah, 080h, 00bh
+	defw pat_646c
+	defb 024h, 08bh, 004h
+	defw pat_6974
+	defb 012h, 095h, 003h
+	defw pat_656c
+	defb 013h, 098h, 003h
+	defw pat_656c
+	defb 024h, 09bh, 023h
+	defw pat_659c
+	defb 024h, 0beh, 006h
+	defw pat_68e4
+	defb 025h, 0c4h, 006h
+	defw pat_68e4
+	defb 025h, 08fh, 004h
+	defw pat_6974
 	defb 024h, 0cah, 004h, 0d4h  ; dest pat_69d4; dest-hi + 0xFF overlap e241_tbl[0]
 e241_tbl:
 	defw 0ff69h, 06073h, 0607fh, 06089h, 06091h, 0609fh, 060a7h, pal_idx_60ad
@@ -56,32 +67,47 @@ pal_901e:
 pal_9026:
 	defb 000h, 002h, 003h, 004h, 001h, 00bh, 000h, 000h
 blit_902e:                          ; 0x902E
-	BLIT 004h, 001h, 03fh, pat_9d27
-	BLIT 004h, 040h, 011h, pat_a30f
-	BLIT 00ch, 051h, 03eh, pat_a4a7
-	BLIT 00ch, 08fh, 040h, pat_aa77
-	BLIT_END
+	defb 004h, 001h, 03fh
+	defw pat_9d27
+	defb 004h, 040h, 011h
+	defw pat_a30f
+	defb 00ch, 051h, 03eh
+	defw pat_a4a7
+	defb 00ch, 08fh, 040h
+	defw pat_aa77
+	defb 0ffh               ; end
 blit_9043:                          ; 0x9043
-	BLIT 004h, 001h, 03fh, pat_9d27
-	BLIT 004h, 040h, 011h, pat_a30f
-	BLIT 014h, 058h, 03fh, pat_907f
-	BLIT 014h, 097h, 019h, pat_9667
-	BLIT_END
+	defb 004h, 001h, 03fh
+	defw pat_9d27
+	defb 004h, 040h, 011h
+	defw pat_a30f
+	defb 014h, 058h, 03fh
+	defw pat_907f
+	defb 014h, 097h, 019h
+	defw pat_9667
+	defb 0ffh               ; end
 blit_9058:                          ; 0x9058  unreferenced; same recs as blit_9074
-	BLIT 014h, 058h, 03fh, pat_907f
-	BLIT 014h, 097h, 019h, pat_9667
-	BLIT_END
+	defb 014h, 058h, 03fh
+	defw pat_907f
+	defb 014h, 097h, 019h
+	defw pat_9667
+	defb 0ffh               ; end
 blit_9063:                          ; 0x9063
-	BLIT 024h, 001h, 035h, pat_982f
-	BLIT_END
+	defb 024h, 001h, 035h
+	defw pat_982f
+	defb 0ffh               ; end
 blit_9069:                          ; 0x9069
-	BLIT 01ch, 001h, 03fh, pat_b077
-	BLIT 01ch, 040h, 00fh, pat_b65f
-	BLIT_END
+	defb 01ch, 001h, 03fh
+	defw pat_b077
+	defb 01ch, 040h, 00fh
+	defw pat_b65f
+	defb 0ffh               ; end
 blit_9074:                          ; 0x9074
-	BLIT 014h, 058h, 03fh, pat_907f
-	BLIT 014h, 097h, 019h, pat_9667
-	BLIT_END
+	defb 014h, 058h, 03fh
+	defw pat_907f
+	defb 014h, 097h, 019h
+	defw pat_9667
+	defb 0ffh               ; end
 	INCLUDE "banks/data/dest08b.asm"
 ; --- bank 09 @ 0xA000 ---
 	INCLUDE "banks/data/dest09.asm"
@@ -91,22 +117,37 @@ b7d1_pal:
 	defb 001h, 009h, 001h, 008h, 001h, 008h, 009h, 00ah
 	defb 001h, 007h, 001h, 007h, 002h, 004h
 b7df_blit:                          ; 0xB7DF
-	BLIT 000h, 001h, 001h, pat_b82b
-	BLIT 000h, 002h, 001h, pat_b833
-	BLIT 001h, 003h, 001h, pat_b833
-	BLIT 008h, 004h, 001h, pat_b83b
-	BLIT 008h, 005h, 001h, pat_b843
-	BLIT 009h, 006h, 001h, pat_b843
-	BLIT 012h, 007h, 007h, pat_b84b
-	BLIT 012h, 00eh, 005h, pat_b8bb
-	BLIT 013h, 013h, 005h, pat_b8bb
-	BLIT 018h, 018h, 002h, pat_b90b
-	BLIT 018h, 01ah, 002h, pat_b91b
-	BLIT 019h, 01ch, 002h, pat_b91b
-	BLIT 022h, 01eh, 025h, pat_b92b
-	BLIT 022h, 043h, 001h, pat_bb7b
-	BLIT 023h, 044h, 001h, pat_bb7b
-	BLIT_END
+	defb 000h, 001h, 001h
+	defw pat_b82b
+	defb 000h, 002h, 001h
+	defw pat_b833
+	defb 001h, 003h, 001h
+	defw pat_b833
+	defb 008h, 004h, 001h
+	defw pat_b83b
+	defb 008h, 005h, 001h
+	defw pat_b843
+	defb 009h, 006h, 001h
+	defw pat_b843
+	defb 012h, 007h, 007h
+	defw pat_b84b
+	defb 012h, 00eh, 005h
+	defw pat_b8bb
+	defb 013h, 013h, 005h
+	defw pat_b8bb
+	defb 018h, 018h, 002h
+	defw pat_b90b
+	defb 018h, 01ah, 002h
+	defw pat_b91b
+	defb 019h, 01ch, 002h
+	defw pat_b91b
+	defb 022h, 01eh, 025h
+	defw pat_b92b
+	defb 022h, 043h, 001h
+	defw pat_bb7b
+	defb 023h, 044h, 001h
+	defw pat_bb7b
+	defb 0ffh               ; end
 	INCLUDE "banks/data/dest09b.asm"
 bb8b_pal:
 	defb 000h, 000h, 000h, 001h, 070h, 003h, 002h, 060h

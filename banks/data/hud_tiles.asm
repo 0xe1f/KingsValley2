@@ -1,5 +1,5 @@
 ; E500 SAT pattern-id table (ix+11 index into 0xBECF), then RLE @ 0xBF29
-; (sub_4e54h → F800) and HUD copy_tiles 1bpp at 0xBF36 / 0xBFC6.
+; (rle_vram → F800) and HUD copy_tiles 1bpp at 0xBF36 / 0xBFC6.
 
 sat_pat:                            ; 0xBECF  90 bytes
 	defb 058h, 048h, 04ch, 050h, 054h, 05ch, 060h, 064h, 070h, 068h
@@ -11,7 +11,7 @@ sat_pat:                            ; 0xBECF  90 bytes
 	defb 0c0h, 0c4h, 0c8h, 0cch, 0d0h, 0d4h, 0d8h, 0dch, 0d0h, 0d4h
 	defb 0d8h, 0dch, 0f0h, 0f4h, 0f8h, 0fch, 000h, 000h, 0e0h, 0e4h
 	defb 0e8h, 0ech, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-rle_bf29:                           ; 0xBF29 Konami RLE → F800
+rle_bf29:                           ; 0xBF29 Konami RLE → F800 (HUD SAT)
 	defb 004h, 003h, 00ch, 000h, 004h, 0c0h, 00ch, 000h, 003h, 00eh, 01dh, 000h, 000h
 hud_bf36:                           ; 0xBF36  18 tiles C=0x8B → VRAM 0838h
 ; BF36

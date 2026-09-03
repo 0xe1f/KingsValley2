@@ -1,7 +1,7 @@
-; world-map copy_tiles 1bpp (bank 0C). tiles_wmap / sub_5bebh after
+; world-map copy_tiles 1bpp (bank 0C). tiles_wmap / wmap_font after
 ; page_banks_abc; dest VRAM 0x8030 / 0xB838 / 0x0038. Colour C
 ; is 0x0A (play) / 0x0C / 0x0B (editor). 42 tiles 0xAA29–0xAB79
-; (0–9, extras, A–Z); 5 marks at 0xAB79; 4bpp pair at 0xABC1 (l51bbh).
+; (0–9, extras, A–Z); 5 marks at 0xAB79; 4bpp pair at 0xABC1 (copy_4bpp).
 
 ; 42 × 8×8 1bpp (copy_tiles B=0x29 or 0x2A)
 wmap_aa29:                        ; AA29
@@ -437,7 +437,7 @@ wmap_aba1:
 	defb 091h, 081h, 081h, 081h, 081h, 081h, 061h, 011h
 	defb 051h, 051h, 051h, 0f7h, 0f1h, 0f1h, 0f1h, 0f1h
 
-; 0xABC1: two 8×8 4bpp tiles (l51bbh B=2 → VRAM 0x9870)
+; 0xABC1: two 8×8 4bpp tiles (copy_4bpp B=2 → VRAM 0x9870)
 wmap_abc1:
 	defb 000h, 000h, 000h, 0f0h, 00fh, 0ffh, 0ffh, 0afh
 	defb 0f7h, 071h, 071h, 0afh, 0f7h, 071h, 071h, 0afh

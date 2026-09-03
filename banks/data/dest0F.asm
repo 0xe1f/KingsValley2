@@ -1,6 +1,6 @@
 ; bank 0F blit dest planes (blit_recs / blit_list). Japanese title glyphs
 ; (王家の谷II / エルギザの封印). Size = count × 8 × (1+((flags&7)>>1)).
-; flags=04h → 24 bytes/tile. Packed 0xB12B–0xB8DB; stamp_b8db follows
+; flags=04h → 24 bytes/tile. Packed 0xB12B–0xB8DB; stamp_logo_jp follows
 ; in ui_tail.asm.
 
 pat_b12b:                          ; 0xB12B  blit_recs  64×24

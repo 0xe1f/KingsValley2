@@ -44,179 +44,179 @@ obj2_ptr:
 	INCLUDE "banks/data/overlays.asm"
 	INCLUDE "banks/data/wmap.asm"
 ; 0xAC01–0xAF37 print_stream (password / per-world / ending+credits).
-; Ending font reads stored letters as +4 (`=`→A, `?`→C, `{`→`.`).
+; Ending / world-map font is TEXT4 (displayed ASCII, stored ch-4).
 ; world_txt has five defw. Completing world 6 still does print_world with
-; index 5: that word is str_w1's TEXT_AT 20h,90h (= ptr 0x9020), inside
+; index 5: that word is str_w1's D,E 20h,90h (= ptr 0x9020), inside
 ; bank 0B map stream 0x8EA8 — not a TEXT island (ends at 0xFF @ 0x905E).
 str_pwd_best:                     ; 0xAC01  password card (normal font)
-	TEXT_AT 048h, 020h
+	defb 048h, 020h         ; D,E
 	TEXT "do your best ;;"
-	TEXT_END
+	defb 0ffh               ; end
 world_txt:                        ; 0xAC13  E241-1 → print_stream (print_world)
 	defw str_w1, str_w2, str_w3, str_w4, str_w5
 str_w1:                           ; 0xAC1D  world 1; AT is world_txt[5]
-	TEXT_AT 020h, 090h
-	TEXT "dkh` kqp;;"             ; hold out??
-	TEXT_END
+	defb 020h, 090h         ; D,E
+	TEXT4 "hold out??"
+	defb 0ffh               ; end
 str_w2:                           ; 0xAC2A  world 2
-	TEXT_AT 020h, 088h
-	TEXT "pnu pk p=ga"            ; try to tAke
-	TEXT_NEXT 020h, 098h
-	TEXT "= jas opal"             ; A new step
-	TEXT_NEXT 020h, 0a8h
-	TEXT "bkns=n`"                ; forwArd
-	TEXT_END
+	defb 020h, 088h         ; D,E
+	TEXT4 "try to tAke"
+	defb 0feh, 020h, 098h   ; next D,E
+	TEXT4 "A new step"
+	defb 0feh, 020h, 0a8h   ; next D,E
+	TEXT4 "forwArd"
+	defb 0ffh               ; end
 str_w3:                           ; 0xAC4F  world 3
-	TEXT_AT 018h, 080h
-	TEXT "da=raj gjkso"           ; heAven knows
-	TEXT_NEXT 030h, 090h
-	TEXT "sdaj"                   ; when
-	TEXT_NEXT 020h, 0a0h
-	TEXT "pdeo c=ia"              ; this gAme
-	TEXT_NEXT 030h, 0b0h
-	TEXT "sehh aj`"               ; will end
-	TEXT_END
+	defb 018h, 080h         ; D,E
+	TEXT4 "heAven knows"
+	defb 0feh, 030h, 090h   ; next D,E
+	TEXT4 "when"
+	defb 0feh, 020h, 0a0h   ; next D,E
+	TEXT4 "this gAme"
+	defb 0feh, 030h, 0b0h   ; next D,E
+	TEXT4 "will end"
+	defb 0ffh               ; end
 str_w4:                           ; 0xAC7C  world 4
-	TEXT_AT 012h, 088h
-	TEXT "kd; iu ck`;"            ; oh? my god?
-	TEXT_NEXT 020h, 098h
-	TEXT "e >aheara"              ; i Believe
-	TEXT_NEXT 040h, 0a8h
-	TEXT "ej ck`"                 ; in god
-	TEXT_END
+	defb 012h, 088h         ; D,E
+	TEXT4 "oh? my god?"
+	defb 0feh, 020h, 098h   ; next D,E
+	TEXT4 "i Believe"
+	defb 0feh, 040h, 0a8h   ; next D,E
+	TEXT4 "in god"
+	defb 0ffh               ; end
 str_w5:                           ; 0xAC9F  world 5
-	TEXT_AT 018h, 088h
-	TEXT "=p hkjc h=op"           ; At long lAst
-	TEXT_NEXT 030h, 098h
-	TEXT "bej=h"                  ; finAl
-	TEXT_NEXT 020h, 0a8h
-	TEXT "?kqjp `ksj"             ; Count down
-	TEXT_END
+	defb 018h, 088h         ; D,E
+	TEXT4 "At long lAst"
+	defb 0feh, 030h, 098h   ; next D,E
+	TEXT4 "finAl"
+	defb 0feh, 020h, 0a8h   ; next D,E
+	TEXT4 "Count down"
+	defb 0ffh               ; end
 str_end_boot:                     ; 0xACC3  end_boot
-	TEXT_AT 048h, 048h
-	TEXT "?kjcn=pqh=pekjo"        ; CongrAtulAtions
-	TEXT_NEXT 040h, 058h
-	TEXT "pk re?g tz{ ;"          ; to viCk …
-	TEXT_NEXT 048h, 068h
-	TEXT "ukq danke?=hhu"         ; you heroiCAlly
-	TEXT_NEXT 040h, 078h
-	TEXT "qjoa=ha` =hh pda"       ; unseAled All the
-	TEXT_NEXT 040h, 088h
-	TEXT "hk?gow"                 ; loCks.
-	TEXT_END
+	defb 048h, 048h         ; D,E
+	TEXT4 "CongrAtulAtions"
+	defb 0feh, 040h, 058h   ; next D,E
+	TEXT4 "to viCk x~| ?"
+	defb 0feh, 048h, 068h   ; next D,E
+	TEXT4 "you heroiCAlly"
+	defb 0feh, 040h, 078h   ; next D,E
+	TEXT4 "unseAled All the"
+	defb 0feh, 040h, 088h   ; next D,E
+	TEXT4 "loCks."
+	defb 0ffh               ; end
 str_end_txt2:                     ; 0xAD12  end_txt2
-	TEXT_AT 028h, 080h
-	TEXT "=hh ukq d=ra pk `k jks" ; All you hAve to do now
-	TEXT_NEXT 028h, 090h
-	TEXT "eo pqnj kbb pda ose?d"  ; is turn off the swiCh
-	TEXT_NEXT 028h, 0a0h
-	TEXT "pk o=ra pda sknh`w"     ; to sAve the world.
-	TEXT_END
+	defb 028h, 080h         ; D,E
+	TEXT4 "All you hAve to do now"
+	defb 0feh, 028h, 090h   ; next D,E
+	TEXT4 "is turn off the swiCh"
+	defb 0feh, 028h, 0a0h   ; next D,E
+	TEXT4 "to sAve the world."
+	defb 0ffh               ; end
 str_end_key:                      ; 0xAD58  end_txt3
-	TEXT_AT 048h, 0a0h
-	TEXT "lqod ol=?a gau"         ; push spACe key
-	TEXT_END
+	defb 048h, 0a0h         ; D,E
+	TEXT4 "push spACe key"
+	defb 0ffh               ; end
 str_end_danger:                   ; 0xAD69
-	TEXT_AT 060h, 0a0h
-	TEXT "`=jcan ;;;"             ; dAnger ???
-	TEXT_END
+	defb 060h, 0a0h         ; D,E
+	TEXT4 "dAnger ???"
+	defb 0ffh               ; end
 ad76_tbl:                         ; 0xAD76  end_print_i / EDCF → credit page
 	defw str_staff, str_program, str_sound, str_graphic, str_title
 	defw str_gamedes, str_thanks, str_presented, str_the_end
 str_the_end:                      ; 0xAD88  credit[8]
-	TEXT_AT 060h, 048h
-	TEXT "pda aj`"                ; the end
-	TEXT_END
+	defb 060h, 048h         ; D,E
+	TEXT4 "the end"
+	defb 0ffh               ; end
 str_staff:                        ; 0xAD92  credit[0]
-	TEXT_AT 068h, 048h
-	TEXT "op=bb"                  ; stAff
-	TEXT_END
+	defb 068h, 048h         ; D,E
+	TEXT4 "stAff"
+	defb 0ffh               ; end
 str_program:                      ; 0xAD9A  credit[1]
-	TEXT_AT 040h, 030h
-	TEXT "lnkcn=i"                ; progrAm
-	TEXT_NEXT 070h, 050h
-	TEXT "ew=g=`="                ; i.AkAdA
-	TEXT_NEXT 070h, 060h
-	TEXT "gwj=c=a"                ; k.nAgAe
-	TEXT_NEXT 070h, 070h
-	TEXT "pwkg="                  ; t.okA
-	TEXT_NEXT 070h, 080h
-	TEXT "pwkpoqg="               ; t.otsukA
-	TEXT_END
+	defb 040h, 030h         ; D,E
+	TEXT4 "progrAm"
+	defb 0feh, 070h, 050h   ; next D,E
+	TEXT4 "i.AkAdA"
+	defb 0feh, 070h, 060h   ; next D,E
+	TEXT4 "k.nAgAe"
+	defb 0feh, 070h, 070h   ; next D,E
+	TEXT4 "t.okA"
+	defb 0feh, 070h, 080h   ; next D,E
+	TEXT4 "t.otsukA"
+	defb 0ffh               ; end
 str_graphic:                      ; 0xADCB  credit[3]
-	TEXT_AT 040h, 030h
-	TEXT "cn=lde?"                ; grAphiC
-	TEXT_NEXT 070h, 050h
-	TEXT "dwi=gep=je"             ; h.mAkitAni
-	TEXT_NEXT 070h, 060h
-	TEXT "iwp=>=p="               ; m.tABAtA
-	TEXT_NEXT 070h, 070h
-	TEXT "owqajk"                 ; s.ueno
-	TEXT_NEXT 070h, 080h
-	TEXT "owes=ikpk"              ; s.iwAmoto
-	TEXT_END
+	defb 040h, 030h         ; D,E
+	TEXT4 "grAphiC"
+	defb 0feh, 070h, 050h   ; next D,E
+	TEXT4 "h.mAkitAni"
+	defb 0feh, 070h, 060h   ; next D,E
+	TEXT4 "m.tABAtA"
+	defb 0feh, 070h, 070h   ; next D,E
+	TEXT4 "s.ueno"
+	defb 0feh, 070h, 080h   ; next D,E
+	TEXT4 "s.iwAmoto"
+	defb 0ffh               ; end
 str_sound:                        ; 0xAE02  credit[2]
-	TEXT_AT 040h, 030h
-	TEXT "okqj`"                  ; sound
-	TEXT_NEXT 070h, 050h
-	TEXT "gwqad=n="               ; k.uehArA
-	TEXT_NEXT 070h, 060h
-	TEXT "iweg=negk"              ; m.ikAriko
-	TEXT_NEXT 070h, 070h
-	TEXT "uwi=jjk"                ; y.mAnno
-	TEXT_NEXT 070h, 080h
-	TEXT "pwbqnqg=s="             ; t.furukAwA
-	TEXT_NEXT 070h, 090h
-	TEXT "gwu=i=odep="            ; k.yAmAshitA
-	TEXT_END
+	defb 040h, 030h         ; D,E
+	TEXT4 "sound"
+	defb 0feh, 070h, 050h   ; next D,E
+	TEXT4 "k.uehArA"
+	defb 0feh, 070h, 060h   ; next D,E
+	TEXT4 "m.ikAriko"
+	defb 0feh, 070h, 070h   ; next D,E
+	TEXT4 "y.mAnno"
+	defb 0feh, 070h, 080h   ; next D,E
+	TEXT4 "t.furukAwA"
+	defb 0feh, 070h, 090h   ; next D,E
+	TEXT4 "k.yAmAshitA"
+	defb 0ffh               ; end
 str_title:                        ; 0xAE46  credit[4]
-	TEXT_AT 040h, 030h
-	TEXT "pepha `aoecj"           ; title design
-	TEXT_NEXT 070h, 050h
-	TEXT "jwo=pk"                 ; n.sAto
-	TEXT_END
+	defb 040h, 030h         ; D,E
+	TEXT4 "title design"
+	defb 0feh, 070h, 050h   ; next D,E
+	TEXT4 "n.sAto"
+	defb 0ffh               ; end
 str_gamedes:                      ; 0xAE5E  credit[5]
-	TEXT_AT 040h, 030h
-	TEXT "c=ia `aoecj"            ; gAme design
-	TEXT_NEXT 070h, 050h
-	TEXT "owes=ikpk"              ; s.iwAmoto
-	TEXT_END
+	defb 040h, 030h         ; D,E
+	TEXT4 "gAme design"
+	defb 0feh, 070h, 050h   ; next D,E
+	TEXT4 "s.iwAmoto"
+	defb 0ffh               ; end
 str_thanks:                       ; 0xAE78  credit[6]
-	TEXT_AT 040h, 030h
-	TEXT "ola?e=h pd=jgo"         ; speCiAl thAnks
-	TEXT_NEXT 070h, 050h
-	TEXT "d=h"                    ; hAl
-	TEXT_NEXT 070h, 060h
-	TEXT "egq"                    ; iku
-	TEXT_NEXT 070h, 070h
-	TEXT "o=hp"                   ; sAlt
-	TEXT_NEXT 070h, 080h
-	TEXT "pan="                   ; terA
-	TEXT_NEXT 070h, 090h
-	TEXT "nkki  1008"             ; room  1008
-	TEXT_NEXT 070h, 0a0h
-	TEXT "nkki  1013"             ; room  1013
-	TEXT_NEXT 070h, 0b0h
-	TEXT "n?727"                  ; rC727
-	TEXT_END
+	defb 040h, 030h         ; D,E
+	TEXT4 "speCiAl thAnks"
+	defb 0feh, 070h, 050h   ; next D,E
+	TEXT4 "hAl"
+	defb 0feh, 070h, 060h   ; next D,E
+	TEXT4 "iku"
+	defb 0feh, 070h, 070h   ; next D,E
+	TEXT4 "sAlt"
+	defb 0feh, 070h, 080h   ; next D,E
+	TEXT4 "terA"
+	defb 0feh, 070h, 090h   ; next D,E
+	TEXT4 "room  1008"
+	defb 0feh, 070h, 0a0h   ; next D,E
+	TEXT4 "room  1013"
+	defb 0feh, 070h, 0b0h   ; next D,E
+	TEXT4 "rC727"
+	defb 0ffh               ; end
 str_presented:                    ; 0xAEC5  credit[7]
-	TEXT_AT 050h, 040h
-	TEXT "lnaoajpa` >u"           ; presented By
-	TEXT_NEXT 068h, 050h
-	TEXT "gkj=ie"                 ; konAmi
-	TEXT_END
+	defb 050h, 040h         ; D,E
+	TEXT4 "presented By"
+	defb 0feh, 068h, 050h   ; next D,E
+	TEXT4 "konAmi"
+	defb 0ffh               ; end
 str_end_txt5:                     ; 0xAEDD  end walk text
-	TEXT_AT 030h, 030h
-	TEXT "pd=jgo pk ukqn ?kqn=ca" ; thAnks to your CourAge
-	TEXT_NEXT 010h, 050h
-	TEXT "pda sknh` d=o >aaj o=ra` ;;" ; the world hAs Been sAved ??
-	TEXT_NEXT 058h, 070h
-	TEXT "sahh `kjaw"             ; well done.
-	TEXT_END
+	defb 030h, 030h         ; D,E
+	TEXT4 "thAnks to your CourAge"
+	defb 0feh, 010h, 050h   ; next D,E
+	TEXT4 "the world hAs Been sAved ??"
+	defb 0feh, 058h, 070h   ; next D,E
+	TEXT4 "well done."
+	defb 0ffh               ; end
 str_end_congrats:                 ; 0xAF21  end_page header
-	TEXT_AT 038h, 010h
-	TEXT "?kjcn=pqh=pekjo ;;;"    ; CongrAtulAtions ???
-	TEXT_END
+	defb 038h, 010h         ; D,E
+	TEXT4 "CongrAtulAtions ???"
+	defb 0ffh               ; end
 end_stamp_tbl:                    ; 0xAF37  end_stamp: 9 × X,Y,pat (EDCE)
 	defb 058h, 0a0h, 0e1h
 	defb 060h, 0a0h, 0e8h
@@ -231,66 +231,66 @@ disk_err_tbl:                     ; 0xAF52  C=0..6 → print_stream; then str_di
 	defw str_disk_io, str_nofile, str_disk_full, str_not_ready
 	defw str_wr_prot, str_too_manny, str_datatype
 str_disk_err:                     ; 0xAF60  header under the specific error
-	TEXT_AT 050h, 08ch
+	defb 050h, 08ch         ; D,E
 	TEXT "disk error"
-	TEXT_END
+	defb 0ffh               ; end
 str_disk_io:                      ; 0xAF6D
-	TEXT_AT 048h, 09ch
+	defb 048h, 09ch         ; D,E
 	TEXT "disk io error"
-	TEXT_END
+	defb 0ffh               ; end
 str_nofile:                       ; 0xAF7D  io_nofile
-	TEXT_AT 048h, 09ch
+	defb 048h, 09ch         ; D,E
 	TEXT "file not found"
-	TEXT_END
+	defb 0ffh               ; end
 str_disk_full:                    ; 0xAF8E
-	TEXT_AT 058h, 09ch
+	defb 058h, 09ch         ; D,E
 	TEXT "disk full"
-	TEXT_END
+	defb 0ffh               ; end
 str_not_ready:                    ; 0xAF9A
-	TEXT_AT 040h, 09ch
+	defb 040h, 09ch         ; D,E
 	TEXT "disk not ready"
-	TEXT_END
+	defb 0ffh               ; end
 str_wr_prot:                      ; 0xAFAB
-	TEXT_AT 048h, 09ch
+	defb 048h, 09ch         ; D,E
 	TEXT "write protect"
-	TEXT_END
+	defb 0ffh               ; end
 str_too_manny:                    ; 0xAFBB  ROM spelling
-	TEXT_AT 048h, 09ch
+	defb 048h, 09ch         ; D,E
 	TEXT "too manny files"
-	TEXT_END
+	defb 0ffh               ; end
 str_datatype:                     ; 0xAFCD
-	TEXT_AT 048h, 09ch
+	defb 048h, 09ch         ; D,E
 	TEXT "datatypeerror"
-	TEXT_END
+	defb 0ffh               ; end
 	INCLUDE "banks/data/tiles0C.asm"
 str_start_sel:                    ; 0xB185  file_menu (E24B 0..2)
-	TEXT_AT 040h, 040h
+	defb 040h, 040h         ; D,E
 	TEXT "start  select"
-	TEXT_NEXT 080h, 050h
+	defb 0feh, 080h, 050h   ; next D,E
 	TEXT "normal"
-	TEXT_NEXT 080h, 060h
+	defb 0feh, 080h, 060h   ; next D,E
 	TEXT "password"
-	TEXT_NEXT 080h, 070h
+	defb 0feh, 080h, 070h   ; next D,E
 	TEXT "stage load"
-	TEXT_END
+	defb 0ffh               ; end
 	INCLUDE "banks/data/file_pat.asm"
 	INCLUDE "banks/data/ef10_spr.asm"
 str_clear_card:                   ; 0xB256  clear_card (stage-clear)
-	TEXT_AT 068h, 020h
+	defb 068h, 020h         ; D,E
 	TEXT "nice ;"
-	TEXT_NEXT 038h, 030h
+	defb 0feh, 038h, 030h   ; next D,E
 	TEXT "lets go next stage"
-	TEXT_NEXT 048h, 050h
+	defb 0feh, 048h, 050h   ; next D,E
 	TEXT "special bonus"
-	TEXT_END
+	defb 0ffh               ; end
 str_secret_cmd:                   ; 0xB284  title GAME + SNSMAT bit 5
-	TEXT_AT 048h, 040h
+	defb 048h, 040h         ; D,E
 	TEXT "secret command"
-	TEXT_NEXT 060h, 058h
+	defb 0feh, 060h, 058h   ; next D,E
 	TEXT "f}}t}}}l"               ; `{` underline
-	TEXT_NEXT 060h, 068h
+	defb 0feh, 060h, 068h   ; next D,E
 	TEXT "}}y}}}}}"
-	TEXT_END
+	defb 0ffh               ; end
 	ds 341, 0ffh                  ; 0xB2AB–0xB400 pad
 load_ef10:                        ; 0xB400  ef10_tbl[level] -> EF10 (type, 0, screen/X/Y)
 	ld hl,ef10_tbl
@@ -369,7 +369,7 @@ ef10_clear:                       ; 0xB46C
 	ret nz
 	call sub_b4c9h
 	ret nc
-	call sfx_2e
+	call sfx_2e                   ; clear
 	ld hl,0ef11h
 	inc (hl)
 	call 096ffh
@@ -513,23 +513,23 @@ data_b548_start:
 	defb 037h, 002h, 002h, 078h, 0c0h  ; 55
 	defb 000h
 lb585h:
-	TEXT_AT 050h, 018h
+	defb 050h, 018h         ; D,E
 	TEXT "sound select"
-	TEXT_NEXT 040h, 0a8h
+	defb 0feh, 040h, 0a8h   ; next D,E
 	TEXT "select ||| space"
-	TEXT_NEXT 058h, 0b8h
+	defb 0feh, 058h, 0b8h   ; next D,E
 	TEXT "end ||| return"
-	TEXT_END
+	defb 0ffh               ; end
 lb5b8h:
-	TEXT_AT 050h, 018h
+	defb 050h, 018h         ; D,E
 	TEXT "puzzle  game"
-	TEXT_END
+	defb 0ffh               ; end
 lb5c7h:
-	TEXT_AT 060h, 090h
+	defb 060h, 090h         ; D,E
 	TEXT "all right"
-	TEXT_NEXT 060h, 0a0h
+	defb 0feh, 060h, 0a0h   ; next D,E
 	TEXT "rest  3 up"
-	TEXT_END
+	defb 0ffh               ; end
 lb5e0h:
 	defb 0e8h
 	defb 0b5h
@@ -761,7 +761,7 @@ disp_b6be_end:
 	call 04e98h
 	call sat_wipe
 	call 056aah
-	call 057cah
+	call copy_pointer
 	ld hl,0ef38h
 	ld (hl),000h
 	dec hl
@@ -1059,11 +1059,11 @@ lb8a3h:
 	call WRTVDP
 	jp sfx_01
 lb8afh:                           ; print_stream: "end  esc key" / "push space key"
-	TEXT_AT 050h, 0a0h
+	defb 050h, 0a0h         ; D,E
 	TEXT "end  esc key"
-	TEXT_NEXT 048h, 090h
+	defb 0feh, 048h, 090h   ; next D,E
 	TEXT "push space key"
-	TEXT_END
+	defb 0ffh               ; end
 sub_b8cfh:
 	ld hl,0e800h
 	ld de,lb913h
@@ -1127,7 +1127,7 @@ snd_sel:                          ; 0xB917  EF10 type 1 "sound select"
 	jr nc,lb981h
 	call 04e98h
 	call 057ach
-	call 057cah
+	call copy_pointer
 	call 0578dh
 	call sat_wipe
 	inc (ix+001h)
@@ -1152,7 +1152,7 @@ lb938h:
 	call WRTVDP
 	jp sfx_01
 lb95ah:
-	call sfx_32
+	call sfx_32                   ; cursor
 	dec (ix+002h)
 	ld a,(ix+002h)
 	rla
@@ -1160,7 +1160,7 @@ lb95ah:
 	ld (ix+002h),012h
 	ret
 lb96ah:
-	call sfx_32
+	call sfx_32                   ; cursor
 	inc (ix+002h)
 	ld a,(ix+002h)
 	cp 013h
@@ -1872,13 +1872,13 @@ sub_be5dh:
 	ldir
 	ret
 lbe67h:                           ; print_stream: "skip"
-	TEXT_AT 048h, 070h
+	defb 048h, 070h         ; D,E
 	TEXT "skip"
-	TEXT_END
+	defb 0ffh               ; end
 lbe6eh:                           ; print_stream: "find"
-	TEXT_AT 048h, 070h
+	defb 048h, 070h         ; D,E
 	TEXT "find"
-	TEXT_END
+	defb 0ffh               ; end
 lbe75h:
 	ld hl,lbe67h
 	call print_stream
@@ -1953,9 +1953,9 @@ lbefch:
 	ld (0e27fh),a
 	ret
 lbf0eh:                           ; print_stream: "load error"
-	TEXT_AT 050h, 060h
+	defb 050h, 060h         ; D,E
 	TEXT "load error"
-	TEXT_END
+	defb 0ffh               ; end
 	exx
 	call 000e4h
 	exx
@@ -2018,9 +2018,9 @@ lbf82h:
 	ld (0e27fh),a
 	ret
 lbf94h:                           ; print_stream: "save error"
-	TEXT_AT 050h, 060h
+	defb 050h, 060h         ; D,E
 	TEXT "save error"
-	TEXT_END
+	defb 0ffh               ; end
 	ld a,(hl)
 	ld e,a
 	inc hl

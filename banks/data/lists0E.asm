@@ -1,6 +1,6 @@
-; bank 0E l5508h / l553dh copy lists, pattern payloads, mode_end titles.
+; bank 0E copy_pat / flip_pat lists, pattern payloads, mode_end titles.
 
-pat_copy:                            ; 0x98C9  l5508h (n*32 bytes, y*8 + F800)
+pat_copy:                            ; 0x98C9  Flouman / Slouman (copy_pat, n*32 → y*8 + F800)
 	defb 004h, 048h
 	defw pat_98f7
 	defb 006h, 068h
@@ -19,7 +19,7 @@ pat_copy:                            ; 0x98C9  l5508h (n*32 bytes, y*8 + F800)
 	defw pat_9cb7
 	defb 000h
 
-pat_flip:                            ; 0x98EA  l553dh (mirror n rows in VRAM)
+pat_flip:                            ; 0x98EA  flip_pat (mirror n rows in VRAM)
 	defb 002h, 004h, 048h, 058h
 	defb 002h, 006h, 080h, 098h
 	defb 002h, 002h, 0c0h, 0c8h
@@ -180,11 +180,11 @@ pat_9cb7:                            ; 0x9CB7  n=4 y=240 (128 bytes)
 end_txt:                             ; 0x9D37  mode_end; EF10 1=music 2=puzzle
 	defw str_music, str_puzzle
 str_music:                           ; 0x9D3B
-	TEXT_AT 050h, 050h
+	defb 050h, 050h         ; D,E
 	TEXT "music stage"
-	TEXT_END
+	defb 0ffh               ; end
 str_puzzle:                          ; 0x9D49
-	TEXT_AT 048h, 050h
+	defb 048h, 050h         ; D,E
 	TEXT "puzzle stage"
-	TEXT_END
+	defb 0ffh               ; end
 

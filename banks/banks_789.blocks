@@ -26,7 +26,7 @@ blit_902e: start 0x902E end 0x907F type bytedata
 ; ===========================================================================
 ;  bank 9 @ 0xA000
 ; ===========================================================================
-; b7c7_idx[0] == b7d1_pal. blit dests 0xB82B–0xBB8B. stamp_bb9b / title tiles.
+; b7c7_idx[0] == b7d1_pal. blit dests 0xB82B–0xBB8B. stamp_bb9b (stamp_logo_konami) / title tiles.
 b7c7_idx:  start 0xB7C7 end 0xB7D1 type worddata
 b7d1_pal:  start 0xB7D1 end 0xB7DF type bytedata
 b7df_blit: start 0xB7DF end 0xB82B type bytedata
