@@ -132,7 +132,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `spr_vram` @ 0x583B, `vic_reload` @ 0x5859, `pat_15` / `col_15` /
   `draw_cols`. Konami RLE is `rle_vram` (0x4E54); STAMP is `stamp` (0x576D);
   Vic SAT is `vic_pat` / `vic_die_rle` / `vic_pause_rle`; thrown knife
-  `knife_rle`; Flouman `copy_pat` / `flip_pat`; pointer SAT `copy_pointer`.
+  `knife_rle`; SAT library `copy_pat` / `flip_pat`; pointer SAT `copy_pointer`.
   Ending `d_735f` is fully named (`end_boot`..`end_done`,
   nine `end_page` cycles). `print_12` / `end_print_i` far-print bank 0C
   streams (`str_end_boot`..`ad76_tbl` credits). `print_world` @ 0x71A5
@@ -143,12 +143,14 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   palette helpers. `print_at` @ 0x51DA. `tbl_word` @ 0x4D4C. VDP CMD
   `vdp_hmmv` / `vdp_lmmv` / `vdp_hmmm` / `vdp_hmmc` (`vdp_ce_wait`).
 - Generic split/graduation workflow: workbench skill `msx-code-data`.
-- `make gfx` (`tools/gfxdump.py`) writes `gfx/palettes/`, `gfx/tilesets/`,
-  `gfx/sprites/`, `gfx/fonts/`, `gfx/metatiles/` from `palette_list` /
-  dest-plane `BLIT` lists (`dest_w1`..`dest_w6`, common / UI) / `copy_tiles`
-  / Vic Konami RLE / Flouman / minimaps, plus `gfx/` composites
-  (`draw_cols` / `STAMP` / `draw_tilemap`) and `glyph_ptr` stamps.
-  Overlay applies explicit
+- `make gfx` (`tools/gfxdump.py` + `tools/pyramid.py`) writes `gfx/palettes/`,
+  `gfx/tilesets/`, `gfx/sprites/`, `gfx/fonts/`, `gfx/metatiles/` from
+  `palette_list` / dest-plane `BLIT` lists (`dest_w1`..`dest_w6`, common / UI)
+  / `copy_tiles` / Vic Konami RLE / Flouman, plus `gfx/` composites
+  (`draw_cols` / `STAMP` / `draw_tilemap` / `pyramid_NN`) and `glyph_ptr`
+  stamps. `pyramid.py` composites (`pyramid_NN`) expand `unpack_map` + `load_obj`
+  onto dest-world tiles with `stamp_wpat` / `stamp_level` under empty cells,
+  plus Vic (unarmed SAT) / exit / E600 / gems / tools. Stream sheets stay terrain-only. Palette overlay applies explicit
   black (pal_a7ce 0F); 1bpp inks are palette indices, not canvas-off.
   World-map font is bank 0C `0xAA29` (not bank 0B). `0xBECF` is SAT pattern
   ids, not sprite planes.
@@ -182,8 +184,8 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   Map tools: `tool_lock` / `knife_probe` / `tool_sat` / `spawn_fill`.
   Actors: `actor_row` / `rock_under` / `trap_punch`.
 
-- `banks_123` has no leftover `sub_*` (1215 auto labels left, 743 in
-  this window). Last cluster: gems/E500 SAT (`gem_draw` / `tick_thrown` /
+- `banks_123` has no leftover `sub_*` or `lXXXXh` (window drops out of
+  `make coverage`). Last cluster: gems/E500 SAT (`gem_draw` / `tick_thrown` /
   `e500_sat_put`), password (`pwd_cheat` / `pwd_decode`), disk/BDOS
   (`disk_find` / `dos_enter`), world tour (`world_step` / `world_path`),
   editor (`edit_cursor` / `io_menu`), thrown-tool probes (`thrown_xy` /
@@ -196,10 +198,78 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `io_menu`, stone idle/push/fall, pickup AABB). `ix14_db` no longer
   swallows `call thrown_edge`. 1195 auto labels left (723 in
   `banks_123`).
+- `banks_abc` has no leftover auto labels (window drops out of
+  `make coverage`). Pyramid FX AABB/stamp (`ef10_jump_hit` /
+  `ef10_stamp`), 5×5 puzzle (`puz_init`..`puz_close`, `puz_gap` /
+  `puz_slide_*`), sound-select SAT (`snd_pointer`), ending sparks
+  (`spark_step` / `spark_vel`), world-tour SAT (`tour_sat` /
+  `tour_vic` / `tour_marks`), tape load/save (`tape_load` /
+  `tape_save` / `tape_read` / `tape_write`). Bank 0 far wrappers
+  `play_frame_far` / `set_world_far` / `room_draw_far`, plus
+  `copy_afdd` / `tilemap_hmmm` / `snd_board` / `snd_blit`. 1108
+  auto labels left (722 in `banks_123`).
+- Pause-map through `end_timer` locals in `banks_123` (~150 autos):
+  door/Vic/gem/screen loops, actor unpack/stamp/draw, E500 wrap/SAT,
+  password nibble/rot/decode, disk catalog (`str_file` / `disk_dir` /
+  `disk_do_load` / `disk_do_save` / `io_probe`), world-tour delta/path,
+  stage-clear walk. Hammer `pick_frame` tables and FCB `"FILE?"` folded
+  to `defb`. Bank 0 `print_lives_at` / `tile_hmmm_at`. 966 auto
+  labels left (572 in `banks_123`).
+- Ending ceremony through editor cursor in `banks_123` (~150 autos):
+  `end_stamp` / `sat_fx` morph, continue-map stick, legend/place/secret/tool/gem
+  loops, `keys_repeat`. Folded `delay_spr` / `floor_tiles` / `erase_w`.
+  Unlabelled entries `stamp_map_at` / `vdp_ymmm` / `edit_actors` /
+  `actor_free` / `secret_redraw` / `edit_stamp0` / `place_sat` /
+  `vic_edit_sat` / `link_build`. Bank 0 `vdp_ymmm` (YMMM). 816 auto
+  labels left (422 in `banks_123`).
+- Cursor wrap through `e300_e500_hit` locals in `banks_123` (~150 autos):
+  door-link / minimap / file I/O (`sram_menu` / `sram_keys` / `name_type`),
+  exit-door / map-tool / Vic SAT / stone / gem / pickup loops. Folded
+  `file_name` `"FILE3   "` and stamp tiles (`gem_pat` / `tool_stamp_pat` /
+  `exit_pat` / `stone_pat` / coffin / pyoncy). Unlabelled entries
+  `name_wipe` / `copy_abb9` / `file_pick_sat` / `e300_front` / `disk_unwind`
+  (`F323` during `dos_dir`). Bank 0 `copy_abb9` (`rle_abb9` → F800). 666
+  auto labels left (272 in `banks_123`).
+- Clash through thrown-ahead locals in `banks_123` (~150 autos): DOS FCB /
+  catalog, Vic walk/jump/climb/fall/die/tools, map knife/boom/shovel/pick/
+  hammer/drill, thrown E500. Folded `e500_cc` SAT bytes and thrown 3×2
+  stamps (`throw_under` / `knife_stamp` / `boom_stamp`). Unlabelled
+  `thrown_stop` / `floor_up`. Bank 0 `play_init` / `add_score`. 515 auto
+  labels left (122 in `banks_123`).
+- Finished `banks_123` autos (window drops out of `make coverage`) plus
+  28 bank 0 locals (~150): thrown-ahead / shovel / pick / coffin / Pyoncy /
+  Rock Roll / trap / secret punch. Unlabelled `thrown_sfx` / `pick_park` /
+  `pick_mark` / `picks_restore` / `picks_mark` / `actor_rows` / `stamp_w2`.
+  Bank 0 H.TIMI debounce through `stamp_map` nibbles. 365 auto labels
+  left (176 in `banks_0`).
+- Bank 0 overlay through screen-present bits (~150 autos): `stamp_overlay` /
+  `map_ladder` (nibble 1), mode dispatcher locals (`goto_stage` /
+  `title_reset` / `mode_input`), score/HUD (`score_xy` / `hud_hide`),
+  VDP expanders (`exp1_copy`..`exp3_vram`), Vic blit (`vic_go`). Folded
+  `ovl_pair`. Unlabelled `vram_pair` / `print_e270`. `load_vic` /
+  `e300_list` wired from `set_world`. 215 auto labels left (26 in
+  `banks_0`).
+- Finished `banks_0` autos (window drops out of `make coverage`) plus
+  124 packed-PSG driver locals in `banks_456` (~150): door wrap/link,
+  HUD `txt_*` streams, `title_meter`. Sound: `ch_load` / `ch_tick` /
+  `op_exec` / `op_jp`, ids 0x80–0x84 (`id_80`..`id_84`), envelope/
+  vibrato/slide. 65 auto labels left (all in `banks_456`).
+- Finished `banks_456` autos (window drops out of `make coverage`):
+  packed-PSG write-out `hw_out` / `psg_out` / `scc_out`, opcodes 0xDE/
+  0xDF (`pri_set` / `dim_off`), AY mixer LUTs `mix_a`..`mix_c`. 0 auto
+  labels left.
+- Opcode / sub-comment pass: confirmed RAM, mapper ports, BIOS, and
+  packed-PSG slot addresses on instruction lines; every `call` target
+  has a comment line above (729 / 729). Opcode comments 8.8%.
+- Asset name sanity: WAV stems from call sites (no more `20_sfx` /
+  four files all named `boom`); `tiles_afdd.png` matches `tiles_afdd`;
+  JP-title dests `dest_title_jp_ext`; SAT library `flouman.png` /
+  `vic_climb.png` / `pyoncy.png` / `rock_roll.png` / `explode.png` (was one
+  `coffin.png` sheet). World-map hallway Vic-back is `vic_back.png`
+  over `stamp_hallway0` / `stamp_hallway1`.
 
 ## Next
 
-1. Opcode / subroutine comment coverage (`make coverage`). Remaining
-   `lXXXXh` in `banks_123`, then `banks_0` locals and `banks_456` /
-   `banks_abc` autos.
+1. More per-opcode comments (`make coverage` — long tail). Autos and
+   sub comments are done.
 

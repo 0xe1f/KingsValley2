@@ -110,7 +110,9 @@ Tool `0xE300` `ix+0` low nibble (`d_a6dd_jp`, 1-based). Packed lists in
 `afb1_tbl` (indexed by level−1, `0xFF` term) place **all six** on the stock
 60 pyramids (458 total: 123 knife, 43 boomerang, 39 shovel, 55 pick,
 43 hammer on 21 pyramids, 155 drill on 42). Pickup (`pickup_tool` @ 0x9A93) copies the
-low nibble to `(0xE287)` and ORs `0xF0` into the slot.
+low nibble to `(0xE287)` and ORs `0xF0` into the slot. The visible stall on
+pickup / throw / pause / death is the blocking VRAM reload inside H.TIMI
+([`docs/pickup-freeze.md`](pickup-freeze.md)).
 
 Fire (`e207` bit 4) with E287 set: `use_tool` @ 0xA045 scans E300 for high
 nibble == 1, then `d_a072` on `(E287)−1`. Vic `(0xE280)` becomes
@@ -169,8 +171,19 @@ ROM addresses for them until a consumer is traced.
   VDP engine: `vdp_ce_wait` / `vdp_status`, `vdp_hmmv` (CMD 70h),
   `vdp_hmmv_hi`, `vdp_lmmv` (C0h), `vdp_hmmm` (D0h), `vdp_hmmc` (F0h),
   `vdp_box`. Title `title_ptr` / `print_ptr` blink game vs edit; `play_clear`
-  zeros `E226` before the stage card.
-  HUD strings at 0x5EF2–0x5F8D (`print_txt`) are that grammar, not code.
+  zeros `E226` before the stage card. `add_score` @ 0x4C20 adds packed BCD
+  in DE to `E226` (gem / clash). `dos_do_load` / `dos_do_save` wrap BDOS
+  with H.TIMI = RET. Thrown tools that fail a step `jp thrown_stop` (0x6608).
+  Same-screen packed-PSG is `thrown_sfx` @ 0xB294 (`jp (hl)`). `load_stage`
+  walks E500 picks with `picks_restore` / `picks_mark` (0xBA3C / 0xBA54).
+  Editor coffin/pyoncy stamps skip the first `stamp_wtiles` at `actor_rows`
+  (0xBB63). `stamp_w2` (0x56DC) is `ld c,2` into `stamp_wtiles`.
+  `stamp_map_at` nibble 1 is `map_ladder` (0x45CB) after a 2-byte `ovl_pair`.
+  `vram_pair` (0x5722) is the MSX1 stone-save RDVRM loop. `print_e270`
+  (0x8A17) is `pwd_print8` without the dest. `score_xy` (0x4CC0) prints
+  E225/E228. `set_world` calls `load_vic` / `e300_list`.
+  HUD `TEXT` islands `txt_hud`..`txt_play` (0x5EF2–0x5F6B); `title_reset`
+  ends at `title_meter` (0x5FB2). Door miss → `link_dead` (E24D).
   `copy_tiles` (0x514C) copies B 8×8 tiles; `draw_tilemap` (0x573B) draws a
   B×C grid of tile ids.
 - `keys_apply` (0x5434) stores A in `0xE208` (held) and the rising bits in
@@ -272,14 +285,20 @@ One window file [`banks/banks_123.asm`](../banks/banks_123.asm) (`page_banks_123
   Shared: `io_dev` / `io_name` / `io_pick` / `io_list`. Cursor SAT
   `io_dev_sat` / `io_yn_sat` / `io_pick_sat` (`sat_col`). `io_set_dev`
   (`F0F8`), `io_do_load` / `io_save`, `io_nofile`, `disk_err` (`0xF323` →
-  `disk_print` / `disk_err_tbl`). Continue editor
+  `disk_print` / `disk_err_tbl`). `dos_dir` points `F323` at `disk_unwind`
+  (0x9797). SRAM catalog is `file_name` `"FILE1".."FILE3"` / `sram_keys` /
+  `file_pick_sat`; `name_wipe` (0x7969) fills E270 with spaces. Continue editor
   `cont_boot`..`cont_esc`; nested `edit_hud` / `edit_kind` / `edit_sub` /
   `edit_scr` / `edit_put` / `edit_yn` (`E260` = `print_legend`). `edit_put`
   `d_7e6c`: `put_floor1` / `put_floor2` / `put_ladder` / `put_player` /
   `put_enemy` (E2C0 delayed 1–4) / `put_trap` (E600 / secret) / `put_tool`
-  (E300) / `put_gem` (E700) / `put_exit` (E2F1). `draw_minimap` @ 0x886A
+  (E300) / `put_gem` (E700) / `put_exit` (E2F1). `keys_repeat` @ 0x86DD
+  (E21C hold timer, mode 0x0B). `link_build` rebuilds ED80..EDB0 from E788.
+  `draw_minimap` @ 0x886A
   (A indexes bank 0D `bb38_tbl`). Not in `msx.sym` (0x8000
-  window). `F0F8` is tape/disk/sram. `vic_tick` @ 0x9EC4 / `vic_walk` @ 0x9EEE /
+  window). `F0F8` is tape/disk/sram; `io_probe` fills `F0F9` (PHYDIO /
+  disk ROM). Disk catalog is `disk_dir` (`str_file` `"FILE?"`); I/O is
+  `disk_do_load` / `disk_do_save` with H.TIMI stashed. `vic_tick` @ 0x9EC4 / `vic_walk` @ 0x9EEE /
   `vic_e500_overlap` @ 0x9AB1. `tick_stone` @ 0x93F3 (E600 type 5).
 - Bank 03 starts `ld a,3 / ld (0xE280),a / jp sfx_3c` (`vic_fall`).
   `vic_begin_jump` @ 0xA008, `vic_jump` @ 0xA190, `vic_climb` @ 0xA20F,
@@ -312,7 +331,13 @@ SET bit (bit 7 first). Flags bits 7..0 → channel slots E000, E033, E066,
 E099, E0CC, E0FF, E132, E165. Header length is `2 + 2×popcount(flags)`
 (4 / 6 / 14 / 18); the 18-byte copy window may overlap the next header.
 Channel ptrs continue into banks 05–06 (`ch_*` labels, same window).
-Ids 0x80–0x84 are special-cased. SCC enable `ld a,3Fh / ld (9000h),a`;
+Ids 0x80–0x84 are special-cased (`id_80` restore / `id_81` stash /
+`id_82` mute / `id_83`/`id_84` fade). `ch_tick` walks the eight 0x33-byte
+slots; `op_exec` dispatches stream bytes 0xD0+ (`op_jp` for 0xE0+).
+`hw_out` (`psg_out` / `scc_out`) writes AY R#0-13 and SCC 9880-988F
+after `ch_tick`; `wav_copy` is 32 bytes to 9800+n*0x20. `pri_set` /
+`dim_off` are opcodes 0xDE / 0xDF.
+SCC enable `ld a,3Fh / ld (9000h),a`;
 opcode loads `wave_ptr` (0x7210, 72 words) and copies 32 bytes to
 `9800` + n*0x20. Unique waves `wave_72a0`..`wave_7680`; many index slots
 point at `env_0`. Envelope tables `env_0`..`env_5` (`gem_tiles`); channel
@@ -373,6 +398,11 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
   (`unpack_map` / `load_obj` / `load_obj2`). `unpack_map` byte = `(tile<<6)|count`
   (count in bits 0–5, tile in 6–7; `0` ends). Dest `0xE900` packs four 2-bit
   cells/byte; pyramid size is 1/2/3/4/6 screens × 0xC0 bytes (768 tiles/screen).
+  `make gfx` (`tools/pyramid.py`) paints those screens with dest-world tiles
+  (`gfx/pyramid_NN.png` on the `ab5a_flags` grid; `gfx/metatiles/map_streams_wN.png`
+  one pyramid per row). Composites add `stamp_wpat` (opaque) then TIMP
+  stamps (`stamp_level`, map, exit, E600, gems, tools) so colour 0 shows
+  wallpaper; Vic is the unarmed SAT CC pair. Stream sheets are terrain + overlay only.
 - Bank 0B: `map_33` tail + `map_34`..`map_59` ([`maps0B.asm`](../banks/data/maps0B.asm)). Not code.
 - Bank 0C: `map_59` tail + `map_60` through 0xA363 ([`maps0C.asm`](../banks/data/maps0C.asm)); `load_obj` / `load_obj2`
   overlays 0xA363–0xAA29 (layout in [`objects.inc`](../banks/objects.inc),
@@ -393,8 +423,8 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
   dispatches into bank 00 `sound_far` stubs at 0x41EA..). `disp_b6be` is the
   5×5 sliding-puzzle / password UI (`ix+1` states: init, wait-space, load
   board, cursor+slide, solved, exit). `disp_b7a5` slides the current tile
-  into the adjacent empty cell (C=1..4 → D−1 / D+1 / E−1 / E+1; `[3]`
-  overlaps the first instruction after the table, not a no-op). Attract
+  into the adjacent empty cell (C=1..4 → row−1 / row+1 / col−1 / col+1;
+  `[3]` overlaps `puz_slide_right`, not a no-op). Attract
   (`E200==2`): `demo_init` @ 0xBA11 picks the next pyramid from `demo_lvls`
   (`[1..6]` = 2, 18, 26, 40, 48, 53; `[0]` overlaps `jp 4388h`). `demo_tick`
   @ 0xBA66 feeds `ba_w1..ba_w6` through `keys_apply`. `ba92_tbl` @ 0xBA92
@@ -404,9 +434,15 @@ from 0xB400, and 77 × `0xFF` from 0xBFB3. `MODULE banks_abc`.
   `0xFF00`. Bounds w1 0xBAA0, w2 0xBAD6, w3 0xBB14, w4 0xBB5A, w5 0xBBBA,
   w6 0xBC16. After `ba_w6` terminator: `spark_init` @ 0xBC6E (clears
   `0xE910`, sets `0xE900`), `spark_spawn` / `spark_tick` / `spark_move` /
-  `spark_wipe` / `spark_sat` (32 × 16 slots; play map at `0xE900` is gone
-  by `mode_end`). Far call is `spark_far` (numeric `0xBCD2` — `MODULE`).
-  `print_stream` at 0xAC01–0xAF37 is source `TEXT`: password `str_pwd_best`,
+  `spark_wipe` / `spark_sat` / `spark_step` / `spark_vel` (32 × 16 slots;
+  play map at `0xE900` is gone by `mode_end`). Far call is `spark_far`
+  (numeric `0xBCD2` — `MODULE`). World-complete SAT is `tour_sat` @
+  0xBDD7 (`tour_far`): `tour_marks` is 32×48 Vic from behind (`vic_back` /
+  `copy_af21`, two walk poses) over `stamp_hallway0` / `stamp_hallway1`
+  (`world_blit`); `tour_vic` @ 0xBDDA (`world_far`) is the red map blip.
+  Tape I/O is
+  `tape_load` @ 0xBE7E / `tape_save` @ 0xBF2B (`TAPION`/`TAPOON`;
+  `save_map` chunks). `print_stream` at 0xAC01–0xAF37 is source `TEXT`: password `str_pwd_best`,
   `world_txt` / `print_world` (five `defw`; world 6 index reads `str_w1` AT as
   ptr 0x9020 inside bank 0B map stream `0x8EA8`, not a TEXT island). Ending
   `str_end_boot`..`str_end_congrats`, credits `ad76_tbl`
@@ -462,11 +498,12 @@ keep numeric immediates.
   ([`rle0E.asm`](../banks/data/rle0E.asm)) plus copy lists / `draw_cols`
   ([`lists0E.asm`](../banks/data/lists0E.asm),
   [`cols0E.asm`](../banks/data/cols0E.asm)): `rle_86d4`..`rle_97a1`;
-  `pat_copy` (`copy_pat`, Flouman/Slouman) / `pat_flip` (`flip_pat`); `end_txt` `"music stage"` /
+  `pat_copy` (`copy_pat`: Flouman / Vic / Pyoncy / Rock Roll / bursts) / `pat_flip` (`flip_pat`); `end_txt` `"music stage"` /
   `"puzzle stage"`; `col_ptr` 48 words, 27-row columns (`col_21` crosses
   into bank 0F). `make gfx` decompresses those RLE streams to 16×16 1bpp
-  planes (`gfx/sprites/vic_*.png`, `vic_die.png`, `vic_pushup.png`,
-  `flouman.png`, `knife.png`, `pointer.png`) and composites `draw_cols` /
+  planes (  `gfx/sprites/vic_*.png`, `vic_die.png`, `vic_pushup.png`, `vic_back.png`,
+  `flouman.png`, `vic_climb.png`, `pyoncy.png`, `rock_roll.png`, `explode.png`,
+  `knife.png`, `pointer.png`) and composites `draw_cols` /
   `STAMP` / `glyph_ptr` (`gfx/cols_*.png`, `gfx/stamp_*.png`,
   `gfx/metatiles/glyphs0E.png`).
 - Bank 0F source: `draw_cols` tail

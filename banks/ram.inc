@@ -23,11 +23,15 @@ mapper_bank_A000:        equ 0xF0F3
 ; 0xE24C pause (vic_pause_rle pushups); 0xE298 vic_die / vic_hit SAT (vic_die_rle).
 ; 0xE200 game mode (mode_tick / d_46ea): 0 boot, 1 hold, 2 attract, 3 title,
 ; 4 stage card, 5 play, 6 life, 7 game over, 8 room (E248), 9–13 clear /
-; world / continue / ending. 0xE201 = substate. 0xE800 software SAT
+; world / continue / ending. 0xE201 = substate. 0xE226 packed-BCD score
+; (`add_score`). 0xE800 software SAT
 ; (sat_wipe fills Y=0xE0).
 ; 0xE207 rising edges of 0xE208 (held keys); bit 4 = fire. keys_apply.
+; Editor auto-fire: 0xE21C hold timer (keys_repeat, mode 0x0B).
 ; Attract: 0xE209 step, 0xE20A duration, 0xE219 slot 1..6 -> demo_lvls.
-; 0xE243 current screen. 0xE248 screen-exit dir 1 up / 2 down / 3 left / 4 right
+; 0xE243 current screen. 0xEFC0/EFC2/EFC4 coffin/pyoncy stamp row ptrs
+; (`actor_rows`). 0xEFF0 secret_punch extra tile count.
+; 0xE248 screen-exit dir 1 up / 2 down / 3 left / 4 right
 ; (probe_edge / room_exit). 0xE250 unpacked-map base for map_tile.
 ; 0xE257 is a mode-local script index (title/file e257_jp 0-based
 ; pwd_wipe..pwd_done; stage-clear / world / ending are 1-based).
@@ -36,8 +40,16 @@ mapper_bank_A000:        equ 0xF0F3
 ; 0xE261 subtype; 0xE262 screen slot in E788.
 ; Editor occupancy: 0xE266 delayed (max 8), 0xE267 E600 (max 16),
 ; 0xE268 E300 (max 64), 0xE269 gems (max 16), 0xE26A exit, 0xE26B Vic.
-; 0xF0F8 load device 0 tape / 1 disk / 2 sram (io_dev); 0xF0F9 present bits.
+; 0xF0F8 load device 0 tape / 1 disk / 2 sram (io_dev); 0xF0F9 present bits
+; (io_probe: bit 0 PHYDIO, bit 1 disk ROM). 0xF0E4 H.TIMI stash during disk;
+; 0xF0E5 FILE? catalog count (disk_dir). 0xF323 DISKERR (`disk_err` /
+; `disk_unwind` during `dos_dir`).
 ; 0xE788 screen ids from ab5a_flags.
+; 0xE1CB sound flags (bit 0 fade, bit 1 paused/stashed, bit 4 fade-4);
+; 0xE1CC last id; 0xE1CD packed header; slots E000+n*0x33.
+; 0xE1E3 AY mixer shadow; 0xE1E4 tick channel mask; 0xE1E5/E6 noise
+; period; 0xE1E7 AY dirty; 0xE1E8-EA env; 0xE1EB SCC dirty; 0xE1ED
+; SCC period/vol shadow; 0xE1FC SCC 988F enable.
 ; 0xED80 up / ED90 down / EDA0 left / EDB0 right (room_link / pause map).
 ; 0xEDC0 pause-map overlay (pause_overlay: 0 wait / 1 draw / 2 restore / 3 idle).
 ; 0xEE50 occupied E300 slot ids (e300_list).
@@ -47,3 +59,7 @@ mapper_bank_A000:        equ 0xF0F3
 ; 0xE880 sat_fx busy (bank 0E/0F burst); 0xE881 phase 0..2.
 ; 0xEF10 per-pyramid FX (load_ef10 / tick_ef10 / draw_ef10).
 ; 0xEF11 fx state 0 land / 1 hold / 2 clear / 3 enter (mode_end).
+; 0xEF13/14 dest XY of the 16x16; 0xEF15 hold timer. Type 2 puzzle uses
+; 0xEF20 5x5 board, ix+1 UI state, ix+2 row, ix+3 col (puzzle_ui).
+; 0xE203 board index 0..3 (puz_ptr). 0xE240 extra lives (BCD).
+; Tape: 0xEE50 name/header, 0xE270 expected name, 0xE27F=2 on I/O error.

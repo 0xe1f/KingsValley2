@@ -1,4 +1,4 @@
-; bank 0F tail: stamp, pal_15, RLE, F800 copy, tilemap, hud_world.
+; bank 0F tail: stamp, pal_15, RLE, 16×16 1bpp sprite planes, tilemap, hud_world.
 
 stamp_b8db:                            ; 0xB8DB  Japanese logo (stamp_logo_jp / title_jp_gfx at 1050h)
 	defb 001h
@@ -220,40 +220,279 @@ rle_ba9a:                            ; 0xBA9A  finger pointer → F800 (pointer.
 	defb 0f2h, 0f6h, 0e4h, 0ech, 0c8h, 0d8h, 003h, 0d0h
 	defb 081h, 0f0h, 000h
 
-pat_bb05:                           ; 0xBB05  256 bytes → F800 (ldirmv)
-	defb 000h, 040h, 03fh, 019h, 001h, 001h, 001h, 01fh
-	defb 00dh, 001h, 001h, 001h, 01fh, 0fch, 070h, 000h
-	defb 000h, 000h, 0feh, 00ch, 080h, 080h, 080h, 0f8h
-	defb 09ch, 080h, 080h, 080h, 0fch, 01fh, 006h, 000h
-	defb 000h, 000h, 000h, 026h, 018h, 000h, 000h, 000h
-	defb 012h, 00ch, 000h, 000h, 000h, 003h, 08ch, 070h
-	defb 000h, 000h, 001h, 0f2h, 04ch, 040h, 040h, 000h
-	defb 060h, 05ch, 040h, 040h, 000h, 0e0h, 019h, 006h
-	defb 000h, 000h, 001h, 07fh, 060h, 027h, 041h, 006h
-	defb 018h, 002h, 00dh, 032h, 00ch, 078h, 033h, 000h
-	defb 000h, 0c0h, 0c0h, 0feh, 007h, 0f3h, 002h, 098h
-	defb 0f4h, 040h, 060h, 060h, 070h, 0deh, 08ch, 000h
-	defb 000h, 000h, 000h, 000h, 01fh, 010h, 026h, 000h
-	defb 006h, 019h, 002h, 00dh, 032h, 004h, 048h, 033h
-	defb 000h, 000h, 000h, 001h, 0f8h, 004h, 0f5h, 002h
-	defb 008h, 034h, 010h, 010h, 000h, 021h, 052h, 08ch
-	defb 000h, 000h, 000h, 000h, 00fh, 019h, 031h, 021h
-	defb 042h, 042h, 046h, 064h, 038h, 010h, 000h, 000h
-	defb 000h, 000h, 000h, 000h, 0e0h, 010h, 008h, 004h
-	defb 004h, 004h, 004h, 00ch, 018h, 0f0h, 060h, 000h
-	defb 000h, 000h, 000h, 000h, 000h, 006h, 008h, 010h
-	defb 021h, 021h, 021h, 002h, 044h, 028h, 010h, 000h
-	defb 000h, 000h, 000h, 000h, 000h, 0e0h, 090h, 088h
-	defb 000h, 002h, 002h, 002h, 004h, 008h, 090h, 060h
-	defb 000h, 008h, 00ch, 019h, 033h, 062h, 004h, 018h
-	defb 070h, 0e0h, 04fh, 018h, 008h, 00ch, 007h, 000h
-	defb 000h, 010h, 030h, 098h, 0cch, 046h, 020h, 018h
-	defb 00eh, 007h, 0f2h, 018h, 010h, 030h, 0e0h, 000h
-	defb 000h, 000h, 000h, 004h, 008h, 011h, 062h, 004h
-	defb 008h, 010h, 020h, 007h, 004h, 002h, 008h, 007h
-	defb 000h, 000h, 000h, 020h, 010h, 088h, 046h, 020h
-	defb 010h, 008h, 004h, 0e0h, 008h, 008h, 010h, 0e0h
-
+pat_bb05:                           ; 0xBB05  8× 16×16 1bpp → F800 (ldirmv)
+; BB05  16×16 left
+	defb %00000000
+	defb %01000000
+	defb %00111111
+	defb %00011001
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00011111
+	defb %00001101
+	defb %00000001
+	defb %00000001
+	defb %00000001
+	defb %00011111
+	defb %11111100
+	defb %01110000
+	defb %00000000
+; BB15  16×16 right
+	defb %00000000
+	defb %00000000
+	defb %11111110
+	defb %00001100
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %11111000
+	defb %10011100
+	defb %10000000
+	defb %10000000
+	defb %10000000
+	defb %11111100
+	defb %00011111
+	defb %00000110
+	defb %00000000
+; BB25  16×16 left
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00100110
+	defb %00011000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00010010
+	defb %00001100
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000011
+	defb %10001100
+	defb %01110000
+; BB35  16×16 right
+	defb %00000000
+	defb %00000000
+	defb %00000001
+	defb %11110010
+	defb %01001100
+	defb %01000000
+	defb %01000000
+	defb %00000000
+	defb %01100000
+	defb %01011100
+	defb %01000000
+	defb %01000000
+	defb %00000000
+	defb %11100000
+	defb %00011001
+	defb %00000110
+; BB45  16×16 left
+	defb %00000000
+	defb %00000000
+	defb %00000001
+	defb %01111111
+	defb %01100000
+	defb %00100111
+	defb %01000001
+	defb %00000110
+	defb %00011000
+	defb %00000010
+	defb %00001101
+	defb %00110010
+	defb %00001100
+	defb %01111000
+	defb %00110011
+	defb %00000000
+; BB55  16×16 right
+	defb %00000000
+	defb %11000000
+	defb %11000000
+	defb %11111110
+	defb %00000111
+	defb %11110011
+	defb %00000010
+	defb %10011000
+	defb %11110100
+	defb %01000000
+	defb %01100000
+	defb %01100000
+	defb %01110000
+	defb %11011110
+	defb %10001100
+	defb %00000000
+; BB65  16×16 left
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00011111
+	defb %00010000
+	defb %00100110
+	defb %00000000
+	defb %00000110
+	defb %00011001
+	defb %00000010
+	defb %00001101
+	defb %00110010
+	defb %00000100
+	defb %01001000
+	defb %00110011
+; BB75  16×16 right
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000001
+	defb %11111000
+	defb %00000100
+	defb %11110101
+	defb %00000010
+	defb %00001000
+	defb %00110100
+	defb %00010000
+	defb %00010000
+	defb %00000000
+	defb %00100001
+	defb %01010010
+	defb %10001100
+; BB85  16×16 left
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00001111
+	defb %00011001
+	defb %00110001
+	defb %00100001
+	defb %01000010
+	defb %01000010
+	defb %01000110
+	defb %01100100
+	defb %00111000
+	defb %00010000
+	defb %00000000
+	defb %00000000
+; BB95  16×16 right
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %11100000
+	defb %00010000
+	defb %00001000
+	defb %00000100
+	defb %00000100
+	defb %00000100
+	defb %00000100
+	defb %00001100
+	defb %00011000
+	defb %11110000
+	defb %01100000
+	defb %00000000
+; BBA5  16×16 left
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000110
+	defb %00001000
+	defb %00010000
+	defb %00100001
+	defb %00100001
+	defb %00100001
+	defb %00000010
+	defb %01000100
+	defb %00101000
+	defb %00010000
+	defb %00000000
+; BBB5  16×16 right
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %11100000
+	defb %10010000
+	defb %10001000
+	defb %00000000
+	defb %00000010
+	defb %00000010
+	defb %00000010
+	defb %00000100
+	defb %00001000
+	defb %10010000
+	defb %01100000
+; BBC5  16×16 left
+	defb %00000000
+	defb %00001000
+	defb %00001100
+	defb %00011001
+	defb %00110011
+	defb %01100010
+	defb %00000100
+	defb %00011000
+	defb %01110000
+	defb %11100000
+	defb %01001111
+	defb %00011000
+	defb %00001000
+	defb %00001100
+	defb %00000111
+	defb %00000000
+; BBD5  16×16 right
+	defb %00000000
+	defb %00010000
+	defb %00110000
+	defb %10011000
+	defb %11001100
+	defb %01000110
+	defb %00100000
+	defb %00011000
+	defb %00001110
+	defb %00000111
+	defb %11110010
+	defb %00011000
+	defb %00010000
+	defb %00110000
+	defb %11100000
+	defb %00000000
+; BBE5  16×16 left
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00000100
+	defb %00001000
+	defb %00010001
+	defb %01100010
+	defb %00000100
+	defb %00001000
+	defb %00010000
+	defb %00100000
+	defb %00000111
+	defb %00000100
+	defb %00000010
+	defb %00001000
+	defb %00000111
+; BBF5  16×16 right
+	defb %00000000
+	defb %00000000
+	defb %00000000
+	defb %00100000
+	defb %00010000
+	defb %10001000
+	defb %01000110
+	defb %00100000
+	defb %00010000
+	defb %00001000
+	defb %00000100
+	defb %11100000
+	defb %00001000
+	defb %00001000
+	defb %00010000
+	defb %11100000
 pic_bc05:                            ; 0xBC05  13×26 draw_tilemap at 1830h
 	defb 00eh, 00ah, 00ah, 00bh, 00bh, 00ch, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00dh, 00bh, 00bh, 00ah, 00ah, 013h
 	defb 00fh, 006h, 004h, 007h, 007h, 008h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 009h, 007h, 007h, 004h, 005h, 014h

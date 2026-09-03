@@ -17,10 +17,10 @@
 
   gfx/palettes/<stem>.png   palette_list streams (8x8 swatches)
   gfx/tilesets/<stem>.png   dest-plane 8x8, copy_tiles 1bpp, SCREEN 5 stamps
-  gfx/sprites/<stem>.png    16×16 1bpp planes (Vic / Flouman / knife / pointer)
+  gfx/sprites/<stem>.png    16×16 1bpp planes (Vic / hallway Vic-back / tools)
   gfx/fonts/<stem>.png      HUD glyphs / world-map font (copy_tiles)
-  gfx/metatiles/<stem>.png  editor minimaps / glyph_ptr tile-id stamps
-  gfx/<stem>.png            draw_cols / STAMP / draw_tilemap composites
+  gfx/metatiles/<stem>.png  glyph_ptr tile-id stamps; map_streams_wN via pyramid.py
+  gfx/<stem>.png            draw_cols / STAMP / draw_tilemap / pyramid_NN composites
 
 Cell header is 4 uppercase hex digits (CPU of that atom), except palette
 swatches which use the 2-digit index. In-game MSX2 palette. No PIL.
@@ -264,8 +264,25 @@ def dump_1bpp_sheet(rom, path, bank, cpu, count, colour, play_pal, cols=16):
     render_png(path, cells, play_pal, cols=cols, labels=labels, zero_off=False)
 
 
+# SAT colour low nibbles (high nibble of the byte is EC). Catalogue paints
+# each 1bpp plane with that VDP index; pal_* is the palette_list in force.
+SAT_CC = (0xD0, 0xE0)          # sat_cc_fill / puz_cc / tour_col: 0x0D / 0x4E
+THROWN_KNIFE_CC = (0xB0, 0xC0) # e500_cc2 type 1 / delay_spr knife: 0x0B / 0x4C
+MAP_KNIFE_CC = (0xB0, 0x70)    # tool_cc knife: 0x0B / 0x47
+MAP_BOOM_CC = (0x70, 0xA0)     # tool_cc boomerang: 0x07 / 0x4A
+SHOVEL_CC = (0xA0, 0x70)       # shovel spin / delay_spr shovel: 0x0A / 0x47
+PICK_CC = (0x70, 0x90)         # pick_ready / delay_spr pick: 0x07 / 0x49
+MARK7 = (0x70,)                # tour_vic / map_vic / kind_sat: index 7
+HUD_EXIT_CC = (0xB0, 0x70)     # pause-map exit 0x0B then Vic 0x07
+# knife.png: 3 knife poses × 2 then 3 boom poses × 2 (rle_97a1 → F880).
+KNIFE_SHEET_CC = MAP_KNIFE_CC * 3 + MAP_BOOM_CC * 3
+
+
 def sprite_16(data32, colour):
-    """MSX hardware 16×16: 16 left rows, then 16 right rows. MSB left."""
+    """MSX hardware 16×16: 16 left rows, then 16 right rows. MSB left.
+
+    `colour` high nibble = on (SAT index); low nibble 0 → catalogue off.
+    """
     hi, lo = colour >> 4, colour & 0x0F
     grid = []
     for row in range(16):
@@ -279,10 +296,12 @@ def sprite_16(data32, colour):
     return grid
 
 
-def append_sprites(cells, labels, blob, first_cpu, colour):
+def append_sprites(cells, labels, blob, first_cpu, colours=SAT_CC):
+    if isinstance(colours, int):
+        colours = (colours,)
     for i in range(len(blob) // 32):
         chunk = blob[i * 32:(i + 1) * 32]
-        cells.append(sprite_16(chunk, colour))
+        cells.append(sprite_16(chunk, colours[i % len(colours)]))
         labels.append("%04X" % ((first_cpu + i * 32) & 0xFFFF))
 
 
@@ -294,10 +313,10 @@ def dump_sprite_sheet(path, cells, labels, play_pal, cols=8):
                labels=labels, size=16)
 
 
-def dump_rle_sprites(rom, path, bank, cpu, dest, play_pal, colour=0x80):
+def dump_rle_sprites(rom, path, bank, cpu, dest, play_pal, colours=SAT_CC):
     blob, _, _ = decompress(rom, cpu_file(bank, cpu), 0)
     cells, labels = [], []
-    append_sprites(cells, labels, blob, dest, colour)
+    append_sprites(cells, labels, blob, dest, colours)
     dump_sprite_sheet(path, cells, labels, play_pal)
 
 
@@ -354,74 +373,52 @@ HELD_RLE = (
     )),
 )
 
-# copy_pat payloads in lists0E.asm (n × 32 bytes → F800). Flouman / Slouman.
+# copy_pat payloads in lists0E.asm (n × 32 bytes → F800). Grouped by
+# character, not by copy_pat record (Vic climb is the tail of the n=6 Flouman copy).
+# Colours: play enemies are SCREEN 5 stamps; these SAT slots are E500 / delay_spr
+# / cer_sat. Vic-shaped planes keep sat_cc_fill; tools use their SAT cc words.
 PAT_COPY = (
-    (14, 0x98F7, 4),
-    (14, 0x9977, 6),
-    (14, 0x9A37, 6),
-    (14, 0x9AF7, 4),
-    (14, 0x9B77, 2),
-    (14, 0x9BB7, 4),
-    (14, 0x9C37, 4),
-    (14, 0x9CB7, 4),
+    ("flouman", 14, 0x98F7, 6, SAT_CC),       # cer_sat poses 4–5
+    ("vic_climb", 14, 0x99B7, 4, SAT_CC),     # cer_sat / Vic-shaped
+    ("pyoncy", 14, 0x9A37, 10, SHOVEL_CC),    # delay_spr / shovel_fr 0x88
+    ("rock_roll", 14, 0x9B77, 6, PICK_CC),    # delay_spr / pick_ready 0xC0
+    ("explode", 14, 0x9C37, 8, SHOVEL_CC),    # shovel/pick spin puffs 0xE0
 )
 
-# RLE not already in HELD_RLE (UI / editor / other Vic state).
+# RLE not already in HELD_RLE. pal_k is the palette_list in force on that screen.
 RLE_OTHER = (
-    (14, 0x953D, 0xE000, "vic_die"),
-    (14, 0x97A1, 0xF880, "knife"),  # + boomerang spin
-    (15, 0xA9F6, 0xFE80, "rle_a9f6"),
-    (15, 0xA9FB, 0xFE80, "rle_a9fb"),
-    (15, 0xAA00, 0xE080, "vic_pushup"),
-    (15, 0xAB59, 0xF800, "rle_ab59"),
-    (15, 0xABB9, 0xF800, "rle_abb9"),
-    (15, 0xAE08, 0xFA00, "rle_ae08"),
-    (15, 0xAF21, 0xF820, "rle_af21"),
-    (15, 0xBA9A, 0xF800, "pointer"),
-    (13, 0xBBFC, 0xF880, "rle_bbfc"),
-    (13, 0xBF29, 0xF800, "rle_bf29"),
+    (14, 0x953D, 0xE000, "vic_die", "hud", SAT_CC),
+    (14, 0x97A1, 0xF880, "knife", "hud", KNIFE_SHEET_CC),
+    (15, 0xA9F6, 0xFE80, "rle_a9f6", "end", MARK7),
+    (15, 0xA9FB, 0xFE80, "rle_a9fb", "wmap", MARK7),
+    (15, 0xAA00, 0xE080, "vic_pushup", "hud", SAT_CC),
+    (15, 0xAB59, 0xF800, "rle_ab59", "pwd", SAT_CC),
+    (15, 0xABB9, 0xF800, "rle_abb9", "hud", SAT_CC),
+    (15, 0xAE08, 0xFA00, "rle_ae08", "pwd", SAT_CC),
+    (15, 0xAF21, 0xF820, "vic_back", "wmap", SAT_CC),
+    (15, 0xBA9A, 0xF800, "pointer", "pwd", SAT_CC),
+    (13, 0xBBFC, 0xF880, "rle_bbfc", "hud", MARK7),
+    (13, 0xBF29, 0xF800, "rle_bf29", "hud", HUD_EXIT_CC),
 )
 
 
-def dump_held_sheet(rom, stem, recs, play_pal, colour=0xD0):
+def dump_held_sheet(rom, stem, recs, play_pal, colours=SAT_CC):
     cells, labels = [], []
     for bank, cpu, dest in recs:
         blob, _, _ = decompress(rom, cpu_file(bank, cpu), 0)
-        append_sprites(cells, labels, blob, dest, colour)
+        append_sprites(cells, labels, blob, dest, colours)
     dump_sprite_sheet(os.path.join(SPRITE_DIR, stem + ".png"),
                       cells, labels, play_pal)
 
 
-def dump_pat_copy(rom, play_pal, colour=0x80):
-    cells, labels = [], []
-    for bank, cpu, n in PAT_COPY:
+def dump_pat_copy(rom, play_pal):
+    for stem, bank, cpu, n, colours in PAT_COPY:
+        cells, labels = [], []
         fo = cpu_file(bank, cpu)
         blob = rom[fo:fo + n * 32]
-        append_sprites(cells, labels, blob, cpu, colour)
-    dump_sprite_sheet(os.path.join(SPRITE_DIR, "flouman.png"),
-                      cells, labels, play_pal)
-
-
-def dump_1bpp_bitmap(rom, path, bank, cpu, width, height, colour, play_pal):
-    """Row-major 1bpp, MSB left, width multiple of 8."""
-    fo = cpu_file(bank, cpu)
-    nbytes = width * height // 8
-    data = rom[fo:fo + nbytes]
-    hi, lo = colour >> 4, colour & 0x0F
-    grid = []
-    i = 0
-    for _y in range(height):
-        row = []
-        for _x in range(0, width, 8):
-            b = data[i]
-            i += 1
-            for _ in range(8):
-                row.append(hi if (b & 0x80) else lo)
-                b = (b << 1) & 0xFF
-        grid.append(row)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    render_png(path, [grid], play_pal, cols=1, labels=["%04X" % cpu],
-               size=(width, height), zero_off=False)
+        append_sprites(cells, labels, blob, cpu, colours)
+        dump_sprite_sheet(os.path.join(SPRITE_DIR, stem + ".png"),
+                          cells, labels, play_pal)
 
 
 def dump_4bpp_sheet(rom, path, bank, cpu, width, height, play_pal):
@@ -696,7 +693,7 @@ def main():
                        15, 0xA8BB, play)
     dump_palette_sheet(rom, os.path.join(PALETTE_DIR, "pal_hud.png"),
                        15, 0xB95D, play)
-    dump_palette_sheet(rom, os.path.join(PALETTE_DIR, "bb8b_pal.png"),
+    dump_palette_sheet(rom, os.path.join(PALETTE_DIR, "pal_bb8b.png"),
                        9, 0xBB8B, play)
 
     for stem, tbl in (("pal_w_even", 0xB97A), ("pal_w_odd", 0xB9F8)):
@@ -721,16 +718,12 @@ def main():
                     9, 0xBC44, 13, 0x02, title_pal)
     dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "title_bcac.png"),
                     9, 0xBCAC, 26, 0x03, title_pal)
-    dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "bank0C_afdd.png"),
+    dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "tiles_afdd.png"),
                     12, 0xAFDD, 0x35, 0xFB, play)
     dump_1bpp_sheet(rom, os.path.join(TILESET_DIR, "file_pat.png"),
                     12, 0xB1B6, 4, 0xFB, play)
     dump_4bpp_sheet(rom, os.path.join(TILESET_DIR, "ef10_spr.png"),
                     12, 0xB1D6, 16, 16, play)
-    dump_1bpp_bitmap(rom, os.path.join(METATILE_DIR, "map_bb3c.png"),
-                     13, 0xBB3C, 32, 24, 0x62, play)
-    dump_1bpp_bitmap(rom, os.path.join(METATILE_DIR, "map_bb9c.png"),
-                     13, 0xBB9C, 32, 24, 0x5E, play)
 
     blit_ptr = cpu_file(7, 0x6177)
     for w in range(1, 7):
@@ -750,19 +743,27 @@ def main():
                     0x9063, 0x8FFC, WIN_789, play)
     dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_end3.png"),
                     0x9069, 0x8FFC, WIN_789, a8bb_pal)
-    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_9074.png"),
+    dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_title_jp_ext.png"),
                     0x9074, 0x8FFC, WIN_789, play)
     dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_title.png"),
                     0xB7DF, 0xB7C7, WIN_789, ba78_pal)
     dump_blit_sheet(rom, os.path.join(TILESET_DIR, "dest_title_jp.png"),
                     0xB120, 0xB116, WIN_EF, play)
 
-    dump_pat_copy(rom, play)
+    dump_pat_copy(rom, hud_pal)
     for stem, recs in HELD_RLE:
-        dump_held_sheet(rom, stem, recs, play)
-    for bank, cpu, dest, stem in RLE_OTHER:
+        dump_held_sheet(rom, stem, recs, hud_pal)
+    # world_scr / pal_a8bb overlay slots they list; D/E stay pal_hud.
+    pals = {
+        "hud": hud_pal,
+        "pwd": pwd_pal,
+        "play": play,
+        "wmap": apply_pal(rom, hud_pal, 15, 0xA870),
+        "end": apply_pal(rom, hud_pal, 15, 0xA8BB),
+    }
+    for bank, cpu, dest, stem, pal_k, colours in RLE_OTHER:
         dump_rle_sprites(rom, os.path.join(SPRITE_DIR, stem + ".png"),
-                         bank, cpu, dest, play)
+                         bank, cpu, dest, pals[pal_k], colours)
 
     atlas_9074 = blit_atlas(rom, 0x9074, 0x8FFC, WIN_789)
     atlas_jp = merge_atlas(atlas_9074, blit_atlas(rom, 0xB120, 0xB116, WIN_EF))
@@ -785,8 +786,8 @@ def main():
                    compose_grid(atlas_pwd, col_ids(rom, 15), 32), play, 0x9F4D)
 
     for cpu, atlas, pal, stem in (
-            (0xA3E8, atlas_wpic, wmap_pal, "stamp_a3e8"),
-            (0xA4C7, atlas_wpic, wmap_pal, "stamp_a4c7"),
+            (0xA3E8, atlas_wpic, wmap_pal, "stamp_hallway0"),
+            (0xA4C7, atlas_wpic, wmap_pal, "stamp_hallway1"),
             (0xA642, atlas_wpic, wmap_pal, "stamp_a642"),
             (0xA6B1, atlas_wpic, wmap_pal, "stamp_a6b1"),
             (0xA6E0, atlas_end3, a8bb_pal, "stamp_a6e0"),

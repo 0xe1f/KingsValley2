@@ -28,7 +28,7 @@ pic_a358:                            ; 0xA358  12×12 draw_tilemap
 	defb 010h, 039h, 04ch, 04dh, 042h, 04bh, 036h, 00eh, 035h, 023h, 048h, 041h
 	defb 011h, 012h, 012h, 012h, 044h, 044h, 044h, 044h, 044h, 012h, 044h, 00ah
 
-stamp_a3e8:                            ; 0xA3E8  stamp world-map
+stamp_hallway0:                        ; 0xA3E8  hallway walk pose 0 (world_blit A=0)
 	defb 091h
 	defb 051h
 	defb 052h
@@ -238,7 +238,7 @@ stamp_a3e8:                            ; 0xA3E8  stamp world-map
 	defb 08eh
 	defb 0ffh               ; end
 
-stamp_a4c7:                            ; 0xA4C7  stamp world-map
+stamp_hallway1:                        ; 0xA4C7  hallway walk pose 1 (world_blit A≠0)
 	defb 065h
 	defb 0b1h
 	defb 0b4h

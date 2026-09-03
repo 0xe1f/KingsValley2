@@ -1,5 +1,6 @@
 ; unpack_map streams in bank 0A (CPU 0x6168–0x8000). Byte = (tile<<6)|count;
 ; count 1..63, tile 0..3, 0 ends. Dest E900, 768 tiles/screen.
+; Preview: gfx/pyramid_NN.png / gfx/metatiles/map_streams_wN.png (`make gfx`).
 
 
 map_01:                           ; pyramid 1, 1 screen

@@ -9,7 +9,9 @@
 ;  link    (load_links):     2 bytes, 0xFF end. screen-from, screen-to (8x6 map).
 ;  delayed (0xB7CD -> E2C0): 4 bytes, 0 end. type, screen, X, Y (spawn_tool 1-4).
 ;  overlay (load_obj / load_obj2): 2 bytes, 0 end. 0xFF = next screen (+0xC0).
-;          Byte0 bits 5-6 = 2-bit tile, bits 0-4 = run; bit 7 is in DE>>7 offset.
+;          Offset = record>>7. Byte0 bits 5-6 = starting nibble in that packed
+;          byte, bits 0-4 = run (djnz; 0 would be 256). Each step writes cell 1
+;          twice (2-wide) and advances one row.
 ;  blit    (blit_list): 5 bytes, 0xFF end. flags, tile, count, dest word.
 ;          dest = packed pattern planes in the paged ROM: 8/16/24 bytes ×
 ;          count = 8 × (1 + ((flags&7)>>1)). Even/odd flags&7 pick the

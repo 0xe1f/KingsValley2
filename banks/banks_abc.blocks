@@ -42,6 +42,7 @@ bd97_tbl:   start 0xBD97 end 0xBDB7 type worddata
 bdb7_tbl:   start 0xBDB7 end 0xBDD7 type worddata
 ; print_stream islands (ASCII+80h; 0xFE next-pos, 0xFF end):
 str_b8af:   start 0xB8AF end 0xB8CF type bytedata
+puz_cc:     start 0xB913 end 0xB917 type bytedata
 str_be67:   start 0xBE67 end 0xBE75 type bytedata
 str_bf0e:   start 0xBF0E end 0xBF1B type bytedata
 str_bf94:   start 0xBF94 end 0xBFA1 type bytedata

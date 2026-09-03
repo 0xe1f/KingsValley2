@@ -3,7 +3,7 @@
 rle_a9f6:                            ; 0xA9F6  copy_ab59 → FE80
 	defb 081h, 080h, 01fh, 000h, 000h
 
-rle_a9fb:                            ; 0xA9FB  copy_af21 / copy_pwd → FE80
+rle_a9fb:                            ; 0xA9FB  copy_af21 map mark / copy_pwd → FE80
 	defb 002h, 0c0h, 01eh, 000h, 000h
 
 rle_aa00:                            ; 0xAA00  pause pushups → E080 (vic_pushup.png)
@@ -180,7 +180,7 @@ rle_ae08:                            ; 0xAE08  copy_ab59 / copy_pwd → FA00
 	defb 097h, 0ffh, 012h, 088h, 078h, 07ch, 008h, 000h
 	defb 000h
 
-rle_af21:                            ; 0xAF21  copy_af21 → F820
+vic_back:                            ; 0xAF21  copy_af21 → F820; 2 walk poses, back view
 	defb 009h, 000h, 082h, 001h, 003h, 003h, 007h, 089h
 	defb 003h, 001h, 000h, 001h, 007h, 01fh, 03fh, 07fh
 	defb 07fh, 009h, 0ffh, 009h, 000h, 082h, 001h, 002h

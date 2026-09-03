@@ -292,21 +292,22 @@ str_secret_cmd:                   ; 0xB284  title GAME + SNSMAT bit 5
 	TEXT "}}y}}}}}"
 	defb 0ffh               ; end
 	ds 341, 0ffh                  ; 0xB2AB–0xB400 pad
+; Copy ef10_tbl row for this level into EF10.
 load_ef10:                        ; 0xB400  ef10_tbl[level] -> EF10 (type, 0, screen/X/Y)
 	ld hl,ef10_tbl
-lb403h:
+ef10_scan:
 	ld a,(hl)
 	and a
 	ret z
-	ld a,(0e242h)
+	ld a,(0e242h)           ; level
 	cp (hl)
-	jr z,lb413h
+	jr z,ef10_found
 	ld a,005h
 	call ADD_HL_A
-	jr lb403h
-lb413h:
+	jr ef10_scan
+ef10_found:
 	inc hl
-	ld de,0ef10h
+	ld de,0ef10h            ; pyramid FX
 	ldi
 	xor a
 	ld (de),a
@@ -314,8 +315,9 @@ lb413h:
 	ld bc,00003h
 	ldir
 	ret
+; Per-frame pyramid FX; DISPATCH_A on EF11.
 tick_ef10:                        ; 0xB422  per-pyramid FX (EF10); disp_b42f on EF11
-	ld hl,0ef10h
+	ld hl,0ef10h            ; pyramid FX
 	ld a,(hl)
 	or a
 	ret z
@@ -332,126 +334,127 @@ disp_b42f_start:
 	defw ef10_clear               ; 2 Vic near → restore tiles
 	defw ef10_enter               ; 3 Vic near + down → mode_end
 disp_b42f_end:
-ef10_land:                        ; 0xB437
+ef10_land:                        ; 0xB437  jump onto spot (Vic state 1)
 	exx
-	ld a,(0e243h)
+	ld a,(0e243h)           ; screen
 	cp (hl)
 	ret nz
-	ld a,(0e280h)
-	dec a
+	ld a,(0e280h)           ; Vic state
+	dec a                         ; must be vic_jump
 	ret nz
-	call sub_b4ach
+	call ef10_jump_hit
 	ret nc
-	ld hl,0ef11h
+	ld hl,0ef11h            ; fx state
 	inc (hl)
 	inc l
 	inc l
 	inc l
 	inc l
-	ld (hl),040h
-	call 096ffh
-	call 090abh
-	call sub_b4e3h
+	ld (hl),040h                  ; EF15 hold timer
+	call stones_undraw
+	call tools_scan
+	call ef10_stamp
 	call draw_maptools
-	call 096cfh
+	call stones_redraw
 	jp sfx_3b
 ef10_hold:                        ; 0xB462
 	ld hl,0ef15h
 	dec (hl)
 	ret nz
-	ld hl,0ef11h
+	ld hl,0ef11h            ; fx state
 	inc (hl)
 	ret
 ef10_clear:                       ; 0xB46C
 	exx
-	ld a,(0e243h)
+	ld a,(0e243h)           ; screen
 	cp (hl)
 	ret nz
-	call sub_b4c9h
+	call ef10_stand_hit
 	ret nc
 	call sfx_2e                   ; clear
-	ld hl,0ef11h
+	ld hl,0ef11h            ; fx state
 	inc (hl)
-	call 096ffh
-	call 090abh
-	call sub_b50bh
+	call stones_undraw
+	call tools_scan
+	call ef10_unstamp
 	call ef10_restore
 	call draw_maptools
-	jp 096cfh
+	jp stones_redraw
 ef10_enter:                       ; 0xB48F  E208 bit 1 (down) → E200=12
 	exx
-	ld a,(0e243h)
+	ld a,(0e243h)           ; screen
 	cp (hl)
 	ret nz
-	call sub_b4c9h
+	call ef10_stand_hit
 	ret nc
-	ld a,(0e208h)
+	ld a,(0e208h)           ; keys held
 	rra
 	rra
 	ret nc
 	xor a
-	ld hl,0000ch
-	ld (0e200h),hl
-	ld (0ef11h),a
+	ld hl,0000ch            ; RDSLT
+	ld (0e200h),hl          ; game mode
+	ld (0ef11h),a           ; fx state
 	jp sfx_30
-sub_b4ach:
+; Vic AABB vs the 16x16 spot (HL at EF12 = screen). Y uses stored-16.
+ef10_jump_hit:                    ; 0xB4AC  CY if |Y-(spotY-16)|<4 and |X-spotX|<4
 	inc l
-	ld a,(hl)
+	ld a,(hl)                     ; spot Y
 	sub 010h
 	ld b,a
-	ld a,(0e282h)
+	ld a,(0e282h)           ; Vic Y
 	sub b
-	jr nc,lb4b9h
+	jr nc,ef10_jabsy
 	neg
-lb4b9h:
+ef10_jabsy:
 	cp 004h
 	ret nc
 	inc l
-	ld b,(hl)
-	ld a,(0e284h)
+	ld b,(hl)                     ; spot X
+	ld a,(0e284h)           ; Vic X
 	sub b
-	jr nc,lb4c6h
+	jr nc,ef10_jabsx
 	neg
-lb4c6h:
+ef10_jabsx:
 	cp 004h
 	ret
-sub_b4c9h:
+; Standing on the restored hole (no Y-16); X window is wider.
+ef10_stand_hit:                   ; 0xB4C9  CY if |Y-spotY|<4 and |X-spotX|<8
 	inc l
 	ld b,(hl)
-	ld a,(0e282h)
+	ld a,(0e282h)           ; Vic Y
 	sub b
-	jr nc,lb4d3h
+	jr nc,ef10_sabsy
 	neg
-lb4d3h:
+ef10_sabsy:
 	cp 004h
 	ret nc
 	inc l
 	ld b,(hl)
-	ld a,(0e284h)
+	ld a,(0e284h)           ; Vic X
 	sub b
-	jr nc,lb4e0h
+	jr nc,ef10_sabsx
 	neg
-lb4e0h:
+ef10_sabsx:
 	cp 008h
 	ret
-sub_b4e3h:
+; Backup dest 16x16 to 00B0, then stamp tiles CA-CD.
+ef10_stamp:                       ; 0xB4E3  backup 16x16 to 00B0, stamp 2x2 CA-CD
 	ld hl,0ef13h
-	call pat_b4f8_end
+	call ef10_backup
 	ld hl,0ef13h
 	ld e,(hl)
 	inc l
 	ld d,(hl)
-	ld hl,pat_b4f8_start
+	ld hl,ef10_tiles
 	ld bc,00202h
 	jp draw_tilemap
 
 ; BLOCK 'pat_b4f8' (start 0xb4f8 end 0xb4fc)
-pat_b4f8_start:
-	defb 0cah
-	defb 0cbh
-	defb 0cch
-	defb 0cdh
-pat_b4f8_end:
+ef10_tiles:                       ; 0xB4F8  2x2 tile ids for the pyramid FX
+	defb 0cah, 0cbh, 0cch, 0cdh
+; HMMM the 16x16 at (HL) into 00B0.
+ef10_backup:                      ; 0xB4FC  HMMM dest EF13/14 -> 00B0, 16x16
 	ld a,(hl)
 	inc l
 	ld h,(hl)
@@ -460,7 +463,8 @@ pat_b4f8_end:
 	ld bc,01010h
 	ld a,004h
 	jp vdp_hmmm
-sub_b50bh:
+; HMMM 00B0 back onto the dest (undo stamp).
+ef10_unstamp:                     ; 0xB50B  HMMM 00B0 -> dest (undo stamp)
 	ld hl,0ef13h
 	ld e,(hl)
 	inc l
@@ -469,14 +473,15 @@ sub_b50bh:
 	ld bc,01010h
 	ld a,001h
 	jp vdp_hmmm
+; Stamp or restore the 16x16 if it is on this screen.
 draw_ef10:                        ; 0xB51C  if EF10 live on this screen, stamp (state 3 = restore)
-	ld hl,0ef10h
+	ld hl,0ef10h            ; pyramid FX
 	ld a,(hl)
 	or a
 	ret z
 	inc l
 	inc l
-	ld a,(0e243h)
+	ld a,(0e243h)           ; screen
 	cp (hl)
 	ret nz
 	dec l
@@ -485,12 +490,14 @@ draw_ef10:                        ; 0xB51C  if EF10 live on this screen, stamp (
 	ret z
 	cp 003h
 	jp z,ef10_restore
-	jr sub_b4e3h
+	jr ef10_stamp
+; mode_end E201=2: sound select or sliding puzzle.
 end_menu:                         ; 0xB534  mode_end E201=2; type 1 sound select, else puzzle
 	call end_pick
 	jp spr_vram
+; EF10 type 1 → snd_sel, else puzzle_ui.
 end_pick:                         ; 0xB53A
-	ld ix,0ef10h
+	ld ix,0ef10h            ; pyramid FX
 	ld a,(ix+000h)
 	dec a
 	jp z,snd_sel
@@ -512,7 +519,7 @@ data_b548_start:
 	defb 035h, 001h, 003h, 038h, 0b0h  ; 53
 	defb 037h, 002h, 002h, 078h, 0c0h  ; 55
 	defb 000h
-lb585h:
+str_snd_sel:                      ; 0xB585
 	defb 050h, 018h         ; D,E
 	TEXT "sound select"
 	defb 0feh, 040h, 0a8h   ; next D,E
@@ -520,293 +527,143 @@ lb585h:
 	defb 0feh, 058h, 0b8h   ; next D,E
 	TEXT "end ||| return"
 	defb 0ffh               ; end
-lb5b8h:
+str_puz_game:                     ; 0xB5B8
 	defb 050h, 018h         ; D,E
 	TEXT "puzzle  game"
 	defb 0ffh               ; end
-lb5c7h:
+str_all_right:                    ; 0xB5C7
 	defb 060h, 090h         ; D,E
 	TEXT "all right"
 	defb 0feh, 060h, 0a0h   ; next D,E
 	TEXT "rest  3 up"
 	defb 0ffh               ; end
-lb5e0h:
-	defb 0e8h
-	defb 0b5h
-	defb 001h
-	defb 0b6h
-	defb 01ah
-	defb 0b6h
-	defb 033h
-	defb 0b6h
-	defb 00bh
-	defb 011h
-	defb 017h
-	defb 004h
-	defb 012h
-	defb 00ah
-	defb 001h
-	defb 00ch
-	defb 00dh
-	defb 013h
-	defb 007h
-	defb 016h
-	defb 009h
-	defb 018h
-	defb 00eh
-	defb 015h
-	defb 008h
-	defb 014h
-	defb 003h
-	defb 000h
-	defb 006h
-	defb 002h
-	defb 010h
-	defb 005h
-	defb 00fh
-	defb 004h
-	defb 012h
-	defb 00fh
-	defb 00bh
-	defb 003h
-	defb 008h
-	defb 018h
-	defb 017h
-	defb 007h
-	defb 013h
-	defb 010h
-	defb 005h
-	defb 00ch
-	defb 000h
-	defb 00eh
-	defb 015h
-	defb 016h
-	defb 011h
-	defb 006h
-	defb 00ah
-	defb 001h
-	defb 009h
-	defb 00dh
-	defb 014h
-	defb 002h
-	defb 007h
-	defb 014h
-	defb 00bh
-	defb 010h
-	defb 018h
-	defb 012h
-	defb 001h
-	defb 006h
-	defb 00ch
-	defb 005h
-	defb 008h
-	defb 015h
-	defb 00ah
-	defb 011h
-	defb 00dh
-	defb 00eh
-	defb 016h
-	defb 002h
-	defb 009h
-	defb 000h
-	defb 013h
-	defb 00fh
-	defb 017h
-	defb 003h
-	defb 004h
-	defb 00fh
-	defb 004h
-	defb 008h
-	defb 002h
-	defb 00bh
-	defb 000h
-	defb 00dh
-	defb 016h
-	defb 00eh
-	defb 013h
-	defb 006h
-	defb 00ch
-	defb 007h
-	defb 012h
-	defb 015h
-	defb 014h
-	defb 017h
-	defb 011h
-	defb 018h
-	defb 00ah
-	defb 005h
-	defb 010h
-	defb 003h
-	defb 009h
-	defb 001h
-lb64ch:
-	defb 035h
-	defb 035h
-	defb 035h
-	defb 035h
-	defb 001h
-	defb 002h
-	defb 003h
-	defb 004h
-	defb 005h
-	defb 006h
-	defb 007h
-	defb 008h
-	defb 009h
-	defb 00ah
-	defb 00bh
-	defb 00ch
-	defb 00dh
-	defb 00eh
-	defb 00fh
-	defb 010h
-	defb 011h
-	defb 012h
-	defb 013h
-	defb 00ch
-	defb 014h
-	defb 015h
-	defb 016h
-	defb 00ch
-	defb 017h
-	defb 018h
-	defb 019h
-	defb 01ah
-	defb 01bh
-	defb 00ah
-	defb 016h
-	defb 00ch
-	defb 01ch
-	defb 01dh
-	defb 01eh
-	defb 01fh
-	defb 020h
-	defb 024h
-	defb 021h
-	defb 025h
-	defb 020h
-	defb 026h
-	defb 021h
-	defb 027h
-	defb 020h
-	defb 028h
-	defb 021h
-	defb 029h
-	defb 020h
-	defb 02ah
-	defb 021h
-	defb 02bh
-	defb 020h
-	defb 02ch
-	defb 021h
-	defb 02dh
-	defb 020h
-	defb 02eh
-	defb 021h
-	defb 02fh
-	defb 020h
-	defb 030h
-	defb 021h
-	defb 025h
-	defb 020h
-	defb 031h
-	defb 021h
-	defb 032h
-	defb 020h
-	defb 033h
-	defb 021h
-	defb 025h
-	defb 020h
-	defb 024h
-	defb 021h
-	defb 034h
-	defb 022h
-	defb 024h
-	defb 023h
-	defb 025h
-	defb 022h
-	defb 026h
-	defb 023h
-	defb 027h
-	defb 022h
-	defb 028h
-	defb 023h
-	defb 029h
-	defb 022h
-	defb 02ah
-	defb 023h
-	defb 02bh
-	defb 022h
-	defb 02ch
-	defb 023h
-	defb 02dh
+puz_ptr:                          ; 0xB5E0  E203&3 -> 5x5 board
+	defw puz_b0, puz_b1, puz_b2, puz_b3
+puz_b0:                           ; 0xB5E8
+	defb 00bh, 011h, 017h, 004h, 012h
+	defb 00ah, 001h, 00ch, 00dh, 013h
+	defb 007h, 016h, 009h, 018h, 00eh
+	defb 015h, 008h, 014h, 003h, 000h
+	defb 006h, 002h, 010h, 005h, 00fh
+puz_b1:                           ; 0xB601
+	defb 004h, 012h, 00fh, 00bh, 003h
+	defb 008h, 018h, 017h, 007h, 013h
+	defb 010h, 005h, 00ch, 000h, 00eh
+	defb 015h, 016h, 011h, 006h, 00ah
+	defb 001h, 009h, 00dh, 014h, 002h
+puz_b2:                           ; 0xB61A
+	defb 007h, 014h, 00bh, 010h, 018h
+	defb 012h, 001h, 006h, 00ch, 005h
+	defb 008h, 015h, 00ah, 011h, 00dh
+	defb 00eh, 016h, 002h, 009h, 000h
+	defb 013h, 00fh, 017h, 003h, 004h
+puz_b3:                           ; 0xB633
+	defb 00fh, 004h, 008h, 002h, 00bh
+	defb 000h, 00dh, 016h, 00eh, 013h
+	defb 006h, 00ch, 007h, 012h, 015h
+	defb 014h, 017h, 011h, 018h, 00ah
+	defb 005h, 010h, 003h, 009h, 001h
+puz_pat:                          ; 0xB64C  4 tile ids per cell (0 = empty)
+	defb 035h, 035h, 035h, 035h
+	defb 001h, 002h, 003h, 004h
+	defb 005h, 006h, 007h, 008h
+	defb 009h, 00ah, 00bh, 00ch
+	defb 00dh, 00eh, 00fh, 010h
+	defb 011h, 012h, 013h, 00ch
+	defb 014h, 015h, 016h, 00ch
+	defb 017h, 018h, 019h, 01ah
+	defb 01bh, 00ah, 016h, 00ch
+	defb 01ch, 01dh, 01eh, 01fh
+	defb 020h, 024h, 021h, 025h
+	defb 020h, 026h, 021h, 027h
+	defb 020h, 028h, 021h, 029h
+	defb 020h, 02ah, 021h, 02bh
+	defb 020h, 02ch, 021h, 02dh
+	defb 020h, 02eh, 021h, 02fh
+	defb 020h, 030h, 021h, 025h
+	defb 020h, 031h, 021h, 032h
+	defb 020h, 033h, 021h, 025h
+	defb 020h, 024h, 021h, 034h
+	defb 022h, 024h, 023h, 025h
+	defb 022h, 026h, 023h, 027h
+	defb 022h, 028h, 023h, 029h
+	defb 022h, 02ah, 023h, 02bh
+	defb 022h, 02ch, 023h, 02dh
+; 5x5 sliding puzzle; ix+1 state, ESC bit 6 closes.
 puzzle_ui:                        ; 0xB6B0  EF10 type 2 → disp_b6be
 data_b548_end:
-	ld a,(0e20ch)
+	ld a,(0e20ch)           ; vic_die flag
 	rla
-	rla
-	jp c,lb8a3h
+	rla                           ; E20C bit 6 = ESC → close
+	jp c,puz_close
 	ld a,(ix+001h)
 	call DISPATCH_A
 
 ; disp_b6be: password / 5x5 sliding-puzzle UI. DISPATCH_A on (ix+1), 6 states.
 disp_b6be_start:
-	defw 0b6cah                   ; init: draw "esc key", wait
-	defw 0b6f2h                   ; wait space, blank prompt
-	defw 0b701h                   ; load 5x5 from (0xE203), "puzzle game"
-	defw 0b749h                   ; cursor + slide (disp_b7a5)
-	defw 0b85eh                   ; solved? "all right" / bump (0xE240)
-	defw 0b89dh                   ; wait space, exit
+	defw puz_init                 ; 0 draw "esc key", wait
+	defw puz_wait                 ; 1 wait space, blank prompt
+	defw puz_load                 ; 2 load 5x5 from (0xE203)
+	defw puz_play                 ; 3 cursor + slide (disp_b7a5)
+	defw puz_check                ; 4 solved? "all right" / bump (0xE240)
+	defw puz_exit                 ; 5 wait space, exit
 disp_b6be_end:
-	call 04e98h
+; Load UI tiles, fill EF20, print esc prompt.
+puz_init:                         ; 0xB6CA
+	call scr_reset
 	call sat_wipe
-	call 056aah
+	call copy_afdd
 	call copy_pointer
 	ld hl,0ef38h
 	ld (hl),000h
 	dec hl
 	ld b,018h
-lb6deh:
+puz_fill:
 	ld a,b
 	ld (hl),b
 	dec hl
-	djnz lb6deh
-	call sub_b71eh
-	ld hl,lb8afh
+	djnz puz_fill
+	call puz_draw
+	ld hl,str_esc_key
 	call print_stream
 	inc (ix+001h)
 	jp sfx_0a
-	ld a,(0e207h)
+; Fire blanks the "push space key" line.
+puz_wait:                         ; 0xB6F2  fire → blank "push space key"
+	ld a,(0e207h)           ; key edges
 	and 010h
 	ret z
 	inc (ix+001h)
-	ld hl,0b8beh
+	ld hl,str_push_key
 	jp print_stream_blank
-	ld hl,lb5e0h
-	ld a,(0e203h)
+; Copy puz_ptr[E203&3] into EF20.
+puz_load:                         ; 0xB701  board E203&3 → EF20; cursor 0,0
+	ld hl,puz_ptr
+	ld a,(0e203h)           ; puzzle board
 	and 003h
 	call tbl_word
-	ld de,0ef20h
+	ld de,0ef20h            ; puzzle board
 	ld bc,00019h
 	ldir
 	inc (ix+001h)
 	xor a
-	ld (ix+002h),a
-	ld (ix+003h),a
-sub_b71eh:
-	ld hl,0ef20h
+	ld (ix+002h),a                ; row
+	ld (ix+003h),a                ; col
+; Draw the 5x5 at EF20, 16px cells from 5830.
+puz_draw:                         ; 0xB71E  5x5 at EF20, 16px cells from 5830
+	ld hl,0ef20h            ; puzzle board
 	ld bc,00505h
 	ld de,05830h
-lb727h:
+puz_row:
 	push bc
 	ld b,c
 	push de
-lb72ah:
+puz_col:
 	push bc
 	push de
 	push hl
 	ld a,(hl)
-	call sub_b7ech
+	call puz_stamp
 	pop hl
 	inc hl
 	pop de
@@ -814,59 +671,61 @@ lb72ah:
 	add a,010h
 	ld d,a
 	pop bc
-	djnz lb72ah
+	djnz puz_col
 	pop de
 	ld a,e
 	add a,010h
 	ld e,a
 	pop bc
-	djnz lb727h
-	ld hl,lb5b8h
+	djnz puz_row
+	ld hl,str_puz_game
 	jp print_stream
-	call sub_b8cfh
-	ld a,(0e207h)
+; Stick moves cursor; fire tries a slide.
+puz_play:                         ; 0xB749  stick → cursor; fire → slide
+	call puz_pointer
+	ld a,(0e207h)           ; key edges
 	rra
-	jr c,lb76bh
+	jr c,puz_up
 	rra
-	jr c,lb775h
+	jr c,puz_down
 	rra
-	jr c,lb780h
+	jr c,puz_left
 	rra
-	jr c,lb75fh
+	jr c,puz_right
 	rra
-	jr c,lb78ah
+	jr c,puz_fire
 	ret
-lb75fh:
+puz_right:
 	ld a,(ix+003h)
 	cp 004h
 	ret nc
 	inc (ix+003h)
-lb768h:
+puz_tick:
 	jp sfx_32
-lb76bh:
+puz_up:
 	ld a,(ix+002h)
 	and a
 	ret z
 	dec (ix+002h)
-	jr lb768h
-lb775h:
+	jr puz_tick
+puz_down:
 	ld a,(ix+002h)
 	cp 004h
 	ret nc
 	inc (ix+002h)
-	jr lb768h
-lb780h:
+	jr puz_tick
+puz_left:
 	ld a,(ix+003h)
 	and a
 	ret z
 	dec (ix+003h)
-	jr lb768h
-lb78ah:
-	call sub_b7fah
+	jr puz_tick
+puz_fire:
+	call puz_cell
 	ret z
 	push hl
 	push bc
-	call sub_b824h
+	call puz_gap
 	ld a,c
 	pop bc
 	pop de
@@ -875,27 +734,29 @@ lb78ah:
 	ret z
 	inc (ix+001h)
 	xor a
-	call sub_b7c5h
+	call puz_redraw
 	ld a,c
 	dec a
 	call DISPATCH_A
 
 ; disp_b7a5: slide current tile into the adjacent empty cell (5x5, stride 5).
-; DISPATCH_A on (C-1) from sub_b824h: C=1..4 = empty at D-1 / D+1 / E-1 / E+1.
-; [3] overlaps the first instruction after the table (move +E), not a no-op.
+; DISPATCH_A on (C-1) from puz_gap: C=1..4 = empty up / down / left / right.
+; [3] overlaps puz_slide_right (first instruction after the table).
 disp_b7a5_start:
-	defw 0b7b8h                   ; empty at D-1: -5, dec (ix+2)
-	defw 0b7d2h                   ; empty at D+1: +5, inc (ix+2)
-	defw 0b7e1h                   ; empty at E-1: -1, dec (ix+3)
-	defw 0b7adh                   ; empty at E+1: +1, inc (ix+3)
+	defw puz_slide_up             ; empty at row-1: -5, dec (ix+2)
+	defw puz_slide_down           ; empty at row+1: +5, inc (ix+2)
+	defw puz_slide_left           ; empty at col-1: -1, dec (ix+3)
+	defw puz_slide_right          ; empty at col+1: +1, inc (ix+3)
 disp_b7a5_end:
+puz_slide_right:                  ; 0xB7AD  [3] of the table
 	ex de,hl
 	ld (hl),000h
 	inc hl
 	ld (hl),b
 	inc (ix+003h)
 	ld a,b
-	jr sub_b7c5h
+	jr puz_redraw
+puz_slide_up:                     ; 0xB7B8
 	ex de,hl
 	ld (hl),000h
 	dec hl
@@ -906,16 +767,18 @@ disp_b7a5_end:
 	ld (hl),b
 	dec (ix+002h)
 	ld a,b
-sub_b7c5h:
+; Stamp tile A at the cursor pixel position.
+puz_redraw:                       ; 0xB7C5  stamp tile A at cursor pixel pos
 	push de
 	push bc
 	push af
-	call sub_b80fh
+	call puz_xy
 	pop af
-	call sub_b7ech
+	call puz_stamp
 	pop bc
 	pop de
 	ret
+puz_slide_down:                   ; 0xB7D2
 	ex de,hl
 	ld (hl),000h
 	inc hl
@@ -926,152 +789,165 @@ sub_b7c5h:
 	ld (hl),b
 	inc (ix+002h)
 	ld a,b
-	jr sub_b7c5h
+	jr puz_redraw
+puz_slide_left:                   ; 0xB7E1
 	ex de,hl
 	ld (hl),000h
 	dec hl
 	ld (hl),b
 	dec (ix+003h)
 	ld a,b
-	jr sub_b7c5h
-sub_b7ech:
+	jr puz_redraw
+; 2x2 from puz_pat[A] via tilemap_hmmm.
+puz_stamp:                        ; 0xB7EC  2x2 from puz_pat[A] via tile_hmmm
 	add a,a
 	add a,a
-	ld hl,lb64ch
+	ld hl,puz_pat
 	call ADD_HL_A
 	ld bc,00202h
-	jp 05737h
-sub_b7fah:
+	jp tilemap_hmmm
+; A,B = board[row,col]; Z if that cell is empty.
+puz_cell:                         ; 0xB7FA  A,B = EF20[row,col]; Z if empty
 	ld d,(ix+002h)
 	ld e,(ix+003h)
-sub_b800h:
+; A,B = board[D,E]; Z if empty.
+puz_at:                           ; 0xB800  A,B = EF20[D,E]; Z if empty
 	ld a,d
 	add a,a
 	add a,a
-	add a,d
+	add a,d                       ; D*5
 	add a,e
-	ld hl,0ef20h
+	ld hl,0ef20h            ; puzzle board
 	call ADD_HL_A
 	ld a,(hl)
 	ld b,a
 	and a
 	ret
-sub_b80fh:
+; DE = pixel position of cursor row/col.
+puz_xy:                           ; 0xB80F  DE = pixel pos of cursor (row,col)
 	ld a,(ix+002h)
 	add a,a
 	add a,a
 	add a,a
 	add a,a
-	add a,030h
+	add a,030h                    ; Y = row*16+0x30
 	ld e,a
 	ld a,(ix+003h)
 	add a,a
 	add a,a
 	add a,a
 	add a,a
-	add a,058h
+	add a,058h                    ; X = col*16+0x58
 	ld d,a
 	ret
-sub_b824h:
+; C = 1..4 empty neighbor (up/down/left/right), or 0.
+puz_gap:                          ; 0xB824  C=1..4 empty neighbor, or 0
 	ld d,(ix+002h)
 	ld e,(ix+003h)
 	ld c,001h
 	ld a,d
 	and a
-	jr z,lb837h
+	jr z,puz_gap_down
 	push de
 	dec d
-	call sub_b800h
+	call puz_at
 	pop de
 	ret z
-lb837h:
+puz_gap_down:
 	inc c
 	ld a,d
 	cp 004h
-	jr nc,lb844h
+	jr nc,puz_gap_left
 	push de
 	inc d
-	call sub_b800h
+	call puz_at
 	pop de
 	ret z
-lb844h:
+puz_gap_left:
 	inc c
 	ld a,e
 	and a
-	jr z,lb850h
+	jr z,puz_gap_right
 	push de
 	dec e
-	call sub_b800h
+	call puz_at
 	pop de
 	ret z
-lb850h:
+puz_gap_right:
 	inc c
 	ld a,e
 	cp 004h
-	jr nc,lb85bh
+	jr nc,puz_gap_none
 	inc e
-	call sub_b800h
+	call puz_at
 	ret z
-lb85bh:
+puz_gap_none:
 	ld c,000h
 	ret
-	ld de,0ef20h
+; Win if EF20 is 1..24 in order.
+puz_check:                        ; 0xB85E  EF20 == 1..24 in order
+	ld de,0ef20h            ; puzzle board
 	ld hl,0ef21h
 	ld a,(de)
 	cp 001h
-	jr nz,lb876h
-lb869h:
+	jr nz,puz_wrong
+puz_seq:
 	ld a,(de)
 	inc a
 	cp (hl)
-	jr nz,lb876h
+	jr nz,puz_wrong
 	cp 018h
-	jr z,lb87ah
+	jr z,puz_win
 	inc de
 	inc hl
-	jr lb869h
-lb876h:
+	jr puz_seq
+puz_wrong:
 	dec (ix+001h)
 	ret
-lb87ah:
+puz_win:                          ; 0xB87A  +3 lives BCD at E240, cap 99
 	call sat_wipe
 	inc (ix+001h)
-	ld a,(0e240h)
+	ld a,(0e240h)           ; lives
 	add a,003h
 	cp 099h
-	jr nc,lb88ch
+	jr nc,puz_lives_cap
 	daa
-	jr lb88eh
-lb88ch:
+	jr puz_lives
+puz_lives_cap:
 	ld a,099h
-lb88eh:
-	ld (0e240h),a
-	ld hl,lb8afh
+puz_lives:
+	ld (0e240h),a           ; lives
+	ld hl,str_esc_key
 	call print_stream_blank
-	ld hl,lb5c7h
+	ld hl,str_all_right
 	jp print_stream
-	ld a,(0e207h)
+; Fire closes the puzzle.
+puz_exit:                         ; 0xB89D  fire → close
+	ld a,(0e207h)           ; key edges
 	and 010h
 	ret z
-lb8a3h:
+puz_close:                        ; 0xB8A3  sprites off, sfx_01, clear EF10
 	ld bc,00007h
 	ld (ix+000h),b
 	call WRTVDP
 	jp sfx_01
-lb8afh:                           ; print_stream: "end  esc key" / "push space key"
+str_esc_key:                      ; 0xB8AF  "end  esc key" / "push space key"
 	defb 050h, 0a0h         ; D,E
 	TEXT "end  esc key"
-	defb 0feh, 048h, 090h   ; next D,E
+	defb 0feh
+str_push_key:                     ; 0xB8BE  D,E of "push space key" (blank target)
+	defb 048h, 090h         ; next D,E
 	TEXT "push space key"
 	defb 0ffh               ; end
-sub_b8cfh:
-	ld hl,0e800h
-	ld de,lb913h
+; Four pointer sprites at the cursor cell.
+puz_pointer:                      ; 0xB8CF  4-sprite cursor at row/col
+	ld hl,0e800h            ; SAT
+	ld de,puz_cc
 	ld bc,00400h
 	exx
-	ld hl,0d200h
+	ld hl,0d200h            ; boot spare
 	exx
-lb8ddh:
+puz_spr:
 	push bc
 	ld a,(ix+002h)
 	add a,a
@@ -1082,11 +958,11 @@ lb8ddh:
 	ld c,a
 	ld a,b
 	cp 003h
-	jr nc,lb8f1h
+	jr nc,puz_spr_y
 	ld a,c
 	add a,010h
 	ld c,a
-lb8f1h:
+puz_spr_y:
 	ld (hl),c
 	inc hl
 	ld a,(ix+003h)
@@ -1108,50 +984,51 @@ lb8f1h:
 	inc de
 	exx
 	ld b,010h
-lb90bh:
+puz_cc_fill:
 	ld (hl),a
 	inc hl
-	djnz lb90bh
+	djnz puz_cc_fill
 	exx
-	djnz lb8ddh
+	djnz puz_spr
 	ret
-lb913h:
-	dec c
-	ld c,(hl)
-	dec c
-	ld c,(hl)
+puz_cc:                           ; 0xB913  SAT colour 0x0D / 0x4E × 2
+	defb 00dh, 04eh, 00dh, 04eh
+; Sound-select UI; ix+1 state, ix+2 = 0..18.
 snd_sel:                          ; 0xB917  EF10 type 1 "sound select"
 	ld a,(ix+001h)
 	cp 001h
-	jr z,lb938h
-	jr nc,lb981h
-	call 04e98h
-	call 057ach
+	jr z,snd_wait
+	jr nc,snd_play
+; Load tiles, pointer, board, print "sound select".
+snd_init:                         ; 0xB921
+	call scr_reset
+	call snd_blit
 	call copy_pointer
-	call 0578dh
+	call snd_board
 	call sat_wipe
 	inc (ix+001h)
-	ld hl,lb585h
+	ld hl,str_snd_sel
 	jp print_stream
-lb938h:
-	call disp_b98a_end
-	ld a,(0e207h)
+; Move cursor / play / ESC.
+snd_wait:                         ; 0xB938
+	call snd_pointer
+	ld a,(0e207h)           ; key edges
 	rra
 	rra
 	rra
-	jr c,lb95ah
+	jr c,snd_left
 	rra
-	jr c,lb96ah
+	jr c,snd_right
 	rra
-	jr c,lb97bh
-	ld a,(0e20ch)
+	jr c,snd_fire
+	ld a,(0e20ch)           ; vic_die flag
 	rla
 	ret nc
 	ld bc,00007h
 	ld (ix+000h),b
 	call WRTVDP
 	jp sfx_01
-lb95ah:
+snd_left:                         ; 0xB95A  wrap 0 → 18
 	call sfx_32                   ; cursor
 	dec (ix+002h)
 	ld a,(ix+002h)
@@ -1159,7 +1036,7 @@ lb95ah:
 	ret nc
 	ld (ix+002h),012h
 	ret
-lb96ah:
+snd_right:                        ; 0xB96A  wrap 19 → 0
 	call sfx_32                   ; cursor
 	inc (ix+002h)
 	ld a,(ix+002h)
@@ -1167,10 +1044,10 @@ lb96ah:
 	ret c
 	ld (ix+002h),000h
 	ret
-lb97bh:
+snd_fire:
 	inc (ix+001h)
 	jp sfx_01
-lb981h:
+snd_play:                         ; 0xB981  ix+2 → disp_b98a sfx thunks
 	dec (ix+001h)
 	ld a,(ix+002h)
 	call DISPATCH_A
@@ -1198,37 +1075,39 @@ disp_b98a_start:
 	defw sfx_28
 	defw sfx_1d
 disp_b98a_end:
-	ld hl,0e800h
-	ld de,0ba0dh
+; Pointer SAT for the selected sfx icon.
+snd_pointer:                      ; 0xB9B0  cursor SAT for selected sfx
+	ld hl,0e800h            ; SAT
+	ld de,snd_cc
 	ld bc,00400h
 	exx
-	ld hl,0d200h
+	ld hl,0d200h            ; boot spare
 	exx
-lb9beh:
+snd_spr:
 	push bc
 	ld a,(ix+002h)
 	exx
 	ld de,pat_b9fa_start
 	add a,e
 	ld e,a
-	jr nc,lb9cbh
+	jr nc,snd_x
 	inc d
-lb9cbh:
+snd_x:
 	ld a,(de)
 	exx
 	push af
 	rra
 	ld c,078h
-	jr nc,lb9d5h
+	jr nc,snd_y
 	ld c,060h
-lb9d5h:
+snd_y:
 	ld a,b
 	cp 003h
-	jr nc,lb9deh
+	jr nc,snd_put
 	ld a,c
 	add a,010h
 	ld c,a
-lb9deh:
+snd_put:
 	ld (hl),c
 	pop af
 	inc hl
@@ -1246,30 +1125,32 @@ lb9deh:
 	inc de
 	exx
 	ld b,010h
-lb9f2h:
+snd_cc_fill:
 	ld (hl),a
 	inc hl
-	djnz lb9f2h
+	djnz snd_cc_fill
 	exx
-	djnz lb9beh
+	djnz snd_spr
 	ret
 
 ; BLOCK 'pat_b9fa' (start 0xb9fa end 0xba11)
-pat_b9fa_start:
+pat_b9fa_start:                   ; 0xB9FA  X of 19 sfx icons; bit 0 = row
 	defb 02ch, 033h, 03ch, 045h, 04ch, 055h, 05ch, 06ch
 	defb 073h, 07ch, 085h, 08ch, 09ch, 0a3h, 0ach, 0b5h
-	defb 0bch, 0c5h, 0cch, 00dh, 04eh, 00dh, 04eh
+	defb 0bch, 0c5h, 0cch
+snd_cc:                           ; 0xBA0D  SAT colour 0x0D / 0x4E × 2
+	defb 00dh, 04eh, 00dh, 04eh
 pat_b9fa_end:
 
 demo_init:                        ; 0xBA11  attract: next pyramid in demo_lvls
 	ld hl,001ffh                  ; E209=0xFF so first tick wraps to step 0
-	ld (0e209h),hl
-	ld hl,0e219h
+	ld (0e209h),hl          ; attract step
+	ld hl,0e219h            ; attract slot
 	ld a,(hl)
 	ld de,demo_lvls
 	call ADD_DE_A
 	ld a,(de)
-	ld (0e242h),a
+	ld (0e242h),a           ; level
 	inc (hl)
 	ld a,(hl)
 	cp 007h
@@ -1277,19 +1158,19 @@ demo_init:                        ; 0xBA11  attract: next pyramid in demo_lvls
 	ld (hl),001h
 demo_init_wrap:
 	xor a
-	ld (0e203h),a
+	ld (0e203h),a           ; puzzle board
 	inc a
 	ld (0e246h),a
-	call 04360h
-	jp 04388h                     ; 0xBA38  C3 88 43
+	call set_world_far
+	jp bgm_stage                  ; 0xBA38  C3 88 43 overlaps demo_lvls[0]
 demo_lvls equ $-1                 ; 0xBA3A  [0]=43 overlap; [1..6] pyramids
 	defb 002h, 012h, 01ah, 028h, 030h, 035h
 demo_wait:                        ; 0xBA41  E200=2: wait vic_hit, or take E248 door
-	ld a,(0e248h)
+	ld a,(0e248h)           ; exit dir
 	and a
 	jr nz,demo_door
-	call 04358h
-	ld a,(0e280h)
+	call play_frame_far
+	ld a,(0e280h)           ; Vic state
 	cp 005h                       ; wait vic_hit
 	ret nz
 demo_end:
@@ -1299,13 +1180,13 @@ demo_end:
 demo_door:
 	xor a
 	ld (0e24dh),a
-	call 05dfeh
+	call room_exit
 	ld a,(0e24dh)
 	and a
 	ret nz
-	jp 04369h
+	jp room_draw_far
 demo_tick:                        ; 0xBA66  countdown E20A; next word -> keys_apply
-	ld hl,0e20ah
+	ld hl,0e20ah            ; attract duration
 	dec (hl)
 	jr nz,demo_hold
 	dec hl
@@ -1314,15 +1195,16 @@ demo_tick:                        ; 0xBA66  countdown E20A; next word -> keys_ap
 	call demo_word
 	cp 0ffh
 	jr z,demo_end
-	ld hl,0e20ah
+	ld hl,0e20ah            ; attract duration
 	ld (hl),c
 demo_hold:
 	call demo_word
 	jp keys_apply
+; A = key mask, C = duration from ba_wN[E209].
 demo_word:                        ; 0xBA80  A = E208 mask, C = duration (E209 index)
 	dec hl
 	ld c,(hl)
-	ld a,(0e241h)
+	ld a,(0e241h)           ; world
 	ld hl,ba92_tbl_start
 	call tbl_word
 	ld a,c
@@ -1337,12 +1219,12 @@ demo_word:                        ; 0xBA80  A = E208 mask, C = duration (E209 in
 ; routine's tail (ld a,(hl) / ret) so demo_word returns A:C = ba_lists word.
 ba92_tbl_start:
 	defw 0c97eh                   ; world 0 (unused) / ld a,(hl)+ret overlap
-	defw 0baa0h                   ; world 1  (ba_lists+0x000, 27 words)
-	defw 0bad6h                   ; world 2  (ba_lists+0x036, 31 words)
-	defw 0bb14h                   ; world 3  (ba_lists+0x074, 35 words)
-	defw 0bb5ah                   ; world 4  (ba_lists+0x0BA, 48 words)
-	defw 0bbbah                   ; world 5  (ba_lists+0x11A, 46 words)
-	defw 0bc16h                   ; world 6  (ba_lists+0x176, 44 words)
+	defw ba_w1_start              ; world 1
+	defw ba_w2_start              ; world 2
+	defw ba_w3_start              ; world 3
+	defw ba_w4_start              ; world 4
+	defw ba_w5_start              ; world 5
+	defw ba_w6_start              ; world 6
 ba92_tbl_end:
 
 ; Attract joypad scripts (0xBAA0-0xBC6E): 6 per-world word tables
@@ -1597,6 +1479,7 @@ ba_w6_start:
 	defw 00808h
 	defw 0ff00h
 ba_w6_end:
+; Clear E910 sparks; E900=1.
 spark_init:                       ; 0xBC6E  clear E910 sparks; E900=1
 	xor a
 	ld hl,0e910h
@@ -1607,27 +1490,28 @@ spark_init:                       ; 0xBC6E  clear E910 sparks; E900=1
 	ld (0e901h),a
 	ld (0e902h),a
 	inc a
-	ld (0e900h),a
+	ld (0e900h),a           ; unpacked map
 	ret
+; Every other tick, occupy an empty E910 slot.
 spark_spawn:                      ; 0xBC86  skip if E902; fill empty E910 slot
 	ld a,(0e902h)
 	or a
 	ret nz
-	ld hl,0e900h
+	ld hl,0e900h            ; unpacked map
 	dec (hl)
 	ret nz
 	ld (hl),002h
 	ld ix,0e910h
 	ld b,020h
-lbc98h:
+spark_scan:
 	ld a,(ix+000h)
 	or a
-	jr z,lbca6h
+	jr z,spark_fill
 	ld de,00010h
 	add ix,de
-	djnz lbc98h
+	djnz spark_scan
 	ret
-lbca6h:
+spark_fill:                       ; 0xBCA6  slot: Y=0x70 X=0x80, vel from E901
 	xor a
 	ld (ix+000h),001h
 	ld (ix+001h),a
@@ -1639,31 +1523,34 @@ lbca6h:
 	ld a,(hl)
 	and 00fh
 	ld b,008h
-	call sub_bd74h
+	call spark_vel
 	ld (ix+005h),l
 	ld (ix+006h),h
 	ld (ix+007h),e
 	ld (ix+008h),d
 	ret
+; Spawn, wipe SAT, integrate, stamp.
 spark_tick:                       ; 0xBCD2  spawn, wipe SAT, move, stamp
 	call spark_spawn
 	call spark_wipe
 	call spark_move
 	jr spark_sat
+; Step every live spark.
 spark_move:                       ; 0xBCDD
 	ld ix,0e910h
 	ld b,020h
-lbce3h:
+spark_each:
 	ld a,(ix+000h)
 	or a
 	push bc
-	call nz,sub_bcf4h
+	call nz,spark_step
 	pop bc
 	ld de,00010h
 	add ix,de
-	djnz lbce3h
+	djnz spark_each
 	ret
-sub_bcf4h:
+; Add 8.8 velocity; die if Y or X leaves 0xF0..0x0F.
+spark_step:                       ; 0xBCF4  add 8.8 vel; die if Y or X hi-byte out of 0xF0..0x0F
 	ld e,(ix+001h)
 	ld d,(ix+002h)
 	ld l,(ix+005h)
@@ -1681,41 +1568,44 @@ sub_bcf4h:
 	ld a,(ix+002h)
 	add a,010h
 	cp 020h
-	jr c,lbd2bh
+	jr c,spark_die
 	ld a,(ix+004h)
 	add a,010h
 	cp 020h
 	ret nc
-lbd2bh:
+spark_die:
 	ld (ix+000h),000h
 	ret
+; SAT Y=E0; D200 colour 5.
 spark_wipe:                       ; 0xBD30  SAT Y=E0, D200 colour 5
-	ld hl,0e800h
+	ld hl,0e800h            ; SAT
 	ld de,0e801h
 	ld (hl),0e0h
 	ld bc,0007fh
 	ldir
-	ld hl,0d200h
+	ld hl,0d200h            ; boot spare
 	ld de,0d201h
 	ld (hl),005h
 	ld bc,00400h
 	ldir
 	ret
+; Live sparks → software SAT.
 spark_sat:                        ; 0xBD4B  live sparks → SAT
 	ld ix,0e910h
-	ld hl,0e800h
+	ld hl,0e800h            ; SAT
 	ld b,020h
-lbd54h:
+spark_loop:
 	ld a,(ix+000h)
 	or a
 	push bc
-	call nz,sub_bd65h
+	call nz,spark_put
 	pop bc
 	ld de,00010h
 	add ix,de
-	djnz lbd54h
+	djnz spark_loop
 	ret
-sub_bd65h:
+; Write SAT Y, X, pat 0xD0.
+spark_put:                        ; 0xBD65  SAT Y,X,pat 0xD0
 	ld a,(ix+002h)
 	ld (hl),a
 	inc hl
@@ -1726,33 +1616,34 @@ sub_bd65h:
 	inc hl
 	inc hl
 	ret
-sub_bd74h:
+; HL = vy*B, DE = vx*B for dir A (0..15).
+spark_vel:                        ; 0xBD74  HL=vy*B, DE=vx*B; A = dir 0..15
 	push af
-	ld hl,bd97_tbl_end
+	ld hl,spark_vx_start
 	call tbl_word
 	ld e,l
 	ld d,h
 	ld hl,00000h
 	push bc
-lbd81h:
+spark_vx_mul:
 	add hl,de
-	djnz lbd81h
+	djnz spark_vx_mul
 	pop bc
 	pop af
 	push hl
-	ld hl,bd97_tbl_start
+	ld hl,spark_vy_start
 	call tbl_word
 	ld e,l
 	ld d,h
 	ld hl,00000h
-lbd92h:
+spark_vy_mul:
 	add hl,de
-	djnz lbd92h
+	djnz spark_vy_mul
 	pop de
 	ret
 
 ; BLOCK 'bd97_tbl' (start 0xbd97 end 0xbdb7)
-bd97_tbl_start:
+spark_vy_start:                   ; 0xBD97  Y velocity 8.8, 16 dirs
 	defw 00000h
 	defw 0ff23h
 	defw 00080h
@@ -1769,10 +1660,10 @@ bd97_tbl_start:
 	defw 0ff00h
 	defw 000b5h
 	defw 000ddh
-bd97_tbl_end:
+spark_vy_end:
 
 ; BLOCK 'bdb7_tbl' (start 0xbdb7 end 0xbdd7)
-bdb7_tbl_start:
+spark_vx_start:                   ; 0xBDB7  X velocity 8.8, 16 dirs
 	defw 00100h
 	defw 0ff80h
 	defw 0ff23h
@@ -1789,13 +1680,17 @@ bdb7_tbl_start:
 	defw 00000h
 	defw 0ff4bh
 	defw 00080h
-bdb7_tbl_end:
-	call sub_bdf7h
+spark_vx_end:
+; Hallway Vic-back plus map Vic at EDCB.
+tour_sat:                         ; 0xBDD7  hallway Vic-back + map Vic (tour_far)
+	call tour_marks
+; Map-mark SAT only (world_far).
+tour_vic:                         ; 0xBDDA  map Vic SAT at EDCB/EDCC (world_far)
 	ld hl,0e830h
-	ld a,(0edcbh)
+	ld a,(0edcbh)           ; ceremony X
 	ld (hl),a
 	inc hl
-	ld a,(0edcch)
+	ld a,(0edcch)           ; ceremony Y
 	ld (hl),a
 	inc hl
 	ld (hl),0d0h
@@ -1805,24 +1700,26 @@ bdb7_tbl_end:
 	ld (hl),007h
 	ldir
 	ret
-sub_bdf7h:
-	ld a,(0edd8h)
+; 32×48 Vic from behind at X=A8; EDD8 0 → pat 4 else 0x34.
+tour_marks:                       ; 0xBDF7  32×48 Vic-back; 2 walk poses (vic_back)
+	ld a,(0edd8h)           ; walk pose
 	or a
 	ld a,004h
-	jr z,lbe01h
+	jr z,tour_pat
 	ld a,034h
-lbe01h:
-	ld hl,0e800h
+tour_pat:
+	ld hl,0e800h            ; SAT
 	ld de,0a868h
-	call sub_be18h
+	call tour_quad
 	ld de,0a878h
-	call sub_be18h
+	call tour_quad
 	ld de,0a888h
-	call sub_be18h
-	jr lbe35h
-sub_be18h:
+	call tour_quad
+	jr tour_col
+; 2x2 sprites at DE (Y,X), pattern A.
+tour_quad:                        ; 0xBE18  2x2 sprites at DE (Y,X), pat A
 	ld b,002h
-lbe1ah:
+tour_pair:
 	ld (hl),e
 	inc hl
 	ld (hl),d
@@ -1844,120 +1741,129 @@ lbe1ah:
 	ld d,a
 	pop af
 	add a,004h
-	djnz lbe1ah
+	djnz tour_pair
 	ret
-lbe35h:
-	ld hl,0d200h
+tour_col:                         ; 0xBE35  SAT colour 0x0D / 0x4E stripes
+	ld hl,0d200h            ; boot spare
 	ld de,0d201h
 	ld bc,0000fh
 	ld (hl),00dh
 	ldir
-	call sub_be5dh
-	call sub_be54h
-	call sub_be54h
-	call sub_be54h
-	call sub_be54h
-	call sub_be54h
-sub_be54h:
+	call fill_4e
+	call fill_0d
+	call fill_0d
+	call fill_0d
+	call fill_0d
+	call fill_0d
+; 15 x 0x0D then fall into fill_4e.
+fill_0d:                          ; 0xBE54  15× 0x0D then fall into fill_4e
 	inc hl
 	inc de
 	ld bc,0000fh
 	ld (hl),00dh
 	ldir
-sub_be5dh:
+; 15 x 0x4E.
+fill_4e:                          ; 0xBE5D  15× 0x4E
 	inc hl
 	inc de
 	ld bc,0000fh
 	ld (hl),04eh
 	ldir
 	ret
-lbe67h:                           ; print_stream: "skip"
+str_skip:                         ; 0xBE67
 	defb 048h, 070h         ; D,E
 	TEXT "skip"
 	defb 0ffh               ; end
-lbe6eh:                           ; print_stream: "find"
+str_find:                         ; 0xBE6E
 	defb 048h, 070h         ; D,E
 	TEXT "find"
 	defb 0ffh               ; end
-lbe75h:
-	ld hl,lbe67h
+; Retry: print skip, show name, TAPION.
+tape_skip:                        ; 0xBE75  retry: print "skip", show name
+	ld hl,str_skip
 	call print_stream
-	call sub_bef3h
-	call 000e1h
-	jp c,lbefch
-lbe84h:
+	call tape_name
+; TAPION entry from io_do_load.
+tape_load:                        ; 0xBE7E  TAPION entry (io_do_load)
+	call TAPION
+	jp c,tape_fail
+tape_leadin:
 	ld c,010h
-lbe86h:
+tape_aa:
 	exx
-	call 000e4h
+	call TAPIN
 	exx
-	jp c,lbefch
+	jp c,tape_fail
 	cp 0aah
-	jr nz,lbe84h
+	jr nz,tape_leadin
 	dec c
-	jr nz,lbe86h
-	ld hl,0ee50h
+	jr nz,tape_aa
+	ld hl,0ee50h            ; E300 list / tape
 	ld bc,00008h
-	call 0bf1bh
-	jr c,lbefch
-	call 000f0h
-	ld hl,0ee50h
-	ld de,0e270h
+	call tape_read
+	jr c,tape_fail
+	call TAPOOF
+	ld hl,0ee50h            ; E300 list / tape
+	ld de,0e270h            ; tape name
 	ld b,008h
-lbeabh:
+tape_cmp:
 	ld a,(de)
 	cp (hl)
-	jr nz,lbe75h
+	jr nz,tape_skip
 	inc de
 	inc hl
-	djnz lbeabh
-	ld hl,lbe6eh
+	djnz tape_cmp
+	ld hl,str_find
 	call print_stream
-	call sub_bef3h
-	call 000e1h
-	jr c,lbefch
-	ld ix,06c6dh
+	call tape_name
+	call TAPION
+	jr c,tape_fail
+	ld ix,save_map
 	ld d,000h
 	ld b,006h
-lbec9h:
+tape_chunk:
 	push bc
 	ld l,(ix+000h)
 	ld h,(ix+001h)
 	ld c,(ix+002h)
 	ld b,(ix+003h)
-	call 0bf1bh
+	call tape_read
 	pop bc
-	jr c,lbefch
+	jr c,tape_fail
 	inc ix
 	inc ix
 	inc ix
 	inc ix
-	djnz lbec9h
+	djnz tape_chunk
 	exx
-	call 000e4h
+	call TAPIN
 	exx
-	jr c,lbefch
+	jr c,tape_fail
 	cp d
-	jr nz,lbefch
-	jp 000f0h
-sub_bef3h:
-	ld hl,0ee50h
+	jr nz,tape_fail
+	jp TAPOOF
+; Print 8 glyphs at EE50 to 7070.
+tape_name:                        ; 0xBEF3  8 glyphs at EE50 → 7070
+	ld hl,0ee50h            ; E300 list / tape
 	ld de,07070h
-	jp 08a1ah
-lbefch:
-	call 000f0h
-	call 04e98h
-	ld hl,lbf0eh
+	jp print_name
+; TAPOOF, "load error", E27F=2.
+tape_fail:                        ; 0xBEFC
+	call TAPOOF
+	call scr_reset
+	ld hl,str_load_err
 	call print_stream
 	ld a,002h
-	ld (0e27fh),a
+	ld (0e27fh),a           ; I/O error
 	ret
-lbf0eh:                           ; print_stream: "load error"
+str_load_err:                     ; 0xBF0E
 	defb 050h, 060h         ; D,E
 	TEXT "load error"
 	defb 0ffh               ; end
+; BC bytes to HL via TAPIN; checksum D.
+tape_read:                        ; 0xBF1B  BC bytes to HL, checksum D
 	exx
-	call 000e4h
+	call TAPIN
 	exx
 	ret c
 	ld (hl),a
@@ -1967,65 +1873,70 @@ lbf0eh:                           ; print_stream: "load error"
 	dec bc
 	ld a,b
 	or c
-	jr nz,$-13
+	jr nz,tape_read
 	ret
+; TAPOON entry from io_save.
+tape_save:                        ; 0xBF2B  TAPOON entry (io_save)
 	ld a,0ffh
-	call 000eah
-	jp c,lbf82h
+	call TAPOON
+	jp c,tape_save_fail
 	ld b,010h
-lbf35h:
+tape_aa_out:
 	ld a,0aah
 	exx
-	call 000edh
+	call TAPOUT
 	exx
-	jr c,lbf82h
-	djnz lbf35h
-	ld hl,0e270h
+	jr c,tape_save_fail
+	djnz tape_aa_out
+	ld hl,0e270h            ; tape name
 	ld bc,00008h
-	call 0bfa1h
-	jr c,lbf82h
-	call 000f0h
+	call tape_write
+	jr c,tape_save_fail
+	call TAPOOF
 	xor a
-	call 000eah
-	jr c,lbf82h
-	ld ix,06c6dh
+	call TAPOON
+	jr c,tape_save_fail
+	ld ix,save_map
 	ld d,000h
 	ld b,006h
-lbf5ch:
+tape_save_chunk:
 	push bc
 	ld l,(ix+000h)
 	ld h,(ix+001h)
 	ld c,(ix+002h)
 	ld b,(ix+003h)
-	call 0bfa1h
+	call tape_write
 	pop bc
-	jr c,lbf82h
+	jr c,tape_save_fail
 	inc ix
 	inc ix
 	inc ix
 	inc ix
-	djnz lbf5ch
+	djnz tape_save_chunk
 	ld a,d
-	call 000edh
-	jr c,lbf82h
-	jp 000f0h
-lbf82h:
-	call 000f0h
-	call 04e98h
-	ld hl,lbf94h
+	call TAPOUT
+	jr c,tape_save_fail
+	jp TAPOOF
+; TAPOOF, "save error", E27F=2.
+tape_save_fail:                   ; 0xBF82
+	call TAPOOF
+	call scr_reset
+	ld hl,str_save_err
 	call print_stream
 	ld a,002h
-	ld (0e27fh),a
+	ld (0e27fh),a           ; I/O error
 	ret
-lbf94h:                           ; print_stream: "save error"
+str_save_err:                     ; 0xBF94
 	defb 050h, 060h         ; D,E
 	TEXT "save error"
 	defb 0ffh               ; end
+; BC bytes from HL via TAPOUT; checksum D.
+tape_write:                       ; 0xBFA1  BC bytes from HL, checksum D
 	ld a,(hl)
 	ld e,a
 	inc hl
 	exx
-	call 000edh
+	call TAPOUT
 	exx
 	ret c
 	ld a,e
@@ -2034,7 +1945,7 @@ lbf94h:                           ; print_stream: "save error"
 	dec bc
 	ld a,b
 	or c
-	jr nz,$-15
+	jr nz,tape_write
 	ret
 
 	ds 77, 0ffh

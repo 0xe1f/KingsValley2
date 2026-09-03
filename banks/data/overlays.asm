@@ -1,7 +1,7 @@
 ; packed map-bit overlays -> E900 / secret-entrance E7C0 (bank 0C).
 ; load_obj (obj_ptr) / load_obj2 (obj2_ptr): 2-byte stamps, 0xFF = next
-; screen (+0xC0 dest), 0 end. Byte0 bit7 is part of the map offset
-; (DE>>7), not the 2-bit tile (bits 5-6); keep raw bytes.
+; screen (+0xC0 dest), 0 end. Offset = record>>7. Byte0 bits 5-6 = starting
+; nibble, bits 0-4 = run; each step writes cell 1 twice (2-wide) down a row.
 
 obj_a363:                         ; pyramid 1
 	defb 026h, 003h

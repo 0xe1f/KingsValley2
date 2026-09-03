@@ -1,4 +1,5 @@
 ; unpack_map continuation in bank 0B (CPU 0x8000–0xA000).
+; Preview: gfx/pyramid_NN.png / gfx/metatiles/map_streams_wN.png (`make gfx`).
 
 
 	; map_33 continues

@@ -1,4 +1,5 @@
 ; unpack_map tail in bank 0C (CPU 0xA000–0xA363): map 59 remainder + map 60.
+; Preview: gfx/pyramid_NN.png / gfx/metatiles/map_streams_wN.png (`make gfx`).
 
 
 	; map_59 continues
