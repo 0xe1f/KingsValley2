@@ -376,8 +376,8 @@ sfx_12:                         ; 0x4235  ending
 sfx_13:                         ; 0x423A  jump
 	ld a,013h               ; jump
 	jp sound_far
-sfx_14:                         ; 0x423F  thrown shovel (this screen)
-	ld a,014h               ; thrown shovel
+sfx_14:                         ; 0x423F  E500 same-screen (slouman_land / flouman_land)
+	ld a,014h               ; E500 same-screen
 	jp sound_far
 ; packed-PSG id 0x15 Vic shovel
 sfx_15:                         ; 0x4244  Vic shovel swing
@@ -411,14 +411,14 @@ sfx_1b:                         ; 0x4262  boomerang spin wrap
 sfx_1c:                         ; 0x4267  knife anim wrap
 	ld a,01ch               ; knife spin
 	jp sound_far
-sfx_1d:                         ; 0x426C  shovel throw spawn
-	ld a,01dh               ; shovel throw
+sfx_1d:                         ; 0x426C  Pyoncy / Rock Roll spawn
+	ld a,01dh               ; Pyoncy / Rock Roll spawn
 	jp sound_far
-sfx_1e:                         ; 0x4271  throw
-	ld a,01eh               ; throw
+sfx_1e:                         ; 0x4271  Slouman / Flouman spawn
+	ld a,01eh               ; Slouman / Flouman spawn
 	jp sound_far
-sfx_1f:                         ; 0x4276  shovel drop
-	ld a,01fh               ; shovel drop
+sfx_1f:                         ; 0x4276  Pyoncy drop
+	ld a,01fh               ; Pyoncy drop
 	jp sound_far
 ; packed-PSG id 0x20 play
 sfx_20:                         ; 0x427B  play start (E20C bit 1 → hud_hide)
@@ -465,12 +465,12 @@ sfx_2a:                         ; 0x42AB  card
 sfx_2b:                         ; 0x42AF  unused
 	ld a,02bh               ; unused
 	jr sound_far
-sfx_2c:                         ; 0x42B3  boomerang drop
-	ld a,02ch               ; boom drop
+sfx_2c:                         ; 0x42B3  enemy fall
+	ld a,02ch               ; enemy fall
 	jr sound_far
-; packed-PSG id 0x2d drop
-sfx_2d:                         ; 0x42B7  drop
-	ld a,02dh               ; drop
+; packed-PSG id 0x2d stuck self-destruct
+sfx_2d:                         ; 0x42B7  enemy_stuck / tick_self_destruct
+	ld a,02dh               ; stuck puff
 	jr sound_far
 ; packed-PSG id 0x2e clear
 sfx_2e:                         ; 0x42BB  clear
@@ -850,7 +850,7 @@ secret_store:                   ; 0x44AC  append secret-entrance rec at IX
 	ret
 ; world tileset + stamp_level + stamp_map
 load_stage:                     ; 0x44D4  world tileset + stamp_level + stamp_map
-	call picks_restore
+	call rockroll_restore
 	call page_banks_ef
 	call stamp_wpat
 	call stamp_level
@@ -859,7 +859,7 @@ load_stage:                     ; 0x44D4  world tileset + stamp_level + stamp_ma
 	call page_banks_123
 	call stamp_delayed
 	call 0651dh
-	jp picks_mark
+	jp rockroll_mark_all
 ; world tileset HMMM (bank EF)
 stamp_wpat:                     ; 0x44F2  world tileset HMMM (bank EF)
 	ld a,(0e241h)           ; world
@@ -1154,8 +1154,8 @@ stamp_pair:                     ; 0x4690  two tile_pset, 8px apart in X
 	pop hl
 	pop de
 	ret
-; E2C0 3x2 stamps for this screen
-stamp_delayed:                  ; 0x46A4  E2C0 3x2 stamps for this screen
+; E2C0 types 1–2: 3×2 case_under sarcophagus
+stamp_delayed:                  ; 0x46A4
 	ld hl,0e2c0h            ; delayed pickups
 	ld b,008h
 delay_loop:
@@ -1164,7 +1164,7 @@ delay_loop:
 	ld a,(hl)
 	and 07fh
 	dec a
-	sub 002h
+	sub 002h                      ; types 1–2 only (CY)
 	call c,stamp_delay1
 	pop hl
 	ld de,00005h
@@ -1174,19 +1174,19 @@ delay_loop:
 	ret
 ; one delayed 3x2 if same screen
 stamp_delay1:                   ; 0x46BD  one delayed 3x2 if same screen
-	inc l
-	inc l
+	inc l                         ; skip type
+	inc l                         ; skip timer
 	ld a,(0e243h)           ; screen
 	cp (hl)
 	ret nz
 	inc l
 	ld a,(hl)
-	sub 008h
+	sub 008h                      ; packed Y → dest Y-8
 	ld e,a
 	inc l
-	ld d,(hl)
+	ld d,(hl)                     ; packed X
 	ld bc,00302h
-	ld hl,throw_under
+	ld hl,case_under
 	jp draw_tilemap
 ; H.TIMI: mode_tick then input
 mode_frame:                       ; 0x46D4  H.TIMI: mode_tick then input
@@ -1751,7 +1751,7 @@ mode_room:                        ; 0x4AEE
 	ld a,(0e24dh)
 	and a
 	jr nz,room_play
-	call e500_room
+	call enemy_room
 	call room_draw
 room_play:
 	ld a,005h
@@ -4699,16 +4699,16 @@ play_tick:                        ; 0x5D6D
 	call probe_pickup
 	call touch_gems
 	call tick_delayed
-	call tick_e500
-	call e500_sat
+	call tick_enemies
+	call enemy_sat
 	call probe_exit
 	call tick_actors
 	call secret_hit                 ; bank 03: jump-reveal obj2
 	call page_bank_c
 	call 0b422h                   ; tick_ef10 (bank 0C MODULE)
 	call page_banks_123
-	call vic_e500_overlap
-	call e300_e500_hit
+	call vic_enemy_overlap
+	call e300_enemy_hit
 	call bgm_toggle
 	jp hud_world
 ; Pyramid screen-present bits (ab5a_flags) → E788.

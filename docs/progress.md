@@ -67,10 +67,14 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   0/1 door1), 2 = Pyoncy (2/3 door2), 3 = Rock Roll (4 wall), 4 = trap
   (5 floor), 5 = stone (6 stone). Tick is grab-only (`tick_coffin`); no
   walk/climb in ROM. `ix+8` is height (ROM 2–4, editor door1 rl writes 1).
-  `put_enemy` writes E2C0 delayed 1–4 (HUD `names_enemies`). E500 tools
-  1–4 = knife / boomerang / shovel / pick (only ids `spawn_tool` accepts
-  from `0xB7CD`); hammer / drill live as E300 map tools (`afb1_tbl`,
-  Vic states 12 / 13 via `use_tool`).
+  `put_enemy` writes E2C0 delayed 1–4 (HUD `names_enemies`). Packed
+  type, screen, **Y, X**; `stamp_delayed` 3×2 `case_under` sarcophagus
+  (types 1–2). Play SAT is `enemy_sat` at `E840` (not editor `delay_sat`).
+  First timer `14`; `enemy_done` re-arms bit 7 and respawn uses `30`.
+  Type 4 Rock Roll: no case; play SAT boulder `D0`/`D8` cc `07`/`49`
+  (pyramid 6 screen 1 `(10,20)`).
+  E300 floor knife / boomerang / shovel / pick / hammer / drill are a
+  separate list (`afb1_tbl`); they share type ids 1–4 with the enemies.
 - Secret reveal named: `secret_hit` (0xBE15) / `secret_reveal` (0xBE2D) in
   bank 03; climb (`E280==2` / `vic_climb`) arms bit 5, jump strobe
   `(0xE2A7)` punches tiles.
@@ -102,7 +106,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `vic_hold`). Type 5 tick is `tick_stone`. `use_throw` / `use_floor` /
   `use_wall`. `(0xE200)` game-mode table commented. `keys_apply` @ 0x5434.
 - `poll_keys` un-glued from WRTVDP sprite regs at 0x5413. E300 ticks
-  `tick_map_knife`..`tick_map_drill`; E500 `tick_thrown_*`. Pickup is
+  `tick_map_knife`..`tick_map_drill`; live enemies `tick_slouman` / `tick_flouman` / `tick_pyoncy_hop` / `tick_rockroll_ball`. Pickup is
   `pickup_tool`. Modes 9–13 named (stage-clear / world / continue / ending).
 - `sfx_01`..`sfx_41` / `sfx_80`..`sfx_84` thunks (`ld a` / `jp` or `jr`
   `sound_far`) sit at 0x41E0–0x4324. Boot fall-in
@@ -113,7 +117,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `scr_reset` @ 0x4E98, `title_load` @ 0x5B6A, `title_jp` @ 0x5F8D, `bgm_stage` @ 0x4388.
   H.TIMI calls `poll_keys` then `mode_frame`.
 - `play_tick` callees named (`vic_sat`, `tools_sat`, `tick_actors`,
-  `touch_gems`, `probe_pickup`, `probe_exit`, `tick_e500`, …). Title
+  `touch_gems`, `probe_pickup`, `probe_exit`, `tick_enemies`, …). Title
   `d_47c2` is `title_jingle`..`title_go`. `E257` scripts: `clear_tick`,
   `world_tick`, `end_tick` (65-word `d_735f`), title/file `e257_jp`.
   Stage-clear handlers `clear_door`..`clear_done`; world-complete
@@ -181,22 +185,22 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `to_bcd` / `print_bcd` / SCREEN 5 `expand_*`. Editor: `edit_xy` /
   `edit_screen` / `edit_place` / `actor_at`. E300: `e300_ix` /
   `tools_scan` / `tool_stamp`. Stones: `stone_save` / `stones_redraw`.
-  Map tools: `tool_lock` / `knife_probe` / `tool_sat` / `spawn_fill`.
+  Map tools: `tool_lock` / `tool_probe` / `tool_sat` / `spawn_enemy_fill`.
   Actors: `actor_row` / `rock_under` / `trap_punch`.
 
 - `banks_123` has no leftover `sub_*` or `lXXXXh` (window drops out of
-  `make coverage`). Last cluster: gems/E500 SAT (`gem_draw` / `tick_thrown` /
-  `e500_sat_put`), password (`pwd_cheat` / `pwd_decode`), disk/BDOS
+  `make coverage`). Last cluster: gems/E500 SAT (`gem_draw` / `tick_enemy` /
+  `enemy_sat_put`), password (`pwd_cheat` / `pwd_decode`), disk/BDOS
   (`disk_find` / `dos_enter`), world tour (`world_step` / `world_path`),
-  editor (`edit_cursor` / `io_menu`), thrown-tool probes (`thrown_xy` /
-  `thrown_step` / `thrown_snap`).
+  editor (`edit_cursor` / `io_menu`), thrown-tool probes (`enemy_xy` /
+  `enemy_step` / `enemy_snap`).
 - Fake-instruction tables folded to `defb` (`boom_dx` / `boom_dt` /
-  `fall_dt` / `shovel_id` / `hammer_l` / `hammer_r` / `thrown_delta` /
-  `shovel_fr` / `pick_pat`, plus password/file/save blobs). Map/thrown
+  `fall_dt` / `shovel_id` / `hammer_l` / `hammer_r` / `enemy_delta` /
+  `pyoncy_fr` / `rockroll_pat`, plus password/file/save blobs). Map/thrown
   `DISPATCH_A` handlers named and `defw` wired (knife already was;
   boom/shovel/pick/hammer/drill, spawn, editor stamps/`place_*`,
-  `io_menu`, stone idle/push/fall, pickup AABB). `ix14_db` no longer
-  swallows `call thrown_edge`. 1195 auto labels left (723 in
+  `io_menu`, stone idle/push/fall, pickup AABB). `pyoncy_dy2` no longer
+  swallows `call enemy_edge`. 1195 auto labels left (723 in
   `banks_123`).
 - `banks_abc` has no leftover auto labels (window drops out of
   `make coverage`). Pyramid FX AABB/stamp (`ef10_jump_hit` /
@@ -212,7 +216,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   door/Vic/gem/screen loops, actor unpack/stamp/draw, E500 wrap/SAT,
   password nibble/rot/decode, disk catalog (`str_file` / `disk_dir` /
   `disk_do_load` / `disk_do_save` / `io_probe`), world-tour delta/path,
-  stage-clear walk. Hammer `pick_frame` tables and FCB `"FILE?"` folded
+  stage-clear walk. Self-destruct `enemy_frame` tables and FCB `"FILE?"` folded
   to `defb`. Bank 0 `print_lives_at` / `tile_hmmm_at`. 966 auto
   labels left (572 in `banks_123`).
 - Ending ceremony through editor cursor in `banks_123` (~150 autos):
@@ -222,7 +226,7 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   `actor_free` / `secret_redraw` / `edit_stamp0` / `place_sat` /
   `vic_edit_sat` / `link_build`. Bank 0 `vdp_ymmm` (YMMM). 816 auto
   labels left (422 in `banks_123`).
-- Cursor wrap through `e300_e500_hit` locals in `banks_123` (~150 autos):
+- Cursor wrap through `e300_enemy_hit` locals in `banks_123` (~150 autos):
   door-link / minimap / file I/O (`sram_menu` / `sram_keys` / `name_type`),
   exit-door / map-tool / Vic SAT / stone / gem / pickup loops. Folded
   `file_name` `"FILE3   "` and stamp tiles (`gem_pat` / `tool_stamp_pat` /
@@ -232,14 +236,14 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
   auto labels left (272 in `banks_123`).
 - Clash through thrown-ahead locals in `banks_123` (~150 autos): DOS FCB /
   catalog, Vic walk/jump/climb/fall/die/tools, map knife/boom/shovel/pick/
-  hammer/drill, thrown E500. Folded `e500_cc` SAT bytes and thrown 3×2
-  stamps (`throw_under` / `knife_stamp` / `boom_stamp`). Unlabelled
-  `thrown_stop` / `floor_up`. Bank 0 `play_init` / `add_score`. 515 auto
+  hammer/drill, thrown E500. Folded `enemy_cc` SAT bytes and thrown 3×2
+  stamps (`case_under` / `slouman_stamp` / `flouman_stamp`). Unlabelled
+  `enemy_stuck` / `floor_up`. Bank 0 `play_init` / `add_score`. 515 auto
   labels left (122 in `banks_123`).
 - Finished `banks_123` autos (window drops out of `make coverage`) plus
   28 bank 0 locals (~150): thrown-ahead / shovel / pick / coffin / Pyoncy /
-  Rock Roll / trap / secret punch. Unlabelled `thrown_sfx` / `pick_park` /
-  `pick_mark` / `picks_restore` / `picks_mark` / `actor_rows` / `stamp_w2`.
+  Rock Roll / trap / secret punch. Unlabelled `enemy_sfx` / `rockroll_park` /
+  `pick_mark` / `rockroll_restore` / `rockroll_mark_all` / `actor_rows` / `stamp_w2`.
   Bank 0 H.TIMI debounce through `stamp_map` nibbles. 365 auto labels
   left (176 in `banks_0`).
 - Bank 0 overlay through screen-present bits (~150 autos): `stamp_overlay` /
@@ -261,6 +265,20 @@ Scaffolded by MSXDAW (`konami-scc`, 16 banks). ROM is gitignored;
 - Opcode / sub-comment pass: confirmed RAM, mapper ports, BIOS, and
   packed-PSG slot addresses on instruction lines; every `call` target
   has a comment line above (729 / 729). Opcode comments 8.8%.
+- Playtest (pyramids 1–3): E2C0 types 1–2 are Slouman/Flouman from the
+  sarcophagus (`E500`/`E840`), not the floor knife/boomerang (`E300`).
+  Death re-arms E2C0 bit 7; respawn timer is `30`.
+- Playtest (pyramid 5): type 3 Pyoncy has no case; puff SAT `E0` then hop.
+  `spawn_pyoncy` is E2C0-only (`spawn_enemy` ← `tick_delayed`). Only knife /
+  boomerang are thrown (`use_throw`); Vic shovel is `use_floor` (dig), not
+  E500.
+- Playtest (pyramid 6): type 4 Rock Roll has no case; intro puff then boulder
+  SAT `D0`/`D8` cc `07`/`49`. `enemy_stuck` / `tick_self_destruct` is the
+  spark puff when a live enemy cannot step (not Vic hammer).
+- Named the live-enemy path: `enemy_jp` / `slouman_jp` / `flouman_jp` /
+  `pyoncy_jp` / `rockroll_jp`, `spawn_case`, `case_open` / `case_hide`,
+  `enemy_step` / `enemy_stuck` / `enemy_done`. Vic knife/boomerang stay
+  `knife_go` / `boom_go` on E300.
 - Asset name sanity: WAV stems from call sites (no more `20_sfx` /
   four files all named `boom`); `tiles_afdd.png` matches `tiles_afdd`;
   JP-title dests `dest_title_jp_ext`; SAT library `flouman.png` /

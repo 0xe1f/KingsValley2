@@ -5,13 +5,13 @@
 pat_copy:                            ; 0x98C9  n, y, src → y*8 + F800
 	defb 004h, 048h             ; Flouman / Slouman walk (2 poses × 2)
 	defw pat_98f7
-	defb 006h, 068h             ; Flouman front (2) + Vic climb (4)
+	defb 006h, 068h             ; Flouman front (2) + Vic climb (4); delay_spr 1–2
 	defw pat_9977
-	defb 006h, 080h             ; Pyoncy (3 poses × 2)
+	defb 006h, 080h             ; Pyoncy (3 poses × 2); delay_spr 3 is y=0x88
 	defw pat_9a37
 	defb 004h, 0b0h             ; Pyoncy (2 poses × 2)
 	defw pat_9af7
-	defb 002h, 0c0h             ; Rock Roll body (2 planes)
+	defb 002h, 0c0h             ; Rock Roll body (2 planes); delay_spr 4
 	defw pat_9b77
 	defb 004h, 0d0h             ; Rock Roll boulder (2 poses × 2)
 	defw pat_9bb7

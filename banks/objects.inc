@@ -7,7 +7,15 @@
 ;          Last gem Y + terminator overlap a75d_tbl[0] (0x00A0).
 ;  tool    (load_map_tools): 3 bytes, 0xFF end. screen=hi4, type=lo4, Y, X.
 ;  link    (load_links):     2 bytes, 0xFF end. screen-from, screen-to (8x6 map).
-;  delayed (0xB7CD -> E2C0): 4 bytes, 0 end. type, screen, X, Y (spawn_tool 1-4).
+;  delayed (0xB7CD -> E2C0): 4 bytes, 0 end. type, screen, Y, X.
+;          Type 1–4 = names_enemies (Slouman / Flouman / Pyoncy / Rock
+;          Roll). Same numeric ids as knife / boomerang / shovel / pick
+;          but play spawns E500 enemies (enemy_sat / E840), not E300
+;          floor tools. load_delayed: type|0x80, timer 0x14, screen, Y, X.
+;          First spawn uses 0x14; enemy_done re-arms bit 7, respawn 0x30.
+;          stamp_delayed: types 1–2 only, 3×2 case_under at (X, Y−8).
+;          Type 4 Rock Roll: no case; play SAT boulder D0/D8 cc 07/49
+;          (SAT Y = packed Y−1). delay_sat is editor preview at (X, Y).
 ;  overlay (load_obj / load_obj2): 2 bytes, 0 end. 0xFF = next screen (+0xC0).
 ;          Offset = record>>7. Byte0 bits 5-6 = starting nibble in that packed
 ;          byte, bits 0-4 = run (djnz; 0 would be 256). Each step writes cell 1

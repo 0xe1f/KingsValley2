@@ -20,23 +20,46 @@ pyramid.
 
 - Player is **Vic**. Goal per pyramid: collect every **gem**, then enter the
   **exit door** to advance.
-- Tools: **picks** / **shovels** break ground vertically; **hammers** /
-  **drills** (jackhammers) break walls horizontally. **Knives** / **boomerangs**
-  can be picked up and thrown. Ground tools live in `0xE300`; thrown knife /
-  boomerang / shovel / pick also use `0xE500`.
-- Early enemies are **Slouman** and **Flouman** (editor names for the
-  **coffin** / sarcophagus, type 1). Vic push toward it plays states 6/7;
-  contact with the grab kills. The tick never writes X/Y and never calls
-  the walk/climb probe — no wander/climb split in ROM. Editor Flouman is
-  `ix+8=1` (height); ROM type 1 heights are 2–4. Packed lo3 sets facing
-  (`ix+7` bit 1) and the initial lid frame.
-- **Pyoncy** (type 2) is a stationary grab plus a 4-frame anim — the tick
-  does not bounce or chase (`tick_pyoncy` @ 0xBBB0). Same Vic 6/7 pull as
-  the coffin when Vic walks into it. **Rock Roll** (type 3) idles until
-  Vic is under the column (`start_rockroll` @ 0xBC74), then `tick_rockroll`
-  @ 0xBCC0 grows the fall to `ix+8` and clears the type. **Stone** (type 5)
-  is the pushable 2×2. Type 4 (`tick_trap` @ 0xBD21) is a 1×4 tile-column
-  trap.
+- Tools: only **knife** and **boomerang** can be thrown (`use_throw`, Vic
+  states 8/9). **Shovel** and **pick** only dig floor (`use_floor`, states
+  10/11; shovel is one tile deep). **Hammer** / **drill** break walls
+  (`use_wall`). Floor items live in `0xE300`. `use_throw` / `vic_throw` mark
+  that E300 slot (`E2A0`) in-use and fly it (`tick_map_knife` / `knife_go`).
+  Flight SAT is `tool_sat1` at **`0xE810`** (pat `tool_pat` `10`/`18`); not
+  `E500` / `E840`. On hit, Slouman `E500` clears and `enemy_done` re-arms
+  E2C0 (`type|0x80`, timer `30`).
+- HUD / editor **enemy** legend (`names_enemies`): **Slouman**, **Flouman**,
+  **Pyoncy**, **Rock Roll**. Those are **E2C0** (`put_enemy`, type =
+  E261+1), not E600. Packed record is type, screen, **Y, X**. Play:
+  `load_delayed` arms `type|0x80` with timer **`14`**; `tick_delayed` calls
+  `spawn_enemy` into an `E500` slot (same numeric id as knife..pick; **only**
+  caller of `spawn_enemy` is `tick_delayed`, **not** Vic). Live SAT is `enemy_sat` @ `0xE840` (Vic is
+  `0xE800`); type 2 Flouman uses `delay_spr` pat `0x68` / cc `0x0A`/`0x47`
+  at packed XY (SAT Y = packed Y−1). Type 3 **Pyoncy** has no case:
+  `spawn_pyoncy` sets `ix+11=0x18` (puff, SAT `E0`/`E8`) then hops (`A8`).
+  Type 4 **Rock Roll** has no case: `spawn_rockroll` then `tick_rockroll_ball`
+  (not Vic pick). Play (pyramid 6, packed screen 1 `(Y,X)=(10,20)`): intro
+  spin (`ix+11` `18`/`19`), then boulder SAT at packed XY (SAT Y = packed
+  Y−1) pat `D0`/`D4` or `D8`/`DC`, cc `07`/`49` (`delay_spr` 4). Ticks
+  off-screen; rolls, falls, parks. Types **1–2** get a 3×2 `case_under` **sarcophagus** (`stamp_delayed` @ 0x46A4) at
+  (X, Y−8). On death `enemy_done` sets E2C0 bit 7 again; respawn uses the
+  **`30`** already stored (longer than the first `14`). Editor preview is
+  `delay_sat` @ 0x811F (only while E266 ≠ 0). Types 3–4 have no case.
+  Do not mix these with E600 door1/`coffin_pat` pillars.
+- E600 type 1 is the **door1** dest (`coffin_pat` / `tick_coffin` @
+  0xBA85): Vic push toward it plays states 6/7; contact with the grab
+  kills. The tick never writes X/Y and never calls the walk/climb probe
+  — no wander/climb split in ROM. Editor Flouman is `ix+8=1` (height);
+  ROM type 1 heights are 2–4. Packed lo3 sets facing (`ix+7` bit 1) and
+  the initial lid frame. Both door1 lr/rl share this type; ROM lists
+  never store 0/1 in `ix+8`.
+- E600 type 2 **Pyoncy** dest (`tick_pyoncy` @ 0xBBB0) is a stationary grab
+  plus a 4-frame anim — not the hopping E2C0 Pyoncy. Same Vic 6/7
+  pull as the coffin when Vic walks into it. E600 type 3 **Rock Roll** dest
+  idles until Vic is under the column (`start_rockroll` @ 0xBC74), then
+  `tick_rockroll` @ 0xBCC0 grows the fall to `ix+8` and clears the type.
+  **Stone** (type 5) is the pushable 2×2. Type 4 (`tick_trap` @ 0xBD21) is
+  a 1×4 tile-column trap.
 - Some pyramids have **secret entrances**. On a ladder (Vic state
   `(0xE280)==2` / `vic_climb` arms bit 5), then jump (`(0xE2A7)` strobe)
   to reveal.
@@ -54,11 +77,12 @@ pyramid.
 
 | Addr | Layout | Loader | Meaning |
 |---|---|---|---|
-| `0xE600` | 16 × 16 | `load_actors` (`aae0_tbl`) | Enemies. `ix+0` = type. Tick `d_64a1`. |
+| `0xE2C0` | 8 × 5 | `load_delayed` (`b7cd_tbl`) | `names_enemies` spawners. Type\|0x80, timer, screen, Y, X. `tick_delayed` → `E500`; `enemy_done` re-arms bit 7. |
+| `0xE600` | 16 × 16 | `load_actors` (`aae0_tbl`) | Terrain actors (`names_terrain` door1/door2/wall/floor/stone). `ix+0` = type. Tick `d_64a1`. |
 | `0xE300` | 64 × 8 | `load_map_tools` (`afb1_tbl`) | On-map tools. `ix+0` low nibble = type 1–6; high nibble = in-use state. Tick `tick_map_tools` / `d_a6dd`. |
 | `0xE700` | 16 × 8 | `load_gems` (`a75d_tbl`) | Soul stones. All nonempty slots count in `(0xE2F5)`; door opens at 0. `ix+1` = screen `(0xE243)`. |
 | `0xE7C0` | 16 × 4 | `load_obj2` (`obj2_ptr`) | Secret-entrance records (editor tool 7). `secret_hit` @ 0xBE15 / `secret_reveal` @ 0xBE2D. |
-| `0xE500` | 8 × 32 | `spawn_tool` / in-play | Thrown / active tools. `ix+0` 1–5. `spawn_tool` rejects C ≥ 5. |
+| `0xE500` | 8 × 32 | `spawn_enemy` ← `tick_delayed` | Live `names_enemies`. SAT at `0xE840`. `ix+0` 1–4 (5 = stuck self-destruct via `enemy_stuck` / `tick_self_destruct`). |
 | `0xE287` | byte | `pickup_tool` | Currently held E300 type (0 = none). |
 
 Vic `(0xE280)` is `d_9ecd` (no `dec a`), ticked by `vic_tick` @ 0x9EC4.
@@ -71,7 +95,7 @@ Vic `(0xE280)` is `d_9ecd` (no `dec a`), ticked by `vic_tick` @ 0x9EC4.
 | 2 | `vic_climb` | Ladder (map tile type 1). `secret_hit` arms bit 5. |
 | 3 | `vic_fall` | Drop-in. Boot: `ld a,3 / ld (E280),a / jp 42F3`. Y+=4 until floor/`0xAD`. |
 | 4 | `vic_die` | Death anim (D=10). `(0xE20C)` bit 4. |
-| 5 | `vic_hit` | Shorter lock-anim (D=5). `vic_e500_overlap`: E500 `ix+13` bit 0. |
+| 5 | `vic_hit` | Shorter lock-anim (D=5). `vic_enemy_overlap`: E500 `ix+13` bit 0. |
 | 6 / 7 | `vic_pull_l` / `vic_pull_r` | Coffin / Pyoncy pull left / right. |
 | 8 / 9 | `vic_throw` | Knife / boomerang windup (`use_throw`). |
 | 10 | `vic_shovel` | Floor, 1 deep (`use_floor`). |
@@ -86,9 +110,9 @@ Actor `ix+0` from continue-editor `put_trap` (`print_legend` 5, `names_terrain`
 via `bcbb_tbl[1]`) / `editor_spawn`: E261 0–1 door1 → type 1 coffin, 2–3 door2
 → type 2 Pyoncy, 4 wall → 3 Rock Roll, 5 floor → 4 trap, 6 stone → 5 stone,
 7 ladder → secret (`0xE7C0`). Live-checked in the continue editor (legend
-**enemy** / Flouman → `E2C0` type 2 boomerang; **trap** door1 / door2 / wall /
+**enemy** / Flouman → `E2C0` type 2; **trap** door1 / door2 / wall /
 floor / stone / ladder → E600 types 1–5 + `E7C0`). `put_enemy` (legend 4, `names_enemies`) writes
-delayed pickups at `0xE2C0` (type = E261+1 = knife..pick), not E600. Both
+`E2C0` (type = E261+1 = Slouman..Rock Roll), not E600. Both
 coffin enemies share type 1; editor Flouman writes `ix+8=1` (Slouman 0),
 but **ROM lists never store 0/1 there**. `ix+8` is height in tiles (`actor_hgt` @ 0x6445: 2, 1, 1, 4, 2).
 Type 1 ROM heights are 2–4; type 4 is always 1; type 5 is always 2.
@@ -99,9 +123,9 @@ it does not walk or climb. `d_a6f2` is the **knife** in-use table on E300.
 
 | Id | Name | Editor E261 (trap / names_terrain) | Manual / ROM |
 |---|---|---|---|
-| 1 | Slouman / Flouman | 0 / 1 door1 lr/rl | Stationary coffin; grab Vic (6/7). 75 in lists. Height 2–4; lo3 0/1 = facing. |
-| 2 | Pyoncy | 2 / 3 door2 lr/rl | `tick_pyoncy`; grab 6/7 + 4-frame; no X/Y. 9 in lists. |
-| 3 | Rock Roll | 4 wall | `start_rockroll` then `tick_rockroll`. 36 in lists. |
+| 1 | door1 / coffin | 0 / 1 door1 lr/rl | Stationary dest (`coffin_pat`); grab Vic (6/7). 75 in lists. Height 2–4; lo3 0/1 = facing. Not the E2C0 sarcophagus. |
+| 2 | door2 / Pyoncy dest | 2 / 3 door2 lr/rl | `tick_pyoncy`; grab 6/7 + 4-frame; no X/Y. 9 in lists. |
+| 3 | Rock Roll dest | 4 wall | `start_rockroll` then `tick_rockroll`. 36 in lists. |
 | 4 | trap | 5 floor | `tick_trap`; 1×4 tile column (`actor_hgt` 4, tile 0x61). 37 in lists (11 on pyramid 10). |
 | 5 | stone | 6 stone | 2×2 pushable block (bifi trap; same family as Rock Roll at rest). 23 in lists. |
 | 6 | — | — | no E600 list uses it |
@@ -116,24 +140,24 @@ pickup / throw / pause / death is the blocking VRAM reload inside H.TIMI
 
 Fire (`e207` bit 4) with E287 set: `use_tool` @ 0xA045 scans E300 for high
 nibble == 1, then `d_a072` on `(E287)−1`. Vic `(0xE280)` becomes
-`(E287 & 0x0F) + 7` (`d_9ecd` states 8–13). Pairs: 1–2 throw (no map
-check), 3–4 two floor tiles type 2, 5–6 two wall tiles type 2.
+`(E287 & 0x0F) + 7` (`d_9ecd` states 8–13). Pairs: 1–2 **throw** (knife /
+boomerang; writes the E300 slot at `E2A0`, not `spawn_enemy`). 3–4 **floor**
+(shovel / pick; two map tiles type 2). 5–6 **wall** (hammer / drill).
+Shovels and picks are not thrown.
 
-`0xE500` (`d_65fb_jp`) is the thrown/active copy. Delayed pickup table
-(`0xB7CD` → `0xE2C0`) and `spawn_tool` @ 0xAC6D only ever create ids
-**1–4**; C ≥ 5 is rejected. Hammer still has an E500 tick; drill does not.
-Editor `put_tool` (legend 6, `names_tools`) writes E300 type = E261+1.
-`put_enemy` (legend 4, `names_enemies`) writes the delayed E2C0 table
-(type = E261+1 = knife..pick).
+`0xE500` is live `names_enemies` from `E2C0` (`tick_delayed` → `spawn_enemy`
+@ 0xAC6D, only caller; C ≥ 5 rejected). Same numeric ids as knife..pick;
+Vic never enters `spawn_enemy`. Floor tools stay in `E300`. `put_tool` writes
+E300; `put_enemy` writes E2C0.
 
-| Id | Name | E300 maps | E500 / Vic |
+| Id | Floor E300 | Vic use | E2C0 → E500 |
 |---|---|---|---|
-| 1 | knife | 123 | `tick_thrown_knife` 0xAD80; Vic 8 |
-| 2 | boomerang | 43 | `tick_thrown_boom` 0xAE23 (returns); Vic 9 |
-| 3 | shovel | 39 | `tick_thrown_shovel` 0xB2AA; Vic 10 |
-| 4 | pick | 55 | `tick_thrown_pick` 0xB68E; Vic 11 |
-| 5 | hammer | 43 | wall 1 deep; Vic 12; `tick_thrown_hammer` 0x662D unused in stock |
-| 6 | drill | 155 | wall 2 deep; Vic 13; not an E500 id |
+| 1 | knife | `use_throw` (state 8) | Slouman `tick_slouman` |
+| 2 | boomerang | `use_throw` (state 9) | Flouman `tick_flouman` |
+| 3 | shovel | `use_floor` (state 10) | Pyoncy `spawn_pyoncy` / `tick_pyoncy_hop` |
+| 4 | pick | `use_floor` (state 11) | Rock Roll `spawn_rockroll` / `tick_rockroll_ball` (boulder SAT `D0`/`D8`, cc `07`/`49`; no case) |
+| 5 | hammer | `use_wall` (state 12) | — |
+| 6 | drill | `use_wall` (state 13) | — |
 
 Type 4 pick is special-cased (`cp 004h`) vs Vic overlap.
 
@@ -173,9 +197,9 @@ ROM addresses for them until a consumer is traced.
   `vdp_box`. Title `title_ptr` / `print_ptr` blink game vs edit; `play_clear`
   zeros `E226` before the stage card. `add_score` @ 0x4C20 adds packed BCD
   in DE to `E226` (gem / clash). `dos_do_load` / `dos_do_save` wrap BDOS
-  with H.TIMI = RET. Thrown tools that fail a step `jp thrown_stop` (0x6608).
-  Same-screen packed-PSG is `thrown_sfx` @ 0xB294 (`jp (hl)`). `load_stage`
-  walks E500 picks with `picks_restore` / `picks_mark` (0xBA3C / 0xBA54).
+  with H.TIMI = RET. Stuck live enemy `jp enemy_stuck` (0x6608) then `tick_self_destruct`.
+  Same-screen packed-PSG is `enemy_sfx` @ 0xB294 (`jp (hl)`). `load_stage`
+  walks live E500 with `rockroll_restore` / `rockroll_mark_all` (0xBA3C / 0xBA54).
   Editor coffin/pyoncy stamps skip the first `stamp_wtiles` at `actor_rows`
   (0xBB63). `stamp_w2` (0x56DC) is `ld c,2` into `stamp_wtiles`.
   `stamp_map_at` nibble 1 is `map_ladder` (0x45CB) after a 2-byte `ovl_pair`.
@@ -299,7 +323,7 @@ One window file [`banks/banks_123.asm`](../banks/banks_123.asm) (`page_banks_123
   window). `F0F8` is tape/disk/sram; `io_probe` fills `F0F9` (PHYDIO /
   disk ROM). Disk catalog is `disk_dir` (`str_file` `"FILE?"`); I/O is
   `disk_do_load` / `disk_do_save` with H.TIMI stashed. `vic_tick` @ 0x9EC4 / `vic_walk` @ 0x9EEE /
-  `vic_e500_overlap` @ 0x9AB1. `tick_stone` @ 0x93F3 (E600 type 5).
+  `vic_enemy_overlap` @ 0x9AB1. `tick_stone` @ 0x93F3 (E600 type 5).
 - Bank 03 starts `ld a,3 / ld (0xE280),a / jp sfx_3c` (`vic_fall`).
   `vic_begin_jump` @ 0xA008, `vic_jump` @ 0xA190, `vic_climb` @ 0xA20F,
   `vic_fall` @ 0xA2F0, `vic_die` @ 0xA315, `vic_hit` @ 0xA31C,
@@ -307,7 +331,7 @@ One window file [`banks/banks_123.asm`](../banks/banks_123.asm) (`page_banks_123
   `vic_shovel`..`vic_drill` @ 0xA405, `vic_hold` @ 0xA43C.
   Trailing 283 bytes of `0xFF` from 0xBEE5. `use_tool` @ 0xA045 /
   `tick_map_tools` @ 0xA6BD / `tick_map_knife`..`tick_map_drill` /
-  `spawn_tool` @ 0xAC6D. E500 `tick_thrown_knife` @ 0xAD80. E300 tool `DISPATCH_A`
+  `spawn_enemy` @ 0xAC6D. E500 `tick_slouman` @ 0xAD80. E300 tool `DISPATCH_A`
   tables often share first entry `0xA6FF`. `tick_coffin` @ 0xBA85 is E600
   type 1. `secret_hit` @ 0xBE15 (`secret_reveal` @ 0xBE2D); bank 00 calls
   `0xBE15` each frame.

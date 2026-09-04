@@ -54,7 +54,7 @@ bcbb_tbl:
 	; names_enemies's max/D (03h, A0h) = 0xA003.
 	defw names_enemies, names_terrain, names_tools
 print_names:                      ; 0xBCC1-0xBECF
-names_enemies:                    ; max=3; Slouman, Flouman, Pyoncy, Rock Roll
+names_enemies:                    ; max=3; E261 0–3 → E2C0 type 1–4 (E500 in play)
 	defb 3
 	defb 0a0h, 010h         ; D,E
 	TEXT "slouman"

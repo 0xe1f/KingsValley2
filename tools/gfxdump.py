@@ -267,7 +267,7 @@ def dump_1bpp_sheet(rom, path, bank, cpu, count, colour, play_pal, cols=16):
 # SAT colour low nibbles (high nibble of the byte is EC). Catalogue paints
 # each 1bpp plane with that VDP index; pal_* is the palette_list in force.
 SAT_CC = (0xD0, 0xE0)          # sat_cc_fill / puz_cc / tour_col: 0x0D / 0x4E
-THROWN_KNIFE_CC = (0xB0, 0xC0) # e500_cc2 type 1 / delay_spr knife: 0x0B / 0x4C
+THROWN_KNIFE_CC = (0xB0, 0xC0) # enemy_cc2 type 1 / delay_spr Slouman: 0x0B / 0x4C
 MAP_KNIFE_CC = (0xB0, 0x70)    # tool_cc knife: 0x0B / 0x47
 MAP_BOOM_CC = (0x70, 0xA0)     # tool_cc boomerang: 0x07 / 0x4A
 SHOVEL_CC = (0xA0, 0x70)       # shovel spin / delay_spr shovel: 0x0A / 0x47
@@ -375,12 +375,13 @@ HELD_RLE = (
 
 # copy_pat payloads in lists0E.asm (n × 32 bytes → F800). Grouped by
 # character, not by copy_pat record (Vic climb is the tail of the n=6 Flouman copy).
-# Colours: play enemies are SCREEN 5 stamps; these SAT slots are E500 / delay_spr
-# / cer_sat. Vic-shaped planes keep sat_cc_fill; tools use their SAT cc words.
+# Colours: delay_spr types 1–2 share pat_9977 (y=0x68) with cc 0x0B/0x4C
+# vs 0x0A/0x47 — not sat_cc_fill. Type 3 y=0x88 / type 4 y=0xC0. Vic-shaped
+# catalogue cells keep SAT_CC; pyoncy/rock_roll sheets use delay_spr cc.
 PAT_COPY = (
     ("flouman", 14, 0x98F7, 6, SAT_CC),       # cer_sat poses 4–5
     ("vic_climb", 14, 0x99B7, 4, SAT_CC),     # cer_sat / Vic-shaped
-    ("pyoncy", 14, 0x9A37, 10, SHOVEL_CC),    # delay_spr / shovel_fr 0x88
+    ("pyoncy", 14, 0x9A37, 10, SHOVEL_CC),    # delay_spr / pyoncy_fr 0x88
     ("rock_roll", 14, 0x9B77, 6, PICK_CC),    # delay_spr / pick_ready 0xC0
     ("explode", 14, 0x9C37, 8, SHOVEL_CC),    # shovel/pick spin puffs 0xE0
 )

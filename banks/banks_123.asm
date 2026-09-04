@@ -107,7 +107,7 @@ pause_map_done:                   ; 0x60C2  E20C bit 1 -> restore play
 	call room_draw
 	call vic_reload
 	call vic_sat
-	call e500_sat
+	call enemy_sat
 	xor a
 	ld (0edc0h),a           ; pause overlay
 	jp sat_flip
@@ -891,88 +891,88 @@ gem_tiles:                      ; 0x653D  2x2 tiles from gem_pat at DE
 	ld d,(ix+003h)
 	ld bc,00202h
 	jp draw_tilemap
-; thrown/active tools at E500
-tick_e500:                        ; 0x654C  thrown/active tools at E500
-	ld ix,0e500h            ; thrown tools
+; names_enemies at E500 (from tick_delayed / spawn_enemy)
+tick_enemies:                        ; 0x654C  names_enemies at E500
+	ld ix,0e500h            ; E500 enemies
 	ld b,008h
-tick_e500_loop:
+tick_enemies_loop:
 	push bc
 	ld a,(ix+000h)
 	and a
-	jr z,tick_e500_next
-	call tick_thrown
+	jr z,tick_enemies_next
+	call tick_enemy
 	bit 0,(ix+006h)
-	call nz,e500_move
-tick_e500_next:
+	call nz,enemy_move
+tick_enemies_next:
 	ld de,00020h
 	add ix,de
 	pop bc
-	djnz tick_e500_loop
+	djnz tick_enemies_loop
 	ret
-; apply ix+7/9 velocity; wrap via e500_wrap
-e500_move:                      ; 0x656C  apply ix+7/9 velocity; wrap via e500_wrap
+; apply ix+7/9 velocity; wrap via enemy_wrap
+enemy_move:                      ; 0x656C  apply ix+7/9 velocity; wrap via enemy_wrap
 	ld a,(ix+00bh)
 	cp 002h
-	jr c,e500_move_y
+	jr c,enemy_move_y
 	ld l,(ix+004h)
 	ld h,(ix+005h)
 	ld e,(ix+009h)
 	ld d,(ix+00ah)
-	jr z,e500_sub_x
+	jr z,enemy_sub_x
 	add hl,de
 	ld a,h
 	cp 0f1h
-	jr nc,e500_wrap_right
-e500_put_x:
+	jr nc,enemy_wrap_right
+enemy_put_x:
 	ld (ix+004h),l
 	ld (ix+005h),h
 	ret
-e500_sub_x:
+enemy_sub_x:
 	and a
 	sbc hl,de
-	jr c,e500_wrap_left
-	jr e500_put_x
-e500_move_y:
+	jr c,enemy_wrap_left
+	jr enemy_put_x
+enemy_move_y:
 	ld l,(ix+002h)
 	ld h,(ix+003h)
 	ld e,(ix+007h)
 	ld d,(ix+008h)
 	and a
-	jr nz,e500_add_y
+	jr nz,enemy_add_y
 	sbc hl,de
-	jr c,e500_wrap_up
-	jr e500_put_y
-e500_add_y:
+	jr c,enemy_wrap_up
+	jr enemy_put_y
+enemy_add_y:
 	add hl,de
 	ld a,h
 	cp 0b1h
-	jr nc,e500_wrap_down
-e500_put_y:
+	jr nc,enemy_wrap_down
+enemy_put_y:
 	ld (ix+002h),l
 	ld (ix+003h),h
 	ret
-e500_wrap_left:
+enemy_wrap_left:
 	ld a,003h
-	call e500_wrap
+	call enemy_wrap
 	ld hl,0f000h
-	jr e500_put_x
-e500_wrap_right:
+	jr enemy_put_x
+enemy_wrap_right:
 	ld a,004h
-	call e500_wrap
+	call enemy_wrap
 	ld hl,00000h
-	jr e500_put_x
-e500_wrap_up:
+	jr enemy_put_x
+enemy_wrap_up:
 	ld a,001h
-	call e500_wrap
+	call enemy_wrap
 	ld hl,0b000h            ; mapper A000
-	jr e500_put_y
-e500_wrap_down:
+	jr enemy_put_y
+enemy_wrap_down:
 	ld a,002h
-	call e500_wrap
+	call enemy_wrap
 	ld hl,00000h
-	jr e500_put_y
+	jr enemy_put_y
 ; room_link A; update ix+16 screen + map ptr
-e500_wrap:                      ; 0x65DF  room_link A; update ix+16 screen + map ptr
+enemy_wrap:                      ; 0x65DF  room_link A; update ix+16 screen + map ptr
 	ld b,(ix+016h)
 	call room_link                 ; A = 1 up / 2 down / 3 left / 4 right
 	ld (ix+016h),h
@@ -982,23 +982,23 @@ e500_wrap:                      ; 0x65DF  room_link A; update ix+16 screen + map
 	ld (ix+00ch),e
 	ld (ix+00dh),d
 	ret
-; DISPATCH_A on E500 type 1-5
-tick_thrown:                    ; 0x65F6  DISPATCH_A on E500 type 1-5
+; DISPATCH_A on live enemy type 1-5
+tick_enemy:                    ; 0x65F6  DISPATCH_A on live enemy type 1-5
 	ld a,(ix+000h)
 	dec a
 	ret m
 	call DISPATCH_A
 
-; BLOCK 'd_65fb_jp' (start 0x65fe end 0x6608)
-d_65fb_jp_start:
-	defw tick_thrown_knife        ; tool 1 knife (thrown; 5 states)
-	defw tick_thrown_boom         ; tool 2 boomerang (returns; 6 states)
-	defw tick_thrown_shovel       ; tool 3 shovel (HUD "scoop"; floor, 1 deep)
-	defw tick_thrown_pick         ; tool 4 pick (floor, 2 deep)
-	defw tick_thrown_hammer       ; tool 5 hammer (wall, 1 deep; not in stock pickups)
-d_65fb_jp_end:
-; Stop a thrown E500 (type 5, clear flags).
-thrown_stop:                      ; 0x6608
+; BLOCK 'enemy_jp' (start 0x65fe end 0x6608)
+enemy_jp_start:
+	defw tick_slouman             ; 1 Slouman
+	defw tick_flouman             ; 2 Flouman
+	defw tick_pyoncy_hop          ; 3 Pyoncy hop
+	defw tick_rockroll_ball       ; 4 Rock Roll boulder
+	defw tick_self_destruct       ; 5 stuck self-destruct puff
+enemy_jp_end:
+; Stuck E500: type 5, sfx_2d, then tick_self_destruct.
+enemy_stuck:                      ; 0x6608
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	call z,sfx_2d
@@ -1013,79 +1013,79 @@ thrown_stop:                      ; 0x6608
 	ld (ix+01eh),00ah
 	ld (ix+01fh),04bh
 	ret
-tick_thrown_hammer:               ; 0x662D  E500; unused in stock maps
-	ld hl,hammer_msx1
-	ld de,hammer_msx2
-	call pick_frame
-	jp z,thrown_done
+tick_self_destruct:               ; 0x662D  E500 type 5: stuck puff then enemy_done
+	ld hl,destruct_fr
+	ld de,destruct_fr2
+	call enemy_frame
+	jp z,enemy_done
 	ld (ix+011h),a
 	ret
-; BLOCK 'hammer_msx1' (start 0x663D end 0x6641)
-hammer_msx1:                      ; 0x663D  pick_frame ids; FF end (MSX1)
+; BLOCK 'destruct_fr' (start 0x663D end 0x6641)
+destruct_fr:                      ; 0x663D  sat_pat 15–17 (MSX1 B4/B8/BC)
 	defb 015h, 016h, 017h, 0ffh
-; BLOCK 'hammer_msx2' (start 0x6641 end 0x6645)
-hammer_msx2:                      ; 0x6641  pick_frame ids; FF end (MSX2)
+; BLOCK 'destruct_fr2' (start 0x6641 end 0x6645)
+destruct_fr2:                     ; 0x6641  sat_pat 15–16 spark F0–FC (17 is blank)
 	defb 015h, 016h, 016h, 0ffh
-; E500 sprite cells -> E840 / D300
-e500_sat:                         ; 0x6645  E500 sprite cells -> E840 / D300
-	call e500_sat_put
+; E500 sprite cells -> E840 / D300 (play: names_enemies from E2C0)
+enemy_sat:                         ; 0x6645  E500 sprite cells -> E840 / D300
+	call enemy_sat_put
 	ld a,(0f0f4h)
 	and a
 	ret z
 	ld hl,0e843h
 	ld de,0d300h
 	ld c,010h
-e500_cc_loop:
+enemy_cc_loop:
 	ld a,(hl)
 	ld b,010h
-e500_cc_fill:
+enemy_cc_fill:
 	ld (de),a
 	inc de
-	djnz e500_cc_fill
+	djnz enemy_cc_fill
 	inc hl
 	inc hl
 	inc hl
 	inc hl
 	dec c
-	jr nz,e500_cc_loop
+	jr nz,enemy_cc_loop
 	ret
 ; E500 on-screen -> SAT at E840
-e500_sat_put:                   ; 0x6664  E500 on-screen -> SAT at E840
-	ld ix,0e500h            ; thrown tools
+enemy_sat_put:                   ; 0x6664  E500 on-screen -> SAT at E840
+	ld ix,0e500h            ; E500 enemies
 	ld de,0e840h
 	ld b,008h
 	ld a,(0f0f4h)
 	and a
-	jr z,e500_sat_msx1
-e500_sat_msx2:
+	jr z,enemy_sat_msx1
+enemy_sat_msx2:
 	push bc
 	ld a,(ix+000h)
 	and a
-	jr z,e500_sat_hide2
+	jr z,enemy_sat_hide2
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
-	jr nz,e500_sat_hide2
+	jr nz,enemy_sat_hide2
 	ld l,(ix+011h)
 	ld a,l
 	inc a
-	jr z,e500_sat_hide2
+	jr z,enemy_sat_hide2
 	ld h,000h
 	add hl,hl
 	call page_bank_d
 	ld bc,0beedh
 	add hl,bc
 	ld c,(ix+01eh)
-	call e500_sat1
+	call enemy_sat1
 	ld c,(ix+01fh)
-	call e500_sat1
+	call enemy_sat1
 	call page_banks_123
-e500_sat_next2:
+enemy_sat_next2:
 	ld bc,00020h
 	add ix,bc
 	pop bc
-	djnz e500_sat_msx2
+	djnz enemy_sat_msx2
 	ret
-e500_sat_hide2:
+enemy_sat_hide2:
 	ld a,0e0h
 	ld (de),a
 	inc e
@@ -1097,42 +1097,42 @@ e500_sat_hide2:
 	inc e
 	inc e
 	inc e
-	jr e500_sat_next2
-e500_sat_msx1:
+	jr enemy_sat_next2
+enemy_sat_msx1:
 	push bc
 	ld a,(ix+000h)
 	and a
-	jr z,e500_sat_hide1
+	jr z,enemy_sat_hide1
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
-	jr nz,e500_sat_hide1
+	jr nz,enemy_sat_hide1
 	ld l,(ix+011h)
 	ld a,l
 	inc a
-	jr z,e500_sat_hide1
+	jr z,enemy_sat_hide1
 	ld h,000h
 	call page_bank_d
 	ld bc,0becfh                  ; E500 SAT patterns (ix+11)
 	add hl,bc
 	ld c,(ix+01eh)
-	call e500_sat1
+	call enemy_sat1
 	call page_banks_123
-e500_sat_next1:
+enemy_sat_next1:
 	ld bc,00020h
 	add ix,bc
 	pop bc
-	djnz e500_sat_msx1
+	djnz enemy_sat_msx1
 	ret
-e500_sat_hide1:
+enemy_sat_hide1:
 	ld a,0e0h
 	ld (de),a
 	inc e
 	inc e
 	inc e
 	inc e
-	jr e500_sat_next1
+	jr enemy_sat_next1
 ; one SAT entry: Y-1, X, pat, C
-e500_sat1:                      ; 0x66F3  one SAT entry: Y-1, X, pat, C
+enemy_sat1:                      ; 0x66F3  one SAT entry: Y-1, X, pat, C
 	ld a,(ix+003h)
 	dec a
 	ld (de),a
@@ -1148,8 +1148,8 @@ e500_sat1:                      ; 0x66F3  one SAT entry: Y-1, X, pat, C
 	ld (de),a
 	inc e
 	ret
-; Clear E500 slot; mark delayed pickup bit 7.
-thrown_done:                      ; 0x6706
+; Clear E500 slot; re-arm E2C0 bit 7 (names_enemies respawn).
+enemy_done:                      ; 0x6706
 	xor a
 	ld (ix+000h),a
 	ld (ix+013h),a
@@ -1162,8 +1162,8 @@ thrown_done:                      ; 0x6706
 	call ADD_HL_A
 	set 7,(hl)
 	ret
-; E2C0 delayed pickups -> spawn_tool
-tick_delayed:                     ; 0x671D  E2C0 delayed pickups -> spawn_tool
+; E2C0 names_enemies -> E500 (timer 0x14 first, 0x30 after spawn/respawn)
+tick_delayed:                     ; 0x671D  E2C0 names_enemies -> spawn_enemy
 	ld a,(0e203h)           ; puzzle board
 	and 003h
 	ret nz
@@ -1189,7 +1189,7 @@ delayed_loop:
 	ld e,(hl)
 	inc hl
 	ld d,(hl)
-	call spawn_tool
+	call spawn_enemy
 delayed_next:
 	pop hl
 	pop bc
@@ -1201,8 +1201,8 @@ delayed_next:
 	inc c
 	djnz delayed_loop
 	ret
-; b7cd_tbl -> E2C0 delayed pickups
-load_delayed:                     ; 0x674F  b7cd_tbl -> E2C0 delayed pickups
+; b7cd_tbl packed type,screen,Y,X → E2C0 type|80, timer, screen, Y, X
+load_delayed:                     ; 0x674F  b7cd_tbl packed type,screen,Y,X → E2C0
 	call page_bank_d
 	ld hl,0e2c0h            ; delayed pickups
 	ld b,028h
@@ -1220,15 +1220,15 @@ delayed_unpack:
 	inc hl
 	and a
 	jp z,page_banks_123
-	or 080h
+	or 080h                       ; armed until tick_delayed
 	ld (de),a
 	inc e
-	ld a,014h
+	ld a,014h                     ; countdown
 	ld (de),a
 	inc e
-	ldi
-	ldi
-	ldi
+	ldi                           ; screen
+	ldi                           ; Y
+	ldi                           ; X
 	jr delayed_unpack
 ; start select (E24B 0 normal / 1 password / 2 stage load)
 file_menu:                        ; 0x677E  start select (E24B 0 normal / 1 password / 2 stage load)
@@ -4607,7 +4607,7 @@ d_7e6c_jp_start:
 	defw put_floor2               ; 1 floor2
 	defw put_ladder               ; 2 ladder
 	defw put_player               ; 3 player
-	defw put_enemy                ; 4 enemy → E2C0 delayed 1-4
+	defw put_enemy                ; 4 names_enemies → E2C0 delayed 1-4
 	defw put_trap                 ; 5 trap → E600 / secret
 	defw put_tool                 ; 6 tool weapon → E300
 	defw put_gem                  ; 7 soul stone → E700
@@ -4978,7 +4978,7 @@ vic_hide:
 	ld a,04eh
 	ld hl,0d250h
 	jp cc_fill
-put_enemy:                        ; 0x80A7  E2C0 delayed pickups; type=E261+1 (HUD names_enemies)
+put_enemy:                        ; 0x80A7  E2C0 delayed; type=E261+1 (names_enemies, not E600)
 	call edit_cursor
 	ld a,(0e207h)           ; key edges
 	and 030h
@@ -5057,8 +5057,8 @@ delay_erase_next:
 	ld a,005h
 	call ADD_HL_A
 	djnz delay_erase_loop
-; E2C0 delayed-pickup SAT at E840.
-delay_sat:                        ; 0x811F
+; E2C0 delay_spr SAT at packed XY (editor; SAT Y is packed Y, not Y-8).
+delay_sat:                        ; 0x811F  E2C0 delay_spr SAT at packed XY
 	ld hl,0e2c0h            ; delayed pickups
 	ld b,008h
 	ld de,0e840h
@@ -5087,7 +5087,7 @@ delay_sat_loop:
 	inc hl
 	inc hl
 	inc hl
-	ld a,(hl)
+	ld a,(hl)                     ; packed Y → SAT Y
 	jr nz,delay_sat_y
 	ld a,0e0h
 delay_sat_y:
@@ -5098,7 +5098,7 @@ delay_sat_y:
 	exx
 	inc hl
 	inc de
-	ld a,(hl)
+	ld a,(hl)                     ; packed X
 	ld (de),a
 	exx
 	ld (de),a
@@ -5971,11 +5971,11 @@ legend_tile:
 	djnz legend_row
 	ret
 ; BLOCK 'delay_spr' (start 0x86B9 end 0x86C5)
-delay_spr:                        ; 0x86B9  4 x (pat, cc, cc) for E2C0 SAT
-	defb 068h, 00bh, 04ch
-	defb 068h, 00ah, 047h
-	defb 088h, 00ah, 047h
-	defb 0c0h, 007h, 049h
+delay_spr:                        ; 0x86B9  names_enemies 1–4: pat, cc0, cc1
+	defb 068h, 00bh, 04ch         ; 1 Slouman   pat_9977  B/C
+	defb 068h, 00ah, 047h         ; 2 Flouman   pat_9977  A/7
+	defb 088h, 00ah, 047h         ; 3 Pyoncy    pat_9a77  A/7
+	defb 0c0h, 007h, 049h         ; 4 Rock Roll editor pat_9b77; play boulder D0 cc 7/9
 ; BLOCK 'floor_tiles' (start 0x86C5 end 0x86DD)
 floor_tiles:                      ; 0x86C5  0xE0 fill (2x2 / 4x4 stamps)
 	defb 0e0h, 0e0h, 0e0h, 0e0h
@@ -7469,7 +7469,7 @@ exit_msx1:
 	ret
 ; zero E500 and E300; sat_wipe
 wipe_tools:                     ; 0x907F  zero E500 and E300; sat_wipe
-	ld hl,0e500h            ; thrown tools
+	ld hl,0e500h            ; E500 enemies
 	ld de,0e501h
 	ld bc,000ffh
 	ld (hl),000h
@@ -7635,7 +7635,7 @@ sat_next:
 	pop bc
 	djnz sat_loop
 	ret
-; park 12 SAT slots at E810 (Y=0xE0)
+; park 12 SAT slots at E810 (Y=0xE0)  ; Vic knife/boom flight SAT
 tools_sat_off:                  ; 0x9196  park 12 SAT slots at E810 (Y=0xE0)
 	ld b,00ch
 	ld hl,0e810h
@@ -7659,7 +7659,7 @@ tool_sat2:                      ; 0x91A4  two SAT entries, DE += 8
 	inc e
 	inc e
 	ret
-; one E300 slot -> SAT + colour
+; one E300 slot -> SAT + colour (thrown knife/boom at E810, not E840)
 tool_sat1:                      ; 0x91B2  one E300 slot -> SAT + colour
 	ld a,(hl)
 	ex af,af'
@@ -7935,7 +7935,7 @@ exit_pat:                         ; 0x9340  3 x 4x4 exit-door shapes (E2F6)
 	defb 073h, 058h, 059h, 074h, 075h, 05ah, 05bh, 076h, 075h, 05ch, 05dh, 076h, 077h, 078h, 078h, 079h
 stone_pat:                        ; 0x9370  2x2 stone
 	defb 05fh, 060h, 061h, 062h
-coffin_pat:                       ; 0x9374  editor coffin preview (stamp_coffin)
+coffin_pat:                       ; 0x9374  E600 door1 dest (stamp_coffin / draw_coffin)
 	defb 08bh, 08ch, 08dh, 08eh, 092h, 091h, 090h, 08fh
 pyoncy_l0:                        ; 0x937C  editor pyoncy, facing clear
 	defb 0beh, 000h, 095h, 0c1h, 07ah, 07bh, 095h, 0c1h
@@ -7949,11 +7949,11 @@ pyoncy_r1:                        ; 0x939C
 	defb 000h, 0c5h, 0c8h, 099h, 07ch, 07dh, 0c8h, 099h
 pyoncy_r2:                        ; 0x93A4
 	defb 000h, 0c6h, 0c9h, 09ah, 07eh, 07fh, 0c9h, 09ah
-throw_under:                      ; 0x93AC  3x2 under a thrown tool
+case_under:                      ; 0x93AC  3×2 closed sarcophagus (types 1–2)
 	defb 09bh, 09ch, 09dh, 09eh, 09fh, 0a0h
-knife_stamp:                      ; 0x93B2
+slouman_stamp:                    ; 0x93B2  3×2 open case (spawn_case)
 	defb 0a1h, 0a2h, 0a3h, 0a4h, 0a5h, 0a6h
-boom_stamp:                       ; 0x93B8
+flouman_stamp:                    ; 0x93B8  3×2 open lid (case_open, both 1–2)
 	defb 0a7h, 0a8h, 0a9h, 0aah, 0abh, 0ach
 ; if entered from U/D, bump type-5 stones
 nudge_stones:                     ; 0x93BE  if entered from U/D, bump type-5 stones
@@ -9011,45 +9011,45 @@ pickup_tool:                      ; 0x9A93  E287 = type, slot |= 0xF0
 	call stones_redraw
 	ret
 ; active E500 (ix+13 bit 0) -> vic_hit
-vic_e500_overlap:                 ; 0x9AB1  active E500 (ix+13 bit 0) -> vic_hit
+vic_enemy_overlap:                 ; 0x9AB1  active E500 (ix+13 bit 0) -> vic_hit
 	ld a,(0e255h)
 	and a
 	ret nz
 	ld a,(0e298h)           ; die SAT
 	or a
 	ret nz
-	ld ix,0e500h            ; thrown tools
+	ld ix,0e500h            ; E500 enemies
 	ld b,008h
-e500_loop:
+enemy_loop:
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
-	jr nz,e500_next
+	jr nz,enemy_next
 	bit 0,(ix+013h)
-	jr z,e500_next
+	jr z,enemy_next
 	ld a,(0e282h)           ; Vic Y
 	add a,008h
 	sub (ix+003h)
 	cp 010h
-	jr nc,e500_next
+	jr nc,enemy_next
 	ld a,(0e284h)           ; Vic X
 	add a,00ah
-	jr c,e500_next
+	jr c,enemy_next
 	sub (ix+005h)
-	jr c,e500_next
+	jr c,enemy_next
 	cp 014h
-	jr c,e500_hit
-e500_next:
+	jr c,enemy_hit
+enemy_next:
 	ld de,00020h
 	add ix,de
-	djnz e500_loop
+	djnz enemy_loop
 	ret
-e500_hit:
+enemy_hit:
 	ld a,005h
 	ld (0e280h),a                 ; vic_hit
 	call vic_hurt
 	jp sfx_28
-; thrown E500 vs map E300
-e300_e500_hit:                    ; 0x9AFE  thrown E500 vs map E300
+; E300 thrown knife/boom vs live E500
+e300_enemy_hit:                    ; 0x9AFE  E300 thrown knife/boom vs live E500
 	ld ix,0e300h            ; map tools
 	ld b,040h
 clash_loop:
@@ -9071,7 +9071,7 @@ clash_loop:
 	ld l,(ix+001h)
 	ld h,(ix+002h)
 	ld c,(ix+003h)
-	ld iy,0e500h            ; thrown tools
+	ld iy,0e500h            ; E500 enemies
 	ld b,008h
 clash_e500:
 	ld a,(iy+000h)
@@ -9123,7 +9123,7 @@ clash_hit:                        ; 0x9B64
 clash_clear:                    ; 0x9B80  undraw thrown knife/boom on clash
 	ld a,(ix+000h)
 	cp 004h
-	jp z,pick_park
+	jp z,rockroll_park
 	ld hl,06611h
 	push hl
 	cp 003h
@@ -9131,7 +9131,7 @@ clash_clear:                    ; 0x9B80  undraw thrown knife/boom on clash
 	ld a,(ix+001h)
 	cp 002h
 	ret nc
-	jp e500_undraw
+	jp enemy_undraw
 ; Disk load via BDOS (H.TIMI = RET).
 dos_do_load:                      ; 0x9B98
 	di
@@ -10854,7 +10854,7 @@ knife_go:                         ; 0xA706
 	ld a,(0e294h)
 	ld (ix+007h),a
 	call tool_next
-	call knife_probe
+	call tool_probe
 	ret nc
 knife_fly:                        ; 0xA717  shared tail of knife_go
 	call knife_anim
@@ -10928,8 +10928,8 @@ tool_lock:                      ; 0xA787  CY if IX is E2E8; clear EDCD
 lock_no:
 	and a
 	ret
-; wall/X probe; B = 8 or 16 step
-knife_probe:                    ; 0xA79F  wall/X probe; B = 8 or 16 step
+; wall/X probe for thrown knife and boomerang; B = 8 or 16 step
+tool_probe:                    ; 0xA79F  thrown-tool wall/X probe
 	ld a,(0e243h)           ; screen
 	cp (ix+003h)
 	ret nz
@@ -11100,7 +11100,7 @@ boom_go:                          ; 0xA8AE
 	ld a,(0e294h)
 	ld (ix+007h),a
 	call tool_next
-	call knife_probe
+	call tool_probe
 	ret nc
 boom_fly:                         ; 0xA8C7  shared tail of boom_go
 	call boom_anim
@@ -11418,7 +11418,7 @@ d_ab0f_jp_start:
 	defw pick_dig
 	defw pick_dig2
 d_ab0f_jp_end:
-; thrown pick: start
+; Vic pick: snap into dig (E300; not thrown)
 pick_go:                          ; 0xAB1A
 	ld (ix+006h),008h
 	ld (ix+005h),0ffh
@@ -11602,35 +11602,36 @@ tool_phase:                       ; 0xAC63  ix+0 high nibble (in-use state)
 	rra
 	and 00fh
 	ret
-; C = E500 id; reject C >= 5
-spawn_tool:                       ; 0xAC6D  C = E500 id; reject C >= 5
+; C = names_enemies type; only caller is tick_delayed. Vic tools do not use this
+; (knife/boom = use_throw on E300; shovel/pick = use_floor; hammer/drill = use_wall).
+spawn_enemy:                       ; 0xAC6D  C = E2C0 type; reject C >= 5
 	ld (0e252h),a
 	ld a,c
 	cp 005h
 	ret nc
 	exx
-	ld hl,0e500h            ; thrown tools
+	ld hl,0e500h            ; E500 enemies
 	ld b,008h
 	ld de,00020h
 	xor a
-spawn_scan:
+spawn_enemy_scan:
 	cp (hl)
-	jr z,spawn_free
+	jr z,spawn_enemy_free
 	add hl,de
-	djnz spawn_scan
+	djnz spawn_enemy_scan
 	scf
 	ret
-spawn_free:
+spawn_enemy_free:
 	push hl
 	push hl
 	pop ix
 	exx
 	pop hl
-	call spawn_fill
+	call spawn_enemy_fill
 	xor a
 	ret
-; fill a free E500 slot from spawn_tool
-spawn_fill:                     ; 0xAC91  fill a free E500 slot from spawn_tool
+; fill a free E500 slot from spawn_enemy
+spawn_enemy_fill:                     ; 0xAC91  fill a free E500 slot from spawn_enemy
 	ld (hl),c
 	inc l
 	ld (hl),000h
@@ -11670,7 +11671,7 @@ spawn_fill:                     ; 0xAC91  fill a free E500 slot from spawn_tool
 	ld (hl),b
 	inc l
 	push hl
-	call d_acd9_jp_end
+	call spawn_cc
 	ld a,(0e252h)
 	call screen_of
 	pop hl
@@ -11681,20 +11682,24 @@ spawn_fill:                     ; 0xAC91  fill a free E500 slot from spawn_tool
 	dec a
 	call DISPATCH_A
 
-; BLOCK 'd_acd9_jp' (start 0xacdc end 0xace4)
-d_acd9_jp_start:
-	defw spawn_kb
-	defw spawn_kb
-	defw spawn_shovel
-	defw spawn_pick
-; spawn_tool: type in ix+0
-d_acd9_jp_end:
+; BLOCK 'spawn_enemy_jp' (start 0xacdc end 0xace4)
+; E500 type-1..4 init. Only from spawn_enemy ← tick_delayed (names_enemies).
+; Vic shovel/pick never get here (use_floor). Knife/boom throw is use_throw / E300.
+spawn_enemy_jp_start:
+	defw spawn_case                 ; 1 Slouman
+	defw spawn_case                 ; 2 Flouman
+	defw spawn_pyoncy             ; 3 Pyoncy (puff ix+11=0x18)
+	defw spawn_rockroll           ; 4 Rock Roll
+; spawn_enemy: type in ix+0
+spawn_enemy_jp_end:
+; SAT cc from enemy_cc1 / enemy_cc2
+spawn_cc:                         ; 0xACE4
 	ld a,(0f0f4h)
 	and a
 	ld a,(ix+000h)
 	jr z,spawn_msx1
 	add a,a
-	ld de,e500_cc2
+	ld de,enemy_cc2
 	call ADD_DE_A
 	ld a,(de)
 	ld (ix+01eh),a
@@ -11702,21 +11707,21 @@ d_acd9_jp_end:
 	ld a,(de)
 	ld (ix+01fh),a
 	ret
-; MSX1 SAT cc byte from e500_cc1[type].
+; MSX1 SAT cc byte from enemy_cc1[type].
 spawn_msx1:                       ; 0xACFE
-	ld de,e500_cc1
+	ld de,enemy_cc1
 	call ADD_DE_A
 	ld a,(de)
 	ld (ix+01eh),a
-e500_cc1:                           ; 0xAD08  MSX1 SAT cc[0] overlaps RET
+enemy_cc1:                           ; 0xAD08  MSX1 SAT cc[0] overlaps RET
 	ret
 	defb 00fh, 00ah               ; 0xAD09
-e500_cc2:                         ; 0xAD0B  MSX2 SAT cc words
-	defb 00ah, 009h
-	defb 00bh, 04ch
-	defb 00ah, 047h
-	defb 00bh, 04ch
-	defb 00bh, 04ch
+enemy_cc2:                         ; 0xAD0B  MSX2 SAT cc words (type*2)
+	defb 00ah, 009h               ; [0] unused
+	defb 00bh, 04ch               ; 1 Slouman (delay_spr)
+	defb 00ah, 047h               ; 2 Flouman
+	defb 00bh, 04ch               ; 3 Pyoncy (spin then overwrites 0A/47)
+	defb 00bh, 04ch               ; 4 Rock Roll (ready then 07/49)
 ; A = screen id -> DE = E900 base
 map_of_a:                       ; 0xAD15  A = screen id -> DE = E900 base
 	dec a
@@ -11734,23 +11739,23 @@ map_of_a:                       ; 0xAD15  A = screen id -> DE = E900 base
 	add hl,de
 	ex de,hl
 	ret
-spawn_kb:                         ; 0xAD2C  knife / boomerang E500 init
+spawn_case:                         ; 0xAD2C  E500 type 1–2 from sarcophagus
 	ld (ix+018h),000h
 	ld (ix+011h),0ffh
-	ld hl,knife_stamp
-	call e500_stamp
+	ld hl,slouman_stamp
+	call enemy_stamp
 	call vic_side_x
 	inc c
 	inc c
 	ld (ix+00bh),c
 	ld a,(ix+000h)
 	dec a
-	call z,e500_flip
+	call z,enemy_flip
 	ld (ix+014h),020h
 	ld hl,sfx_1e
-	jp thrown_sfx
-; 3x2 draw_tilemap under a thrown tool
-e500_stamp:                     ; 0xAD53  3x2 draw_tilemap under a thrown tool
+	jp enemy_sfx
+; 3x2 draw_tilemap under Slouman / Flouman (case_under)
+enemy_stamp:                     ; 0xAD53  3x2 draw_tilemap under Slouman / Flouman
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	ret nz
@@ -11771,69 +11776,69 @@ e500_stamp:                     ; 0xAD53  3x2 draw_tilemap under a thrown tool
 	call stones_redraw
 	pop ix
 	ret
-tick_thrown_knife:                ; 0xAD80  E500; d_ad83 (5 states)
+tick_slouman:                ; 0xAD80  E500 type 1 Slouman
 	ld a,(ix+001h)
 	call DISPATCH_A
 
-; BLOCK 'd_ad83_jp' (start 0xad86 end 0xad90)
-d_ad83_jp_start:
-	defw thrown_wind              ; knife: throw / fall / land (5 states)
-	defw thrown_hide
-	defw knife_toss
-	defw knife_seek
-	defw knife_home
-d_ad83_jp_end:
-knife_toss:                       ; 0xAD90
-	call thrown_drop
+; BLOCK 'slouman_jp' (start 0xad86 end 0xad90)
+slouman_jp_start:
+	defw case_open                ; emerge from sarcophagus
+	defw case_hide                ; undraw case
+	defw slouman_leave            ; first step out
+	defw slouman_walk             ; seek; 16 fails → enemy_stuck
+	defw slouman_land             ; after fall: origin, sfx_14, back to leave
+slouman_jp_end:
+slouman_leave:                       ; 0xAD90
+	call enemy_drop
 	ld a,004h
-	jp c,thrown_fall
+	jp c,enemy_fall
 	ld (ix+011h),000h
 	dec (ix+014h)
 	ret nz
 	ld de,00180h
-	call thrown_xy_d
-	call e500_flip
-	call thrown_step
-	jp c,thrown_next
-	call e500_flip
-	call thrown_step
-	jp nc,thrown_stop
-	jp thrown_next
-knife_seek:                       ; 0xADBB
+	call enemy_xy_d
+	call enemy_flip
+	call enemy_step
+	jp c,enemy_inc
+	call enemy_flip
+	call enemy_step
+	jp nc,enemy_stuck
+	jp enemy_inc
+slouman_walk:                       ; 0xADBB
 	ld (ix+006h),001h
-	call thrown_dir
-	call thrown_drop
+	call enemy_dir
+	call enemy_drop
 	jr nc,seek_go
-	call thrown_snap
+	call enemy_snap
 	ld a,004h
-	jp thrown_fall
+	jp enemy_fall
 seek_go:
-	call thrown_step
+	call enemy_step
 	jr nc,seek_count
-	call thrown_edge
+	call enemy_edge
 	dec a
 	cp (ix+00bh)
 	ret nz
-	jp thrown_nudge
+	jp enemy_nudge
 seek_count:
 	inc (ix+018h)
 	ld a,(ix+018h)
 	cp 010h
-	jp nc,thrown_stop
-; E500 state 2: snap + timer
-thrown_air:                     ; 0xADEA  E500 state 2: snap + timer
-	call thrown_snap
+	jp nc,enemy_stuck
+; failed step but not stuck: snap, pause, ix+1 = leave
+slouman_stall:                   ; 0xADEA  snap + timer; back to leave
+	call enemy_snap
 	ld (ix+014h),010h
 	ld (ix+006h),000h
 	ld (ix+001h),002h
 	ret
-knife_home:                       ; 0xADFA
+slouman_land:                    ; 0xADFA  fall recovery (enemy_fall A=4)
 	ld (ix+006h),001h
-	call thrown_origin
+	call enemy_origin
 	ret c
-	call thrown_snap
-	call shovel_sfx
-	call thrown_air
+	call enemy_snap
+	call enemy_sfx_14
+	call slouman_stall
 	ld (ix+006h),000h
 	ld a,(ix+019h)
 	xor 001h
@@ -11841,50 +11846,50 @@ knife_home:                       ; 0xADFA
 	ld (ix+00bh),a
 	ret
 ; xor ix+11 facing
-e500_flip:                      ; 0xAE1A  xor ix+11 facing
+enemy_flip:                      ; 0xAE1A  xor ix+11 facing
 	ld a,(ix+00bh)
 	xor 001h
 	ld (ix+00bh),a
 	ret
-tick_thrown_boom:                 ; 0xAE23  E500; returns
+tick_flouman:                 ; 0xAE23  E500 type 2 Flouman
 	ld a,(ix+001h)
 	call DISPATCH_A
 
-; BLOCK 'd_ae26_jp' (start 0xae29 end 0xae35)
-d_ae26_jp_start:
-	defw thrown_wind              ; boomerang: throw / fly / return (6 states)
-	defw thrown_hide
-	defw boom_toss
-	defw boom_seek
-	defw boom_turn
-	defw boom_catch
-d_ae26_jp_end:
-thrown_wind:                      ; 0xAE35  shared knife/boom wind-up
+; BLOCK 'flouman_jp' (start 0xae29 end 0xae35)
+flouman_jp_start:
+	defw case_open                ; emerge from sarcophagus
+	defw case_hide                ; undraw case
+	defw flouman_leave            ; first step out
+	defw flouman_walk             ; seek; 16 fails → enemy_stuck
+	defw flouman_turn             ; reverse when blocked
+	defw flouman_land             ; after fall: origin, sfx_14, back to leave
+flouman_jp_end:
+case_open:                      ; 0xAE35  shared Slouman/Flouman lid (flouman_stamp)
 	dec (ix+014h)
 	ret nz
-	ld hl,boom_stamp
-	call e500_stamp
+	ld hl,flouman_stamp
+	call enemy_stamp
 	ld hl,sfx_41
-	call thrown_sfx
+	call enemy_sfx
 	ld (ix+013h),002h
 	ld (ix+011h),000h
 	ld (ix+014h),020h
-; Advance thrown E500 state (ix+1).
-thrown_next:                      ; 0xAE51
+; Advance live-enemy state (ix+1).
+enemy_inc:                      ; 0xAE51
 	inc (ix+001h)
 	ret
-thrown_hide:                      ; 0xAE55  shared: undraw then next state
+case_hide:                      ; 0xAE55  shared: undraw then next state
 	dec (ix+014h)
 	ret nz
-	call e500_undraw
+	call enemy_undraw
 	ld (ix+013h),003h
 	ld (ix+014h),020h
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	call z,sfx_25
-	jr thrown_next
-; restore 3x2 world tiles under throw
-e500_undraw:                    ; 0xAE6F  restore 3x2 world tiles under throw
+	jr enemy_inc
+; restore 3x2 world tiles under the case
+enemy_undraw:                    ; 0xAE6F  restore 3x2 under sarcophagus
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	ret nz
@@ -11894,44 +11899,44 @@ e500_undraw:                    ; 0xAE6F  restore 3x2 world tiles under throw
 	ld e,a
 	ld bc,00302h
 	call stamp_wtiles
-	ld hl,throw_under
-	jp e500_stamp
-boom_toss:                        ; 0xAE8B
-	call thrown_drop
-	jp c,boom_drop
+	ld hl,case_under
+	jp enemy_stamp
+flouman_leave:                        ; 0xAE8B
+	call enemy_drop
+	jp c,flouman_drop
 	ld (ix+011h),000h
 	dec (ix+014h)
 	ret nz
-	call thrown_reset
-	call thrown_face
+	call enemy_reset
+	call enemy_face
 	ld de,00180h
-	call thrown_xy_d
-	call thrown_step
-	jr c,thrown_next
-	call e500_flip
-	call thrown_step
-	jp nc,thrown_stop
-	jr thrown_next
-boom_seek:                        ; 0xAEB5
+	call enemy_xy_d
+	call enemy_step
+	jr c,enemy_inc
+	call enemy_flip
+	call enemy_step
+	jp nc,enemy_stuck
+	jr enemy_inc
+flouman_walk:                        ; 0xAEB5
 	ld (ix+006h),001h
-	call thrown_dir
-	call thrown_drop
+	call enemy_dir
+	call enemy_drop
 	jr nc,bseek_go
-	call thrown_snap
-	jr boom_drop
+	call enemy_snap
+	jr flouman_drop
 bseek_go:
-	call thrown_edge
+	call enemy_edge
 	dec a
 	cp (ix+00bh)
-	jp z,thrown_nudge
-	call thrown_step
+	jp z,enemy_nudge
+	call enemy_step
 	jr c,bseek_floor
-	call thrown_snap
+	call enemy_snap
 	inc (ix+018h)
 	ld a,(ix+018h)
 	cp 010h
-	jp nc,thrown_stop
-	jp boom_air
+	jp nc,enemy_stuck
+	jp flouman_stall
 bseek_floor:
 	call vic_side_y
 	dec c
@@ -11948,15 +11953,15 @@ bseek_here:
 bseek_dir:
 	ld (ix+00bh),a
 	ld de,00280h
-	call thrown_dxy
+	call enemy_dxy
 	ld de,00000h
-	call thrown_xy_d
+	call enemy_xy_d
 	ld a,(ix+005h)
 	and 0f8h
 	ld (ix+005h),a
-	jp thrown_next
+	jp enemy_inc
 ; ix+11 from facing + E203 bit 2
-thrown_dir:                     ; 0xAF14  ix+11 from facing + E203 bit 2
+enemy_dir:                     ; 0xAF14  ix+11 from facing + E203 bit 2
 	ld c,001h
 	bit 0,(ix+00bh)
 	jr z,dir_left
@@ -11970,9 +11975,9 @@ dir_left:
 dir_put:
 	ld (ix+011h),c
 	ret
-boom_drop:
+flouman_drop:
 	ld a,005h
-thrown_fall:
+enemy_fall:
 	ld (ix+001h),a
 	xor a
 	ld (ix+009h),a
@@ -11984,18 +11989,18 @@ thrown_fall:
 	ld (ix+008h),005h
 drop_sfx:
 	ld hl,sfx_2c
-	jp thrown_sfx
-boom_turn:                        ; 0xAF4E  reverse when blocked
+	jp enemy_sfx
+flouman_turn:                        ; 0xAF4E  reverse when blocked
 	ld (ix+006h),001h
 	ld c,005h
 	call dir_left
-	call thrown_block
+	call enemy_block
 	jp c,turn_snap
-	call thrown_edge
+	call enemy_edge
 	dec a
 	cp (ix+00bh)
 	jr z,turn_flip
-	call thrown_step
+	call enemy_step
 	ret c
 turn_flip:
 	ld a,(ix+00bh)
@@ -12003,23 +12008,23 @@ turn_flip:
 	ld (ix+00bh),a
 	ret
 turn_snap:
-	call thrown_snap
+	call enemy_snap
 	xor a
 	ld (ix+002h),a
 	ld (ix+018h),a
-; boomerang airborne
-boom_air:
+; pause, then ix+1 = leave (state 2). Callers snap first.
+flouman_stall:                   ; 0xAF7F  timer; back to leave
 	ld (ix+014h),010h
 	ld (ix+006h),000h
 	ld (ix+001h),002h
 	ret
-boom_catch:                       ; 0xAF8A
+flouman_land:                    ; 0xAF8A  fall recovery (enemy_fall A=5)
 	ld (ix+006h),001h
-	call thrown_origin
+	call enemy_origin
 	ret c
-	call thrown_snap
-	call shovel_sfx
-	call boom_air
+	call enemy_snap
+	call enemy_sfx_14
+	call flouman_stall
 	ld a,(ix+019h)
 	xor 001h
 	or 003h
@@ -12027,15 +12032,15 @@ boom_catch:                       ; 0xAF8A
 	ld (ix+006h),000h
 	ret
 ; ix+11 = vic_side_x | 2
-thrown_face:                    ; 0xAFAA  ix+11 = vic_side_x | 2
+enemy_face:                    ; 0xAFAA  ix+11 = vic_side_x | 2
 	call vic_side_x
 	ld a,c
 	or 002h
 	ld (ix+00bh),a
 	ret
-; E500 vs Vic on room change (pick type 4)
-e500_room:                        ; 0xAFB4  E500 vs Vic on room change (pick type 4)
-	ld ix,0e500h            ; thrown tools
+; E500 vs Vic on room change (then enemy_leave)
+enemy_room:                        ; 0xAFB4  E500 vs Vic on room change
+	ld ix,0e500h            ; E500 enemies
 	call vic_xy
 	ld b,008h
 room_loop:
@@ -12059,7 +12064,7 @@ room_loop:
 	jr nc,room_next
 	push de
 	push bc
-	call thrown_hit
+	call enemy_leave
 	pop bc
 	pop de
 room_next:
@@ -12069,21 +12074,21 @@ room_next:
 	ex de,hl
 	djnz room_loop
 	ret
-; room-change overlap: pick vs kill
-thrown_hit:                     ; 0xAFF6  room-change overlap: pick vs kill
+; room change: non-RR despawn; Rock Roll stash/drop restores map
+enemy_leave:                     ; 0xAFF6  room change: despawn live enemy
 	ld a,(ix+000h)
 	cp 004h
-	jp nz,thrown_done
+	jp nz,enemy_done
 	ld a,(ix+001h)
-	cp 004h
-	jr z,hit_pick
-	dec a
-	jp nz,thrown_done
-hit_pick:
+	cp 004h                   ; stash
+	jr z,rockroll_unstash
+	dec a                     ; drop (state 1)
+	jp nz,enemy_done
+rockroll_unstash:
 	call map_restore
-	jp thrown_done
+	jp enemy_done
 ; Vic near screen edge vs this E500
-thrown_edge:                    ; 0xB00F  Vic near screen edge vs this E500
+enemy_edge:                    ; 0xB00F  Vic near screen edge vs this E500
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	jp z,edge_no
@@ -12110,7 +12115,7 @@ thrown_edge:                    ; 0xB00F  Vic near screen edge vs this E500
 	cp 030h
 	jr nc,edge_no
 	ld a,001h
-	call thrown_link
+	call enemy_link
 	jr nz,edge_no
 	ret
 edge_bot:
@@ -12126,7 +12131,7 @@ edge_bot:
 	cp 030h
 	jr nc,edge_no
 	ld a,002h
-	call thrown_link
+	call enemy_link
 	jr nz,edge_no
 	ret
 edge_lf:
@@ -12142,7 +12147,7 @@ edge_lf:
 	cp 030h
 	jr nc,edge_no
 	ld a,003h
-	call thrown_link
+	call enemy_link
 	jr nz,edge_no
 	ret
 edge_rt:
@@ -12158,11 +12163,11 @@ edge_rt:
 	cp 030h
 	jr nc,edge_no
 	ld a,004h
-	call thrown_link
+	call enemy_link
 	jr nz,edge_no
 	ret
 ; room_link ix+16; Z if H==E244
-thrown_link:                    ; 0xB096  room_link ix+16; Z if H==E244
+enemy_link:                    ; 0xB096  room_link ix+16; Z if H==E244
 	push af
 	ld b,(ix+016h)
 	call room_link
@@ -12174,16 +12179,16 @@ thrown_link:                    ; 0xB096  room_link ix+16; Z if H==E244
 edge_no:
 	xor a
 	ret
-; Nudge thrown tool 16px in ix+11 dir if 2x2 is air.
-thrown_nudge:                     ; 0xB0A6
+; Nudge live enemy 16px in ix+11 dir if 2x2 is air.
+enemy_nudge:                     ; 0xB0A6
 	ld a,(ix+00bh)
 	add a,a
-	ld hl,thrown_delta
+	ld hl,enemy_delta
 	call ADD_HL_A
 	ld c,(hl)
 	inc hl
 	ld b,(hl)
-	call thrown_map
+	call enemy_map
 	ld a,c
 	add a,l
 	ld l,a
@@ -12206,7 +12211,7 @@ thrown_nudge:                     ; 0xB0A6
 	ld h,a
 	call tile_empty
 	ret nc
-	call thrown_xy
+	call enemy_xy
 	ld a,c
 	add a,l
 	ld (ix+003h),a
@@ -12225,19 +12230,19 @@ tile_empty:                     ; 0xB0E5  NC if map_tile_de is air (0)
 	pop de
 	sub 001h
 	ret
-; BLOCK 'thrown_delta' (start 0xb0f1 end 0xb0f9)
-thrown_delta:
+; BLOCK 'enemy_delta' (start 0xb0f1 end 0xb0f9)
+enemy_delta:
 	defb 010h, 000h
 	defb 0f0h, 000h
 	defb 000h, 010h
 	defb 000h, 0f0h
 ; CY if next 2x2 is blocked
-thrown_block:                   ; 0xB0F9  CY if next 2x2 is blocked
+enemy_block:                   ; 0xB0F9  CY if next 2x2 is blocked
 	ld a,(ix+00bh)
 	dec a
 	jr z,block_up
 block_ahead:
-	call thrown_ahead
+	call enemy_ahead
 	ccf
 	ret nc
 	ld a,l
@@ -12264,7 +12269,7 @@ block_ahead:
 	scf
 	ret
 block_up:
-	call thrown_step
+	call enemy_step
 	ccf
 	ret c
 	jr block_ahead
@@ -12278,23 +12283,23 @@ tile_at:                        ; 0xB12F  map_tile_de at HL vs ix+C/D base
 	and a
 	dec a
 	ret
-; Probe 2 tiles at thrown XY; C=0 (up).
+; Probe 2 tiles at enemy XY; C=0 (up).
 floor_up:                         ; 0xB13D
 	call floor_here
 	ld c,000h
 	ret z
 ; probe 2 tiles 16px below
 floor_down:                     ; 0xB143  probe 2 tiles 16px below
-	call thrown_xy
+	call enemy_xy
 	ld a,010h
 	add a,l
 	ld l,a
 	call floor_span
 	ld c,001h
 	ret
-; probe 2 tiles at thrown XY
-floor_here:                     ; 0xB150  probe 2 tiles at thrown XY
-	call thrown_xy
+; probe 2 tiles at enemy XY
+floor_here:                     ; 0xB150  probe 2 tiles at enemy XY
+	call enemy_xy
 ; two tile_at, H += 8
 floor_span:                     ; 0xB153  two tile_at, H += 8
 	call tile_at
@@ -12304,16 +12309,16 @@ floor_span:                     ; 0xB153  two tile_at, H += 8
 	ld h,a
 	jp tile_at
 ; down probe via step_origin
-thrown_drop:                    ; 0xB15E  down probe via step_origin
-	call thrown_xy
+enemy_drop:                    ; 0xB15E  down probe via step_origin
+	call enemy_xy
 	ld c,001h
 	jr drop_probe
 ; probe_step_de in ix+11 dir
-thrown_step:                    ; 0xB165  probe_step_de in ix+11 dir
+enemy_step:                    ; 0xB165  probe_step_de in ix+11 dir
 	ld c,(ix+00bh)
 ; ahead + probe_step_de; C=dir
-thrown_probe:                   ; 0xB168  ahead + probe_step_de; C=dir
-	call thrown_ahead
+enemy_probe:                   ; 0xB168  ahead + probe_step_de; C=dir
+	call enemy_ahead
 	ret c
 	ld e,(ix+00ch)
 	ld d,(ix+00dh)
@@ -12324,9 +12329,9 @@ thrown_probe:                   ; 0xB168  ahead + probe_step_de; C=dir
 	pop hl
 	ret
 ; step_origin then two tile_air
-thrown_origin:                  ; 0xB17A  step_origin then two tile_air
+enemy_origin:                  ; 0xB17A  step_origin then two tile_air
 	ld c,(ix+00bh)
-	call thrown_ahead
+	call enemy_ahead
 	ret c
 drop_probe:
 	ld e,(ix+00ch)
@@ -12361,10 +12366,10 @@ shift_x:
 	ld h,a
 	ret
 ; next pixel XY from velocity
-thrown_ahead:                   ; 0xB1AC  next pixel XY from velocity
+enemy_ahead:                   ; 0xB1AC  next pixel XY from velocity
 	ld a,(ix+006h)
 	and a
-	jp z,thrown_xy
+	jp z,enemy_xy
 	ld a,c
 	dec a
 	jr z,ahead_down
@@ -12423,29 +12428,29 @@ neg_de:                         ; 0xB200  two's complement DE
 	ld d,a
 	inc de
 	ret
-thrown_hold4:                   ; 0xB208  A=4 then thrown_hold
+enemy_hold4:                   ; 0xB208  A=4 then enemy_hold
 	ld a,004h
-; thrown hold timer; CY when ix+14 reaches A
-thrown_hold:                    ; 0xB20A  thrown hold timer; CY when ix+14 reaches A
+; hold timer; CY when ix+14 reaches A
+enemy_hold:                    ; 0xB20A  hold timer; CY when ix+14 reaches A
 	inc (ix+00eh)
 	cp (ix+00eh)
 	ret
-; clear thrown hold timer
-thrown_reset:                   ; 0xB211  clear thrown hold timer
+; clear hold timer
+enemy_reset:                   ; 0xB211  clear hold timer
 	xor a
 	ld (ix+00eh),a
 	ret
-; DE = map ptr; HL = thrown XY
-thrown_map:                     ; 0xB216  DE = map ptr; HL = thrown XY
+; DE = map ptr; HL = enemy XY
+enemy_map:                     ; 0xB216  DE = map ptr; HL = enemy XY
 	ld e,(ix+00ch)
 	ld d,(ix+00dh)
 ; HL = ix+3 Y, ix+5 X
-thrown_xy:                      ; 0xB21C  HL = ix+3 Y, ix+5 X
+enemy_xy:                      ; 0xB21C  HL = ix+3 Y, ix+5 X
 	ld l,(ix+003h)
 	ld h,(ix+005h)
 	ret
-; C = 0/1 Vic vs thrown on X
-vic_side_x:                     ; 0xB223  C = 0/1 Vic vs thrown on X
+; C = 0/1 Vic vs enemy on X
+vic_side_x:                     ; 0xB223  C = 0/1 Vic vs enemy on X
 	ld a,(ix+016h)
 	and 007h
 	ld c,a
@@ -12499,7 +12504,9 @@ screen_of:                      ; 0xB266  A = E788 index of ix+16
 	sub 03fh
 	neg
 	ret
-spawn_shovel:                     ; 0xB274  shovel E500 init
+; E500 type 3: Pyoncy from E2C0. Puff ix+11=0x18 (SAT E0), then hop.
+; Vic shovel is use_floor / vic_shovel — not this.
+spawn_pyoncy:                     ; 0xB274  E500 type 3 Pyoncy
 	ld (ix+01bh),0ffh
 	ld (ix+01dh),080h
 	call vic_side_x
@@ -12510,39 +12517,39 @@ spawn_shovel:                     ; 0xB274  shovel E500 init
 	ld (ix+018h),0ffh
 	ld (ix+01ch),000h
 	ld hl,sfx_1d
-; packed-PSG in HL if this thrown tool is on the current screen
-thrown_sfx:                     ; 0xB294  jp (hl) when E243 == ix+16
+; packed-PSG in HL if this live enemy is on the current screen
+enemy_sfx:                     ; 0xB294  jp (hl) when E243 == ix+16
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	ret nz
 	jp (hl)
-; thrown XY delta
-thrown_xy_d:                    ; 0xB29C  thrown XY delta
+; enemy XY delta
+enemy_xy_d:                    ; 0xB29C  enemy XY delta
 	ld (ix+009h),e
 	ld (ix+00ah),d
 	ret
 ; ix+7/8 = DE
-thrown_dxy:                     ; 0xB2A3  ix+7/8 = DE
+enemy_dxy:                     ; 0xB2A3  ix+7/8 = DE
 	ld (ix+007h),e
 	ld (ix+008h),d
 	ret
-tick_thrown_shovel:               ; 0xB2AA  E500; floor 1 deep
+tick_pyoncy_hop:               ; 0xB2AA  E500 type 3 Pyoncy hop
 	ld a,(ix+001h)
 	call DISPATCH_A
 
-; BLOCK 'd_b2ad_jp' (start 0xb2b0 end 0xb2ba)
-d_b2ad_jp_start:
-	defw shov_spin                ; shovel: floor hole 1 deep
-	defw shov_drop
-	defw shov_cut
-	defw shov_turn
-	defw shov_end
-d_b2ad_jp_end:
-shov_spin:                        ; 0xB2BA
+; BLOCK 'pyoncy_jp' (start 0xb2b0 end 0xb2ba)
+pyoncy_jp_start:
+	defw pyoncy_spin              ; 0 puff SAT E0/E8 then hop
+	defw pyoncy_drop              ; 1 hop / ceiling; stuck → enemy_stuck
+	defw pyoncy_cut               ; 2
+	defw pyoncy_turn              ; 3
+	defw pyoncy_end               ; 4
+pyoncy_jp_end:
+pyoncy_spin:                        ; 0xB2BA
 	ld a,(0f0f4h)
-	ld hl,shovel_fr
-	ld de,shovel_fr2
-	call pick_frame
+	ld hl,pyoncy_fr
+	ld de,pyoncy_fr2
+	call enemy_frame
 	jr z,spin_next
 	cp 007h
 	jr nz,spin_pat
@@ -12563,21 +12570,21 @@ spin_pat:
 spin_next:
 	ld (ix+014h),008h
 	ld (ix+013h),003h
-thrown_inc:
+pyoncy_inc:
 	inc (ix+001h)
 	ret
-; BLOCK 'shovel_fr' (start 0xb2f4 end 0xb2fe)
-shovel_fr:
+; BLOCK 'pyoncy_fr' (start 0xb2f4 end 0xb2fe)
+pyoncy_fr:
 	defb 018h, 019h, 018h, 019h, 018h, 019h, 01ah, 007h, 007h, 0ffh
-; BLOCK 'shovel_fr2' (start 0xb2fe end 0xb307)
-shovel_fr2:
+; BLOCK 'pyoncy_fr2' (start 0xb2fe end 0xb307)
+pyoncy_fr2:
 	defb 018h, 019h, 018h, 019h, 018h, 019h, 007h, 007h, 0ffh
-shov_drop:                        ; 0xB307
+pyoncy_drop:                        ; 0xB307
 	call floor_zero
-	jp z,cut_fall
+	jp z,pyoncy_fall
 	ld c,009h
-shov_pat_c:
-	call shovel_pat
+pyoncy_pat_c:
+	call pyoncy_pat
 	dec (ix+014h)
 	ret nz
 	ld a,(ix+01dh)
@@ -12601,22 +12608,22 @@ drop_home:
 	cp 002h
 	jp nc,drop_alt
 drop_turn:
-	call boom_home
-	call shovel_ceil
+	call enemy_home
+	call pyoncy_ceil
 	jr c,drop_go
 	ld a,(ix+00bh)
 	xor 001h
 	or 002h
 	ld (ix+00bh),a
-	call shovel_ceil
-	jp nc,thrown_stop
+	call pyoncy_ceil
+	jp nc,enemy_stuck
 	ld a,(ix+01ch)
 	cp 010h
-	jp nc,thrown_stop
+	jp nc,enemy_stuck
 	inc (ix+01ch)
 drop_go:
 	ld de,000f0h
-	call thrown_xy_d
+	call enemy_xy_d
 	ld (ix+006h),000h
 	ld (ix+014h),011h
 	ld a,(ix+005h)
@@ -12625,22 +12632,22 @@ drop_go:
 	ld (ix+019h),a
 	inc (ix+01dh)
 	ld hl,sfx_1f
-	call thrown_sfx
-	jp thrown_inc
+	call enemy_sfx
+	jp pyoncy_inc
 ; CY if 3 tiles above are floor
-shovel_ceil:                    ; 0xB385  CY if 3 tiles above are floor
-	call thrown_map
+pyoncy_ceil:                    ; 0xB385  CY if 3 tiles above are floor
+	call enemy_map
 	ld a,l
 	sub 008h
 	ld l,a
 	jr c,ceil_no
 	call shovel_wall
 	jr c,ceil_side
-	call thrown_map
+	call enemy_map
 	call shovel_wall
 	ret nc
 ceil_side:
-	call thrown_map
+	call enemy_map
 	ld a,l
 	sub 008h
 	ld l,a
@@ -12704,19 +12711,19 @@ wall_tile:
 drop_alt:
 	bit 0,(ix+01ch)
 	jr z,alt_up
-	call thrown_xy
+	call enemy_xy
 	ld a,l
 	add a,010h
 	ld l,a
-	call shovel_gap
+	call pyoncy_gap
 	ld a,001h
-	jr nc,shov_set_dir
+	jr nc,pyoncy_set_dir
 	jr try_up
 alt_up:
-	call thrown_xy
-	call shovel_gap
+	call enemy_xy
+	call pyoncy_gap
 	ld a,000h
-	jr nc,shov_set_dir
+	jr nc,pyoncy_set_dir
 	jr try_dn
 try_up:
 	ld a,(ix+01bh)
@@ -12726,20 +12733,20 @@ try_up:
 	cp 002h
 	jp c,drop_turn
 try_up_gap:
-	call thrown_xy
-	call shovel_gap
+	call enemy_xy
+	call pyoncy_gap
 	jp c,drop_turn
 	xor a
-shov_set_dir:
+pyoncy_set_dir:
 	ld (ix+00bh),a
 	ld (ix+01bh),a
 	ld (ix+01dh),000h
 	ld (ix+006h),001h
 	ld (ix+01ch),000h
 	ld de,00000h
-	call thrown_xy_d
+	call enemy_xy_d
 	ld de,00100h
-	call thrown_dxy
+	call enemy_dxy
 	ld (ix+001h),003h
 	ret
 try_dn:
@@ -12750,16 +12757,16 @@ try_dn:
 	cp 002h
 	jp c,drop_turn
 try_dn_gap:
-	call thrown_xy
+	call enemy_xy
 	ld a,l
 	add a,010h
 	ld l,a
-	call shovel_gap
+	call pyoncy_gap
 	jp c,drop_turn
 	ld a,001h
-	jr shov_set_dir
+	jr pyoncy_set_dir
 ; nudge X when 1 of 2 floor cells
-shovel_gap:                     ; 0xB471  nudge X when 1 of 2 floor cells
+pyoncy_gap:                     ; 0xB471  nudge X when 1 of 2 floor cells
 	call tile_at
 	ld c,000h
 	jr z,gap_r
@@ -12803,7 +12810,7 @@ gap_snap:
 	xor a
 	ret
 ; ix+11 = C (+2 if facing)
-shovel_pat:                     ; 0xB4AF  ix+11 = C (+2 if facing)
+pyoncy_pat:                     ; 0xB4AF  ix+11 = C (+2 if facing)
 	bit 0,(ix+00bh)
 	jr z,pat_put
 	inc c
@@ -12811,54 +12818,54 @@ shovel_pat:                     ; 0xB4AF  ix+11 = C (+2 if facing)
 pat_put:
 	ld (ix+011h),c
 	ret
-shov_cut:                         ; 0xB4BB
-	call thrown_edge
+pyoncy_cut:                         ; 0xB4BB
+	call enemy_edge
 	dec a
 	cp (ix+00bh)
 	ld (ix+006h),000h
 	ret z
 	ld (ix+006h),001h
 	ld c,00ah
-	call shovel_pat
+	call pyoncy_pat
 	ld a,(ix+014h)
 	and a
-	jr z,cut_fall
+	jr z,pyoncy_fall
 	dec (ix+014h)
 	ld de,000f0h
-	call thrown_xy_d
-	call shovel_land
-	call nc,thrown_still
+	call enemy_xy_d
+	call pyoncy_floor
+	call nc,enemy_still
 	ld a,(ix+014h)
 	cp 008h
 	jr nc,cut_dy
 	call floor_dy
-	jr nz,cut_land
+	jr nz,pyoncy_land
 cut_dy:
 	ld a,(ix+014h)
 	bit 0,(ix+01ah)
-	ld hl,ix14_da_start
+	ld hl,pyoncy_dy_start
 	jr z,cut_add
-	ld hl,ix14_da_end
+	ld hl,pyoncy_dy_end
 cut_add:
 	call ADD_HL_A
 	ld a,(hl)
 	add a,(ix+003h)
 	ld (ix+003h),a
 	ret
-cut_fall:
+pyoncy_fall:
 	ld (ix+014h),000h
 	ld (ix+006h),001h
 	call floor_dy
-	jr nz,cut_land
+	jr nz,pyoncy_land
 	ld de,00500h
-	call thrown_dxy
+	call enemy_dxy
 	ld de,00000h
-	call thrown_xy_d
+	call enemy_xy_d
 	ld (ix+00bh),001h
 	ld (ix+001h),004h
 	jp drop_sfx
-cut_land:
-	call thrown_still
+pyoncy_land:
+	call enemy_still
 	ld (ix+006h),000h
 	ld (ix+014h),008h
 	ld a,(ix+003h)
@@ -12866,8 +12873,8 @@ cut_land:
 	and 0f8h
 	ld (ix+003h),a
 	ld (ix+001h),001h
-; sfx_14 if this screen
-shovel_sfx:                     ; 0xB548  sfx_14 if this screen
+; sfx_14 if this live enemy is on the current screen
+enemy_sfx_14:                     ; 0xB548  sfx_14 if this live enemy is on screen
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	jp z,sfx_14
@@ -12876,11 +12883,11 @@ shovel_sfx:                     ; 0xB548  sfx_14 if this screen
 floor_zero:                     ; 0xB552  floor_ok with A=0 extra Y
 	xor a
 	jr floor_y
-; floor_ok with ix14_val extra Y
-floor_dy:                       ; 0xB555  floor_ok with ix14_val extra Y
-	call ix14_val
+; floor_ok with pyoncy_dy_a extra Y
+floor_dy:                       ; 0xB555  floor_ok with pyoncy_dy_a extra Y
+	call pyoncy_dy_a
 floor_y:
-	call thrown_map
+	call enemy_map
 	add a,l
 	add a,010h
 	cp 0b8h
@@ -12923,12 +12930,12 @@ floor_nz:
 	or 0ffh
 	ret
 ; ix+9/10 = 0
-thrown_still:                   ; 0xB58F  ix+9/10 = 0
+enemy_still:                   ; 0xB58F  ix+9/10 = 0
 	ld de,00000h
-	jp thrown_xy_d
+	jp enemy_xy_d
 
-; BLOCK 'ix14_da' (start 0xb595 end 0xb5a6)
-ix14_da_start:
+; BLOCK 'pyoncy_dy' (start 0xb595 end 0xb5a6)
+pyoncy_dy_start:
 	defb 005h
 	defb 005h
 	defb 004h
@@ -12946,10 +12953,10 @@ ix14_da_start:
 	defb 0fdh
 	defb 0fch
 	defb 0fbh
-ix14_da_end:
+pyoncy_dy_end:
 
-; BLOCK 'ix14_db' (start 0xb5a6 end 0xb5b7)
-ix14_db_start:
+; BLOCK 'pyoncy_dy2' (start 0xb5a6 end 0xb5b7)
+pyoncy_dy2_start:
 	defb 005h
 	defb 004h
 	defb 003h
@@ -12967,9 +12974,9 @@ ix14_db_start:
 	defb 0feh
 	defb 0fdh
 	defb 0fch
-ix14_db_end:
-shov_turn:                        ; 0xB5B7
-	call thrown_edge
+pyoncy_dy2_end:
+pyoncy_turn:                        ; 0xB5B7
+	call enemy_edge
 	dec a
 	cp (ix+00bh)
 	ld (ix+006h),000h
@@ -12977,34 +12984,34 @@ shov_turn:                        ; 0xB5B7
 	ld (ix+006h),001h
 	ld c,00dh
 	call dir_left
-	call thrown_block
+	call enemy_block
 	jr c,turn_stop
-	call thrown_step
+	call enemy_step
 	ret c
 	ld a,(ix+00bh)
 	xor 001h
 	ld (ix+00bh),a
 	ret
 turn_stop:
-	call thrown_snap
+	call enemy_snap
 	ld de,00000h
-	call thrown_dxy
-	call thrown_xy_d
+	call enemy_dxy
+	call enemy_xy_d
 	ld (ix+006h),000h
 	ld (ix+014h),008h
 	ld (ix+018h),0ffh
 	ld (ix+001h),001h
 	ret
-shov_end:                         ; 0xB5FB
+pyoncy_end:                         ; 0xB5FB
 	call floor_dy
 	ret z
 	ld de,00000h
-	call thrown_dxy
+	call enemy_dxy
 	ld a,(ix+019h)
 	ld (ix+00bh),a
-	jp cut_land
+	jp pyoncy_land
 ; turn when X matches home / Vic
-boom_home:                      ; 0xB60E  turn when X matches home / Vic
+enemy_home:                      ; 0xB60E  turn when X matches home / Vic
 	set 1,(ix+00bh)
 	ld a,(ix+018h)
 	cp 0ffh
@@ -13015,7 +13022,7 @@ boom_home:                      ; 0xB60E  turn when X matches home / Vic
 	xor 001h
 	or 002h
 	ld (ix+00bh),a
-	jp thrown_reset
+	jp enemy_reset
 home_vic:
 	ld a,(0e284h)           ; Vic X
 	sub (ix+005h)
@@ -13036,12 +13043,12 @@ home_side:
 	or 002h
 	ld (ix+00bh),a
 	ret
-; NC if floor under shovel
-shovel_land:                    ; 0xB64E  NC if floor under shovel
+; NC if floor under Pyoncy
+pyoncy_floor:                    ; 0xB64E  NC if floor under Pyoncy
 	ld c,(ix+00bh)
-	call thrown_ahead
+	call enemy_ahead
 	ret c
-	call ix14_val
+	call pyoncy_dy_a
 	add a,l
 	add a,00fh
 	ld l,a
@@ -13057,63 +13064,65 @@ land_tile:
 	call map_tile_de
 	sub 002h
 	ret
-; A = ix14_da[ix+14]
-ix14_val:                       ; 0xB673  A = ix14_da[ix+14]
+; A = pyoncy_dy[ix+14]
+pyoncy_dy_a:                       ; 0xB673  A = pyoncy_dy[ix+14]
 	ld a,(ix+014h)
-	ld de,ix14_da_start
+	ld de,pyoncy_dy_start
 	call ADD_DE_A
 	ld a,(de)
 	ret
-spawn_pick:                       ; 0xB67E  pick E500 init
+; E500 type 4: Rock Roll from E2C0. No sarcophagus. Vic pick is use_floor.
+; Play: spin (rockroll_pat2 18/19) then boulder SAT D0/D8 cc 07/49, then roll.
+spawn_rockroll:                   ; 0xB67E  E500 type 4 Rock Roll
 	xor a
 	ld (ix+014h),a
 	ld (ix+01ch),a
 	ld (ix+013h),a
 	ld hl,sfx_1d
-	jp thrown_sfx
-tick_thrown_pick:                 ; 0xB68E  E500; floor 2 deep
+	jp enemy_sfx
+tick_rockroll_ball:               ; 0xB68E  E500 type 4 Rock Roll
 	ld a,(ix+001h)
 	call DISPATCH_A
 
-; BLOCK 'd_b691_jp' (start 0xb694 end 0xb6a0)
-d_b691_jp_start:
-	defw pick_spin                ; pick: floor hole 2 deep
-	defw pick_drop
-	defw pick_cut
-	defw pick_push
-	defw pick_stash
-	defw pick_tick
-d_b691_jp_end:
-pick_spin:                        ; 0xB6A0
-	ld hl,pick_pat
-	ld de,pick_pat2
-	call pick_frame
-	jr z,pick_ready
+; BLOCK 'rockroll_jp' (start 0xb694 end 0xb6a0)
+rockroll_jp_start:
+	defw rockroll_spin            ; 0 intro puff 18/19, then boulder
+	defw rockroll_drop            ; 1 wait / drop onto floor
+	defw rockroll_roll            ; 2 horizontal roll
+	defw rockroll_push            ; 3 keep moving after clash
+	defw rockroll_stash           ; 4 parked; fall if floor gone
+	defw rockroll_tick            ; 5 Y wobble (rockroll_dy)
+rockroll_jp_end:
+rockroll_spin:                        ; 0xB6A0
+	ld hl,rockroll_pat
+	ld de,rockroll_pat2
+	call enemy_frame
+	jr z,rockroll_ready
 	ld (ix+011h),a
 	ret
-; BLOCK 'pick_pat' (start 0xb6af end 0xb6b6)
-pick_pat:
+; BLOCK 'rockroll_pat' (start 0xb6af end 0xb6b6)
+rockroll_pat:
 	defb 01bh, 01bh, 01ch, 01ch, 01dh, 01dh, 0ffh
-; BLOCK 'pick_pat2' (start 0xb6b6 end 0xb6bd)
-pick_pat2:
+; BLOCK 'rockroll_pat2' (start 0xb6b6 end 0xb6bd)
+rockroll_pat2:
 	defb 018h, 019h, 018h, 019h, 018h, 019h, 0ffh
-pick_ready:
+rockroll_ready:
 	ld (ix+013h),003h
 	ld (ix+014h),03ch
 	ld a,(0f0f4h)
 	and a
-	jr z,pick_next
+	jr z,rockroll_next
 	ld (ix+01eh),007h
 	ld (ix+01fh),049h
-spin_mark:
+rockroll_spin_mark:
 	call map_mark
 	call map_hit
-	jp c,pick_abort
-pick_next:
+	jp c,rockroll_abort
+rockroll_next:
 	inc (ix+001h)
 	ret
 ; A = table[ix+14>>3]; FF = end
-pick_frame:                     ; 0xB6E0  A = table[ix+14>>3]; FF = end
+enemy_frame:                     ; 0xB6E0  A = table[ix+14>>3]; FF = end
 	ld a,(0f0f4h)
 	and a
 	jr z,frame_msx1
@@ -13129,72 +13138,72 @@ frame_msx1:
 	ld a,(hl)
 	cp 0ffh
 	ret
-pick_drop:                        ; 0xB6F9
+rockroll_drop:                        ; 0xB6F9
 	ld c,001h
-	call thrown_probe
-	jr nc,pick_stash_go
+	call enemy_probe
+	jr nc,rockroll_stash_go
 	call map_restore
-	jp pick_fall
-pick_stash_go:
+	jp rockroll_fall
+rockroll_stash_go:
 	call map_stash
 	dec (ix+014h)
-	jr z,pick_pat_c
+	jr z,rockroll_pat_c
 	ld (ix+013h),003h
 	ld a,(ix+014h)
 	and 010h
 	ld c,00fh
-	jr z,pick_hold
+	jr z,rockroll_hold
 	ld c,010h
-pick_hold:
+rockroll_hold:
 	ld (ix+011h),c
 	ret
-pick_pat_c:
+rockroll_pat_c:
 	call map_restore
 	ld a,003h
-	call thrown_hold
-	jp c,thrown_stop
+	call enemy_hold
+	jp c,enemy_stuck
 	call vic_side_x
 	ld a,c
 	or 002h
 	ld (ix+00bh),a
-	call thrown_step
-	jr c,pick_fly
+	call enemy_step
+	jr c,rockroll_go
 	ld a,(ix+00bh)
 	xor 001h
 	ld (ix+00bh),a
-	call thrown_step
-	jp nc,thrown_stop
-pick_fly:
+	call enemy_step
+	jp nc,enemy_stuck
+rockroll_go:
 	ld de,00200h
-	call thrown_xy_d
+	call enemy_xy_d
 	ld (ix+006h),001h
-	jr pick_next
-pick_cut:                         ; 0xB754
-	call thrown_edge
+	jr rockroll_next
+rockroll_roll:                        ; 0xB754  horizontal roll
+	call enemy_edge
 	dec a
 	cp (ix+00bh)
-	jp z,thrown_nudge
+	jp z,enemy_nudge
 	dec (ix+014h)
-	call pick_anim
+	call rockroll_anim
 	ld a,(ix+005h)
 	and 007h
 	cp 003h
-	jr nc,cut_step
-	call thrown_map
+	jr nc,roll_step
+	call enemy_map
 	ld c,001h
 	call probe_step_de
-	jp c,pick_fall
-cut_step:
-	call thrown_step
+	jp c,rockroll_fall
+roll_step:
+	call enemy_step
 	jr nc,clash_snap
-	call pick_clash
+	call rockroll_clash
 	ret nc
 	ld a,(ix+00bh)
 	cp 002h
 	ld a,(ix+005h)
-	jr nz,cut_align
+	jr nz,roll_align
 	add a,007h
-cut_align:
+roll_align:
 	and 0f8h
 	ld (ix+005h),a
 	ld a,(iy+006h)
@@ -13210,60 +13219,60 @@ clash_x:
 	and 0f8h
 	ld (iy+005h),a
 clash_iy_x:
-	call pick_mark
-	jp cut_sfx
+	call rockroll_mark
+	jp rockroll_thud
 clash_snap:
-	call thrown_snap
+	call enemy_snap
 	ld c,001h
 	call probe_step_de
-	jp c,pick_fall
-	call pick_mark
-cut_sfx:
+	jp c,rockroll_fall
+	call rockroll_mark
+rockroll_thud:
 	ld a,(0e243h)           ; screen
 	cp (ix+010h)
 	ret nz
 	jp sfx_24
-pick_land:                      ; 0xB7C9  zero vel, hold 60, state 1
+rockroll_land:                      ; 0xB7C9  zero vel, hold 60, state 1
 	ld (ix+006h),000h
 	ld de,00000h
-	call thrown_xy_d
-	call thrown_dxy
+	call enemy_xy_d
+	call enemy_dxy
 	ld (ix+014h),03ch
 	ld (ix+001h),001h
 	ret
-; CY if another pick overlaps
-pick_clash:                     ; 0xB7DF  CY if another pick overlaps
+; CY if another boulder overlaps
+rockroll_clash:                     ; 0xB7DF  CY if another boulder overlaps
 	ld l,(ix+003h)
 	ld h,(ix+005h)
-	call thrown_ahead
+	call enemy_ahead
 	ccf
 	ret nc
-	ld iy,0e500h            ; thrown tools
+	ld iy,0e500h            ; E500 enemies
 	ld b,008h
 	ld de,00020h
-pick_loop:
+rockroll_loop:
 	ld a,(iy+000h)
 	cp 004h
-	jr nz,pick_skip
+	jr nz,rockroll_skip
 	ld a,(ix+015h)
 	cp (iy+015h)
-	jr z,pick_skip
+	jr z,rockroll_skip
 	ld a,(ix+010h)
 	cp (iy+010h)
-	jr nz,pick_skip
+	jr nz,rockroll_skip
 	ld a,l
 	sub (iy+003h)
 	add a,00fh
 	cp 01eh
-	jr nc,pick_skip
+	jr nc,rockroll_skip
 	ld a,h
 	sub (iy+005h)
 	add a,00fh
 	cp 01eh
 	jr c,clash_dir
-pick_skip:
+rockroll_skip:
 	add iy,de
-	djnz pick_loop
+	djnz rockroll_loop
 	xor a
 	ret
 clash_dir:
@@ -13277,7 +13286,7 @@ clash_yes:
 	scf
 	ret
 ; snap X or Y to 8px from ix+11
-thrown_snap:                    ; 0xB833  snap X or Y to 8px from ix+11
+enemy_snap:                    ; 0xB833  snap X or Y to 8px from ix+11
 	ld a,(ix+00bh)
 	cp 002h
 	jr c,snap_y
@@ -13298,18 +13307,18 @@ snap_y7:
 	and 0f8h
 	ld (ix+003h),a
 	ret
-pick_fall:
-	call thrown_reset
+rockroll_fall:
+	call enemy_reset
 	ld (ix+00bh),001h
 	ld de,00500h
-	call thrown_dxy
+	call enemy_dxy
 	ld de,00000h
-	call thrown_xy_d
+	call enemy_xy_d
 	ld (ix+01ch),000h
 	ld (ix+001h),003h
 	jp drop_sfx
 ; ix+11 = 0x11 + (ix+14>>2)&3
-pick_anim:                      ; 0xB874  ix+11 = 0x11 + (ix+14>>2)&3
+rockroll_anim:                      ; 0xB874  ix+11 = 0x11 + (ix+14>>2)&3
 	ld a,(ix+014h)
 	rra
 	rra
@@ -13317,25 +13326,25 @@ pick_anim:                      ; 0xB874  ix+11 = 0x11 + (ix+14>>2)&3
 	add a,011h
 	ld (ix+011h),a
 	ret
-pick_push:                        ; 0xB881
+rockroll_push:                        ; 0xB881
 	inc (ix+01ch)
 	jr nz,push_go
 	dec (ix+01ch)
 push_go:
 	ld (ix+006h),001h
-	call pick_anim
-	call thrown_step
+	call rockroll_anim
+	call enemy_step
 	jr nc,push_stop
-	call pick_clash
+	call rockroll_clash
 	ret nc
-	call thrown_snap
-	call pick_mark
+	call enemy_snap
+	call rockroll_mark
 	ld a,(ix+01ch)
 	cp 003h
 	ret c
-	jp cut_sfx
+	jp rockroll_thud
 push_stop:
-	call thrown_snap
+	call enemy_snap
 	ld (ix+006h),000h
 	ld (ix+011h),011h
 	ld (ix+014h),000h
@@ -13344,21 +13353,21 @@ push_stop:
 	cp (ix+010h)
 	ret nz
 	jp sfx_25
-; clash_clear lands here when the thrown tool is a pick
-pick_park:                      ; 0xB8C5  align / stash after clash
+; clash_clear lands here when the live enemy is Rock Roll
+rockroll_park:                      ; 0xB8C5  align / stash after clash
 	ld (ix+013h),001h
 	ld a,(ix+001h)
 	dec a
-	jr z,pick_align
+	jr z,rockroll_align
 	dec a
 	ret nz
-	call thrown_align
-	jr pick_mark
-pick_align:
-	call thrown_align
-	jr pick_wait
+	call enemy_align
+	jr rockroll_mark
+rockroll_align:
+	call enemy_align
+	jr rockroll_wait
 ; snap both X and Y to 8px
-thrown_align:                   ; 0xB8DB  snap both X and Y to 8px
+enemy_align:                   ; 0xB8DB  snap both X and Y to 8px
 	ld a,(ix+005h)
 	and 0f8h
 	ld (ix+005h),a
@@ -13366,10 +13375,10 @@ thrown_align:                   ; 0xB8DB  snap both X and Y to 8px
 	and 0f8h
 	ld (ix+003h),a
 	ret
-pick_stash:                       ; 0xB8EC
+rockroll_stash:                       ; 0xB8EC
 	call map_stash
 	ld c,001h
-	call thrown_probe
+	call enemy_probe
 	jr c,stash_hit
 	ld a,(0e203h)           ; puzzle board
 	and 003h
@@ -13380,21 +13389,21 @@ pick_stash:                       ; 0xB8EC
 	ret
 stash_hit:
 	call map_restore
-	jp pick_fall
-pick_tick:                        ; 0xB90E
+	jp rockroll_fall
+rockroll_tick:                        ; 0xB90E
 	ld a,(ix+014h)
 	cp 012h
-	jr z,pick_mark
+	jr z,rockroll_mark
 	inc (ix+014h)
-	ld hl,ix14_dc_start
+	ld hl,rockroll_dy_start
 	call ADD_HL_A
 	ld a,(hl)
 	add a,(ix+003h)
 	ld (ix+003h),a
 	ret
 
-; BLOCK 'ix14_dc' (start 0xb926 end 0xb938)
-ix14_dc_start:
+; BLOCK 'rockroll_dy' (start 0xb926 end 0xb938)
+rockroll_dy_start:
 	defb 0fdh
 	defb 0feh
 	defb 0ffh
@@ -13413,13 +13422,13 @@ ix14_dc_start:
 	defb 0ffh
 	defb 000h
 	defb 001h
-ix14_dc_end:
-; OR this pick's 2x2 into the packed map (callers used ix14_dc_end)
-pick_mark:                      ; 0xB938
+rockroll_dy_end:
+; OR this boulder's 2x2 into the packed map
+rockroll_mark:                      ; 0xB938
 	call map_mark
 	call map_hit
-	jp c,pick_abort
-pick_wait:
+	jp c,rockroll_abort
+rockroll_wait:
 	ld (ix+006h),000h
 	ld (ix+011h),011h
 	ld (ix+013h),001h
@@ -13428,7 +13437,7 @@ pick_wait:
 	ret
 ; OR 2x2 bits into ix+18..1B
 map_stash:                      ; 0xB956  OR 2x2 bits into ix+18..1B
-	call thrown_map
+	call enemy_map
 	call map_index
 	call map_or
 	ld a,e
@@ -13445,7 +13454,7 @@ stash_e2:
 stash_d:
 	ld (ix+019h),d
 stash_d2:
-	call thrown_map
+	call enemy_map
 	ld a,h
 	add a,008h
 	ld h,a
@@ -13464,8 +13473,8 @@ stash_d3:
 stash_d4:
 	ld (ix+01bh),d
 	ret
-; map_mark if pick state 1/4
-map_if_pick:                    ; 0xB992  map_mark if pick state 1/4
+; map_mark if Rock Roll state 1/4
+map_if_rockroll:                ; 0xB992  map_mark if RR drop/stash
 	ld a,(ix+001h)
 	cp 004h
 	jr z,mark_scr
@@ -13477,12 +13486,12 @@ mark_scr:
 	ret nz
 ; OR current 2x2 into packed map
 map_mark:                       ; 0xB9A2  OR current 2x2 into packed map
-	call thrown_map
+	call enemy_map
 	call map_index
 	call map_or
 	ld (ix+018h),e
 	ld (ix+019h),d
-	call thrown_map
+	call enemy_map
 	ld a,h
 	add a,008h
 	ld h,a
@@ -13516,8 +13525,8 @@ or_shift:
 	and b
 	ld d,a
 	ret
-; map_restore if pick state 1/4
-map_if_pick2:                   ; 0xB9E0  map_restore if pick state 1/4
+; map_restore if Rock Roll state 1/4
+map_if_rockroll2:               ; 0xB9E0  map_restore if RR drop/stash
 	ld a,(ix+001h)
 	cp 004h
 	jr z,rest_scr
@@ -13529,7 +13538,7 @@ rest_scr:
 	ret nz
 ; put stashed 2x2 back into map
 map_restore:                    ; 0xB9F0  put stashed 2x2 back into map
-	call thrown_map
+	call enemy_map
 	ld a,h
 	add a,008h
 	ld h,a
@@ -13537,7 +13546,7 @@ map_restore:                    ; 0xB9F0  put stashed 2x2 back into map
 	ld e,(ix+01ah)
 	ld d,(ix+01bh)
 	call map_put
-	call thrown_map
+	call enemy_map
 	call map_index
 	ld e,(ix+018h)
 	ld d,(ix+019h)
@@ -13582,30 +13591,30 @@ map_index:                      ; 0xBA24  pixel HL + base DE -> packed HL
 	ld h,000h
 	add hl,de
 	ret
-; restore packed-map bits for every live pick (load_stage)
-picks_restore:                  ; 0xBA3C  map_if_pick2 over E500
-	ld ix,0e500h            ; thrown tools
+; restore packed-map bits for every live Rock Roll (load_stage)
+rockroll_restore:               ; 0xBA3C  map_if_rockroll2 over E500
+	ld ix,0e500h            ; E500 enemies
 	ld b,008h
 rest_loop:
 	push bc
 	ld a,(ix+000h)
 	cp 004h
-	call z,map_if_pick2
+	call z,map_if_rockroll2
 	ld de,00020h
 	add ix,de
 	pop bc
 	djnz rest_loop
 	ret
-; mark packed-map bits for every live pick (load_stage tail)
-picks_mark:                     ; 0xBA54  map_if_pick over E500
-	ld ix,0e500h            ; thrown tools
+; mark packed-map bits for every live Rock Roll (load_stage tail)
+rockroll_mark_all:              ; 0xBA54  map_if_rockroll over E500
+	ld ix,0e500h            ; E500 enemies
 	ld b,008h
 mark_loop:
 	push bc
 	ld a,(ix+000h)
 	cp 004h
 	jr nz,mark_next
-	call map_if_pick
+	call map_if_rockroll
 mark_next:
 	ld de,00020h
 	add ix,de
@@ -13623,9 +13632,9 @@ map_hit:                        ; 0xBA6E  CY if stashed 2x2 has bit 0xAA
 	scf
 	ret
 ; stash collided with a wall bit; put map back and despawn
-pick_abort:                     ; 0xBA7F
+rockroll_abort:                     ; 0xBA7F
 	call map_restore
-	jp thrown_stop
+	jp enemy_stuck
 tick_coffin:                      ; 0xBA85  E600 type 1: Vic push opens lid (states 6/7); no walk
 	ld a,(ix+001h)
 	cp 001h

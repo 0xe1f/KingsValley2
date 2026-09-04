@@ -28,12 +28,12 @@ HOW A PYRAMID IS STORED
 
   Composites (gfx/pyramid_NN.png) follow load_stage then the playfield
   stamps: stamp_wpat (HMMM, opaque 8×4 grid), then tile_pset LMMM TIMP
-  (colour 0 shows wallpaper) for glyphs, map, delayed 2×3 throw_under,
+  (colour 0 shows wallpaper) for glyphs, map, delayed 2×3 case_under,
   gems, exit, E600 actors, and map tools. Palette is pal_15 (even/odd
-  from (level-1)&2). E2C0 delayed pickups (put_enemy / names_enemies)
-  also get the delay_spr SAT at the packed XY: Slouman / Flouman /
-  Pyoncy / Rock Roll. stamp_delayed already laid throw_under (types
-  1–2) at (X, Y−8). Vic is the unarmed 16×32 SAT at B844 (CC tops from
+  from (level-1)&2). E2C0 names_enemies (put_enemy: Slouman / Flouman /
+  Pyoncy / Rock Roll) get delay_spr SAT at packed XY — that matches play
+  enemy_sat, not the E300 floor tools. stamp_delayed already laid
+  case_under (types 1–2) at (X, Y−8). Vic is the unarmed 16×32 SAT at B844 (CC tops from
   rle_86d4 + legs from rle_8fd9, indices OR'd; X-flipped to face left).
   Stream sheets are unpack_map + overlay only (no wallpaper / sprites).
 
@@ -429,10 +429,10 @@ def apply_actors(ids, wpat, rom, pyramid, screen):
 
 
 def apply_delayed(ids, rom, pyramid, screen):
-    """stamp_delayed: 2×3 throw_under for E2C0 types 1–2 on this screen.
+    """stamp_delayed: 2×3 case_under for E2C0 types 1–2 on this screen.
 
-    Packed record is type, screen, Y, X (same order as gems). draw_tilemap
-    BC=3×2 at (X, Y−8). Types 1–2 only (`dec a; sub 2; call c`).
+    Packed record is type, screen, Y, X. draw_tilemap BC=3×2 at (X, Y−8).
+    Types 1–2 only (`dec a; sub 2; call c`).
     """
     cpu = word_d(rom, DELAYED_PTR + pyramid * 2)
     fo = G.cpu_file(13, cpu)
@@ -573,11 +573,11 @@ def load_delay_spr(rom):
 
 
 def overlay_delayed_enemies(img, rom, delay_spr, pal, pyramid, screen, scale):
-    """16×16 delay_spr SAT at E2C0 XY (delay_sat). Types 1–4.
+    """16×16 delay_spr at E2C0 XY (play enemy_sat / editor delay_sat).
 
     Packed record is type, screen, Y, X. stamp_delayed already put
-    throw_under at (X, Y−8) for types 1–2. SAT Y is the packed Y, not
-    Y−8 and not Vic's E282−9.
+    case_under at (X, Y−8) for types 1–2. SAT Y is packed Y (play is
+    packed Y−1 via enemy_sat1).
     """
     cpu = word_d(rom, DELAYED_PTR + pyramid * 2)
     fo = G.cpu_file(13, cpu)

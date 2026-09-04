@@ -38,6 +38,12 @@ mapper_bank_A000:        equ 0xF0F3
 ; 0xE25A continue script (cont_tick). 0xE25B file I/O / nested editor
 ; (io_tick / disk_tick / d_7b0b). 0xE260 editor legend (print_legend 0..10);
 ; 0xE261 subtype; 0xE262 screen slot in E788.
+; 0xE2C0 names_enemies spawners (8 × 5): type|0x80, timer, screen, Y, X
+; (load_delayed / put_enemy). First timer 0x14; tick_delayed -> E500
+; (enemy_sat at E840). enemy_done re-arms bit 7; respawn timer 0x30.
+; stamp_delayed case_under at (X, Y−8) for types 1–2 (sarcophagus).
+; Type 4 Rock Roll: no case; play SAT boulder D0/D8 cc 07/49.
+; delay_sat is editor-only (same packed XY). Not E300 floor tools.
 ; Editor occupancy: 0xE266 delayed (max 8), 0xE267 E600 (max 16),
 ; 0xE268 E300 (max 64), 0xE269 gems (max 16), 0xE26A exit, 0xE26B Vic.
 ; 0xF0F8 load device 0 tape / 1 disk / 2 sram (io_dev); 0xF0F9 present bits
