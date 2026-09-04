@@ -1,0 +1,42 @@
+{
+  "rom_bytes": 131072,
+  "labelled_bytes": 131072,
+  "incbin_bytes": 0,
+  "auto_labels": 0,
+  "opcodes": 18646,
+  "commented": 1658,
+  "comment_pct": 8.9,
+  "subs": 729,
+  "subs_doc": 729,
+  "subs_pct": 100.0,
+  "windows": [
+    {
+      "name": "banks_0",
+      "incbin": 0,
+      "auto": 0,
+      "subs": 240,
+      "subs_doc": 240
+    },
+    {
+      "name": "banks_123",
+      "incbin": 0,
+      "auto": 0,
+      "subs": 417,
+      "subs_doc": 417
+    },
+    {
+      "name": "banks_456",
+      "incbin": 0,
+      "auto": 0,
+      "subs": 44,
+      "subs_doc": 44
+    },
+    {
+      "name": "banks_abc",
+      "incbin": 0,
+      "auto": 0,
+      "subs": 28,
+      "subs_doc": 28
+    }
+  ]
+}
