@@ -23,19 +23,26 @@ HOW A PYRAMID IS STORED
   1 ladder (tiles 3/4), 2 → tile 5, 3 → tile 0x5E.
 
   load_obj (obj_ptr) ORs overlay runs onto the same grid (always cell 1).
-  0xFF advances one screen.
+  0xFF advances one screen. Each step writes a 2-wide column; a nibble-3
+  start leaves E=0xFF on later rows (overlay_bits RRA, not a logical shift).
 
   Composites (gfx/pyramid_NN.png) follow load_stage then the playfield
   stamps: stamp_wpat (HMMM, opaque 8×4 grid), then tile_pset LMMM TIMP
-  (colour 0 shows wallpaper) for glyphs, map, exit, E600 actors, gems,
-  and map tools. Vic is the unarmed SAT CC pair at B844. Stream sheets are
-  unpack_map + overlay only (no wallpaper / sprites).
+  (colour 0 shows wallpaper) for glyphs, map, delayed 2×3 throw_under,
+  gems, exit, E600 actors, and map tools. Palette is pal_15 (even/odd
+  from (level-1)&2). E2C0 delayed pickups (put_enemy / names_enemies)
+  also get the delay_spr SAT at the packed XY: Slouman / Flouman /
+  Pyoncy / Rock Roll. stamp_delayed already laid throw_under (types
+  1–2) at (X, Y−8). Vic is the unarmed 16×32 SAT at B844 (CC tops from
+  rle_86d4 + legs from rle_8fd9, indices OR'd; X-flipped to face left).
+  Stream sheets are unpack_map + overlay only (no wallpaper / sprites).
 
   load_screens unpacks ab5a_flags (8 bytes, MSB first) into E788 as 8×8 slots,
   screen ids 1..n. That bit grid is the editor / pause-map geography.
 
   World dest tiles come from blit_list dest_common + dest_wN (same atlas as
-  gfxdump dest sheets). Palette is world_play_pal (even pyramid + HUD).
+  gfxdump dest sheets). Palette is pal_15: even (0xB97A) or odd (0xB9F8)
+  from (level-1)&2, then pal_hud.
 
 Output:
   gfx/metatiles/map_streams_wN.png  one pyramid per row, screens as columns
@@ -71,6 +78,8 @@ LEVEL_PTR = 0x806A         # tbl_word, A = 1-based level
 GLYPH_PTR = 0x800C         # tbl_word, A = (world-1)*8 + (B&7)
 ACTOR_PTR = 0xAAE0         # tbl_word, A = 1-based level
 GEM_PTR = 0xA75D           # tbl_word, A = 1-based level
+DELAYED_PTR = 0xB7CD       # tbl_word, A = 1-based level
+THROW_UNDER = 0x93AC       # 2×3 dest (stamp_delayed; B=3 C=2)
 TOOL_PTR = 0xAFB1          # tbl_word, A = level-1
 VIC_SPAWN = 0xB844         # + level*3: Y, X, screen
 EXIT_DOOR = 0xB8F8         # + level*3: Y, X, (screen<<5)|shape
@@ -83,8 +92,11 @@ PYONCY_L = (0x937C, 0x9384, 0x938C)
 PYONCY_R = (0x9394, 0x939C, 0x93A4)
 TRAP_TILE = 0xAD           # MSX2 draw_trap (F0F4)
 ROCK_TILE = 5
-VIC_RLE = (14, 0x86D4)     # first unarmed walk pose, 3 × CC pair
+VIC_RLE_TOP = (14, 0x86D4)  # unarmed walk tops, 3 poses × CC pair
+VIC_RLE_BOT = (14, 0x8FD9)  # matching legs / torso (held_0 E300)
 VIC_SAT_DY = 9             # SAT Y = E282 − 9
+DELAY_SPR = 0x86B9         # 4 × (pat, cc, cc); delay_sat
+PAT_COPY = 0x98C9          # copy_pat lists (bank 0E)
 WPAT_W, WPAT_H = 8, 4
 WPAT_BYTES = WPAT_W * WPAT_H
 GAP = 4
@@ -144,14 +156,27 @@ def unpack_map(rom, ptr):
 
 
 def overlay_bits(mem, hl, e):
-    """Write 2-bit value 1 into packed cell E of byte HL (Z80 overlay_bits)."""
+    """Write 2-bit value 1 into packed cell E of byte HL (Z80 overlay_bits).
+
+    A starts at 0x40 and is RRA'd twice per E. E is a full byte: a nibble-3
+    start leaves E=0xFF on later rows (inc/and-3 wrap), which is not a
+    logical shift of 0x40.
+    """
     if not (0 <= hl < len(mem)):
         return
     a = 0x40
     e &= 0xFF
     if e:
-        a >>= (2 * e)
-        a &= 0xFF
+        cf = 0
+        b = e
+        while True:
+            for _ in range(2):
+                new_cf = a & 1
+                a = ((a >> 1) | (cf << 7)) & 0xFF
+                cf = new_cf
+            b = (b - 1) & 0xFF
+            if b == 0:
+                break
     mask = ((a << 1) | (a >> 7)) & 0xFF
     mem[hl] = (mem[hl] & (mask ^ 0xFF)) | a
 
@@ -174,19 +199,20 @@ def apply_overlay(mem, rom, ptr):
         rec = e | (d << 8)
         hl = base + (rec >> 7)
         run = e & 0x1F or 256
-        e_nib = (e >> 5) & 3
+        e_reg = (e >> 5) & 3
         for _ in range(run):
-            overlay_bits(mem, hl, e_nib)
-            e_nib = (e_nib + 1) & 3
-            if e_nib == 0:
+            overlay_bits(mem, hl, e_reg)
+            e_reg = (e_reg + 1) & 0xFF
+            e_reg &= 3
+            if e_reg == 0:
                 hl += 1
-            overlay_bits(mem, hl, e_nib)
-            if e_nib == 0:
+            overlay_bits(mem, hl, e_reg)
+            if e_reg == 0:
                 hl += 7
-                e_nib = 0xFF
+                e_reg = 0xFF
             else:
                 hl += 8
-                e_nib = (e_nib - 1) & 0xFF
+                e_reg = (e_reg - 1) & 0xFF
 
 
 def cells_of_screen(packed, screen):
@@ -376,9 +402,16 @@ def apply_actors(ids, wpat, rom, pyramid, screen):
         hgt = b3 >> 3
         face = (b3 & 7) != 0
         if typ == 1:
+            # coffin_pat is 4× 2-tile pairs: L head, L body, R body, R head.
+            # draw_coffin sets HL=DE=BC=coffin_pat; actor_row adds ix+5*2
+            # (idle: 0 or 6 from facing). Every row uses that same pair.
             fill_wpat_rect(ids, wpat, x, y, 2, hgt)
-            stamp_actor_rows(ids, rom, (COFFIN_PAT,) * 3, (b3 & 7) * 3,
-                             x, y, hgt)
+            off = 6 if face else 0
+            pair = bytes_123(rom, COFFIN_PAT + off, 2)
+            tx, ty = x >> 3, y >> 3
+            for row in range(hgt):
+                for col, tid in enumerate(pair):
+                    put_tile(ids, tx + col, ty + row, tid)
         elif typ == 2:
             fill_wpat_rect(ids, wpat, x, y, 2, hgt)
             rows = PYONCY_R if face else PYONCY_L
@@ -393,6 +426,26 @@ def apply_actors(ids, wpat, rom, pyramid, screen):
                 put_tile(ids, tx + col, ty, TRAP_TILE)
         elif typ == 5:
             stamp_pat(ids, bytes_123(rom, STONE_PAT, 4), x, y, 2, 2)
+
+
+def apply_delayed(ids, rom, pyramid, screen):
+    """stamp_delayed: 2×3 throw_under for E2C0 types 1–2 on this screen.
+
+    Packed record is type, screen, Y, X (same order as gems). draw_tilemap
+    BC=3×2 at (X, Y−8). Types 1–2 only (`dec a; sub 2; call c`).
+    """
+    cpu = word_d(rom, DELAYED_PTR + pyramid * 2)
+    fo = G.cpu_file(13, cpu)
+    i = 0
+    pat = bytes_123(rom, THROW_UNDER, 6)
+    while rom[fo + i]:
+        typ, scr, y, x = rom[fo + i:fo + i + 4]
+        i += 4
+        if scr != screen:
+            continue
+        if not (1 <= (typ & 0x7F) <= 2):
+            continue
+        stamp_pat(ids, pat, x, y - 8, 2, 3, skip0=True)
 
 
 def apply_gems(ids, rom, pyramid, screen):
@@ -438,40 +491,126 @@ def screen_tile_ids(rom, world, pyramid, packed, screen, decorate):
         for tx, tid in enumerate(row):
             if tid is not None:
                 ids[ty][tx] = tid
+    apply_delayed(ids, rom, pyramid, screen)
+    apply_gems(ids, rom, pyramid, screen)
     apply_exit(ids, rom, pyramid, screen)
     apply_actors(ids, wpat, rom, pyramid, screen)
-    apply_gems(ids, rom, pyramid, screen)
     apply_tools(ids, rom, pyramid, screen)
     return ids
 
 
 def blit_sat(buf, W, H, x0, y0, planes, pal, scale):
-    """OR a CC pair onto RGB; index 0 is transparent."""
-    for plane in planes:
-        for py, row in enumerate(plane):
-            for px, idx in enumerate(row):
-                if not idx:
+    """OR CC colour indices (VDP), then palette; index 0 is transparent."""
+    h = len(planes[0])
+    w = len(planes[0][0])
+    for py in range(h):
+        for px in range(w):
+            idx = 0
+            for plane in planes:
+                pix = plane[py][px] & 15
+                if pix:
+                    idx |= pix
+            if not idx:
+                continue
+            rgb = pal[idx]
+            for yy in range(scale):
+                qy = (y0 + py) * scale + yy
+                if not (0 <= qy < H):
                     continue
-                rgb = pal[idx & 15]
-                for yy in range(scale):
-                    qy = (y0 + py) * scale + yy
-                    if not (0 <= qy < H):
-                        continue
-                    for xx in range(scale):
-                        qx = (x0 + px) * scale + xx
-                        if 0 <= qx < W:
-                            o = (qy * W + qx) * 3
-                            buf[o:o + 3] = bytes(rgb)
+                for xx in range(scale):
+                    qx = (x0 + px) * scale + xx
+                    if 0 <= qx < W:
+                        o = (qy * W + qx) * 3
+                        buf[o:o + 3] = bytes(rgb)
+
+
+def xflip_sprite(grid):
+    return [list(reversed(row)) for row in grid]
+
+
+def sat_cc_pair(rom, src_cpu, colours):
+    """Two 16×16 CC planes from a copy_pat blob (32 bytes each).
+
+    `colours` are sprite_16 inks (high nibble = SAT index), from delay_spr
+    cc bytes with EC/CC stripped.
+    """
+    fo = G.cpu_file(14, src_cpu)
+    blob = rom[fo:fo + 64]
+    return [
+        G.sprite_16(blob[p * 32:(p + 1) * 32], colours[p])
+        for p in range(2)
+    ]
+
+
+def pat_copy_src(rom):
+    """copy_pat n,y,src → SAT pattern number y → payload CPU."""
+    fo = G.cpu_file(14, PAT_COPY)
+    i = 0
+    out = {}
+    while True:
+        n = rom[fo + i]
+        if n == 0:
+            break
+        y = rom[fo + i + 1]
+        src = rom[fo + i + 2] | (rom[fo + i + 3] << 8)
+        i += 4
+        for k in range(n):
+            out[y + 4 * k] = src + 32 * k
+    return out
+
+
+def load_delay_spr(rom):
+    """delay_spr types 1–4 → CC plane pair (delay_sat / names_enemies)."""
+    srcs = pat_copy_src(rom)
+    fo = G.cpu_file_win(DELAY_SPR, WIN_123)
+    out = []
+    for t in range(4):
+        pat, cc0, cc1 = rom[fo + t * 3:fo + t * 3 + 3]
+        cpu = srcs[pat]
+        colours = ((cc0 & 15) << 4, (cc1 & 15) << 4)
+        out.append(sat_cc_pair(rom, cpu, colours))
+    return out
+
+
+def overlay_delayed_enemies(img, rom, delay_spr, pal, pyramid, screen, scale):
+    """16×16 delay_spr SAT at E2C0 XY (delay_sat). Types 1–4.
+
+    Packed record is type, screen, Y, X. stamp_delayed already put
+    throw_under at (X, Y−8) for types 1–2. SAT Y is the packed Y, not
+    Y−8 and not Vic's E282−9.
+    """
+    cpu = word_d(rom, DELAYED_PTR + pyramid * 2)
+    fo = G.cpu_file(13, cpu)
+    i = 0
+    w, h, data = img
+    buf = None
+    while rom[fo + i]:
+        typ, scr, y, x = rom[fo + i:fo + i + 4]
+        i += 4
+        typ &= 0x7F
+        if not (1 <= typ <= 4) or scr != screen:
+            continue
+        if buf is None:
+            buf = bytearray(data)
+        blit_sat(buf, w, h, x, y, delay_spr[typ - 1], pal, scale)
+    if buf is None:
+        return img
+    return w, h, bytes(buf)
 
 
 def overlay_vic(img, rom, planes, pal, pyramid, screen, scale):
-    """Unarmed walk pose: SAT CC pair at (E284, E282−9)."""
+    """Unarmed 16×32 SAT (CC tops + legs) at (E284, E282−9), facing left."""
     y, x, scr = bytes_d(rom, VIC_SPAWN + pyramid * 3, 3)
     if scr != screen:
         return img
     w, h, data = img
     buf = bytearray(data)
-    blit_sat(buf, w, h, x, y - VIC_SAT_DY, planes, pal, scale)
+    top, bot = planes
+    faces_top = [xflip_sprite(p) for p in top]
+    faces_bot = [xflip_sprite(p) for p in bot]
+    sat_y = y - VIC_SAT_DY
+    blit_sat(buf, w, h, x, sat_y, faces_top, pal, scale)
+    blit_sat(buf, w, h, x, sat_y + 16, faces_bot, pal, scale)
     return w, h, bytes(buf)
 
 
@@ -594,23 +733,35 @@ class Atlases:
         blit_ptr = G.cpu_file(7, 0x6177)
         tbl_ptr = G.cpu_file(7, 0x6065)
         self.by_world = {}
-        self.pal = {}
+        self.pal_even = {}
+        self.pal_odd = {}
         for w in range(1, 7):
             lst = G.word_le(rom, blit_ptr + w * 2)
             tbl = G.word_le(rom, tbl_ptr + w * 2)
             atlas = dict(common)
             atlas.update(G.blit_atlas(rom, lst, tbl, G.WIN_789))
             self.by_world[w] = atlas
-            self.pal[w] = G.world_play_pal(rom, play, w)
-        blob, _, _ = G.decompress(rom, G.cpu_file(*VIC_RLE), 0)
-        # One walk pose = CC pair (16×16). vic_sat_put also writes a 2×2 SAT
-        # (patterns 8/12 at Y+16) from the *same* generator after vic_hmm;
-        # the unarmed RLE packs 3 poses × 2 planes, so stacking 8/12 here
-        # would paste the next walk frame as a second torso.
-        self.vic = [
-            G.sprite_16(blob[i * 32:(i + 1) * 32], G.SAT_CC[i % 2])
-            for i in range(2)
-        ]
+            self.pal_even[w] = G.world_play_pal(rom, play, w, odd=False)
+            self.pal_odd[w] = G.world_play_pal(rom, play, w, odd=True)
+
+        def vic_cc(bank_cpu, pose=0):
+            blob, _, _ = G.decompress(rom, G.cpu_file(*bank_cpu), 0)
+            i = pose * 2
+            return [
+                G.sprite_16(blob[(i + p) * 32:(i + p + 1) * 32],
+                            G.SAT_CC[p])
+                for p in range(2)
+            ]
+        # vic_sat_put is a 2×2 SAT (16×32): patterns 0/4 at Y, 8/12 at Y+16.
+        # held_0 keeps tops at E000 (rle_86d4) and legs at E300 (rle_8fd9).
+        self.vic = (vic_cc(VIC_RLE_TOP), vic_cc(VIC_RLE_BOT))
+        self.delay_spr = load_delay_spr(rom)
+
+    def play_pal(self, world, pyramid):
+        """pal_15: (level-1)&2 selects odd (0xB9F8) vs even (0xB97A)."""
+        if (pyramid - 1) & 2:
+            return self.pal_odd[world]
+        return self.pal_even[world]
 
 
 def load_pyramid(rom, pyramid):
@@ -629,7 +780,7 @@ def load_pyramid(rom, pyramid):
 def render_screens(rom, atlases, pyramid, packed, nscreens, scale,
                    decorate=False):
     world = world_of(pyramid)
-    atlas, pal = atlases.by_world[world], atlases.pal[world]
+    atlas, pal = atlases.by_world[world], atlases.play_pal(world, pyramid)
     images = []
     for scr in range(1, nscreens + 1):
         ids = screen_tile_ids(rom, world, pyramid, packed, scr, decorate)
@@ -637,6 +788,8 @@ def render_screens(rom, atlases, pyramid, packed, nscreens, scale,
             wpat = wpat_grid(rom, world, pyramid)
             img = paint_rgb(wpat, atlas, pal, scale)
             img = paint_rgb(ids, atlas, pal, scale, buf=img[2], skip0=True)
+            img = overlay_delayed_enemies(
+                img, rom, atlases.delay_spr, pal, pyramid, scr, scale)
             img = overlay_vic(img, rom, atlases.vic, pal, pyramid, scr, scale)
         else:
             img = paint_rgb(ids, atlas, pal, scale)

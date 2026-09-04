@@ -507,9 +507,13 @@ def dump_blit_sheet(rom, path, list_cpu, tbl_cpu, banks, play_pal, cols=16):
     render_png(path, cells, play_pal, cols=cols, labels=labels, zero_off=False)
 
 
-def world_play_pal(rom, base, world):
-    """pal_15 even pyramid + pal_hud on top of base (pal_a7ce)."""
-    tbl = cpu_file(15, 0xB97A)
+def world_play_pal(rom, base, world, odd=False):
+    """pal_15 world table + pal_hud on top of base (pal_a7ce).
+
+    pal_15 picks even (0xB97A) or odd (0xB9F8) from (level-1)&2, then
+    indexes that table by world.
+    """
+    tbl = cpu_file(15, 0xB9F8 if odd else 0xB97A)
     ptr = word_le(rom, tbl + world * 2)
     pal = apply_pal(rom, base, 15, ptr)
     return apply_pal(rom, pal, 15, 0xB95D)
